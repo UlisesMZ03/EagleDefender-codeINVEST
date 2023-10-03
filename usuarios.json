@@ -1,16 +1,10 @@
 [
     {
         "Name": "Ulises",
-        "Email": "ulises@gmail.com",
-        "Age": "12",
+        "Username": "ulisesmz",
+        "Email": "ulisesmz@estudiantec.cr",
+        "Age": "20",
         "Ip": "192.168.4.16",
-        "Password": "Asdfghjkl1+"
-    },
-    {
-        "Name": "emanue",
-        "Email": "emanue@gmail.com",
-        "Age": "10",
-        "Ip": "192.168.4.17",
         "Password": "Asdfghjkl1+"
     }
 ]
