@@ -5,7 +5,7 @@ import serial
 import re
 import json
 import os
-
+import threading
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
@@ -46,13 +46,7 @@ def register():
     confirm_password = confirm_pass_entry.get()
 
     if username != "" and password == confirm_password and is_valid_email(email) and is_valid_password(password) and is_valid_username(username) and is_valid_age(age):
-        new_window = ctk.CTkToplevel(app)
-        new_window.title("Register Info")
-        new_window.geometry("400x300")
-        ctk.CTkLabel(new_window, text=f"Name: {name}").pack()
-        ctk.CTkLabel(new_window, text=f"Email: {email}").pack()
-        ctk.CTkLabel(new_window, text=f"Age: {age}").pack()
-        ctk.CTkLabel(new_window, text=f"Ip: {ip_device}").pack()
+        
         user = Usuario(name,age,email,ip_device,password)
         print(user)
 
@@ -73,7 +67,7 @@ def register():
         else:
             # Si el archivo existe, abrirlo y agregar el nuevo usuario al final
             with open("usuarios.json", "r") as json_file:
-                print("holaaaaaaaaaaaa")
+                
                 # Cargar datos existentes del archivo
                 users = json.load(json_file)
             # Agregar el nuevo usuario a la lista existente
@@ -100,22 +94,32 @@ server_socket = None
 
 
 
-def receive_data_from_uart():
-    SERIAL_PORT = '/dev/ttyACM0'  # Reemplaza esto con el puerto serial al que está conectada la Raspberry Pi Pico en tu PC
-    BAUD_RATE = 9600
-    tkmb.showinfo("Registrar dispositivo", "Por favor, conéctese a la red WiFi llamada EagleDefender desde su celular o dispositivo electrónico, seguidamente abra la siguiente dirección: http://192.168.4.1.")
-   
-    ser = serial.Serial(SERIAL_PORT, BAUD_RATE)
-    while True:
-        data_received = ser.readline().decode().strip()
-        print("Datos recibidos desde Raspberry Pi Pico:", data_received)
+# Variable de bandera para controlar la ejecución del hilo
+hilo_en_ejecucion = True
 
-        global ip_device
-        ip_device = data_received
+def receive_data_from_uart():
+    def uart_thread_function():
+        SERIAL_PORT = '/dev/ttyACM0'  # Reemplaza esto con el puerto serial al que está conectada la Raspberry Pi Pico en tu PC
+        BAUD_RATE = 9600
+        tkmb.showinfo("Registrar dispositivo", "Por favor, conéctese a la red WiFi llamada EagleDefender desde su celular o dispositivo electrónico, seguidamente abra la siguiente dirección: http://192.168.4.1.")
        
-        break
-    
+        ser = serial.Serial(SERIAL_PORT, BAUD_RATE)
+        global hilo_en_ejecucion
+        while hilo_en_ejecucion:
+            data_received = ser.readline().decode().strip()
+            print("Datos recibidos desde Raspberry Pi Pico:", data_received)
+
+            global ip_device
+            ip_device = data_received
+            break
+        # El hilo se detendrá cuando salga del bucle while
         
+    # Creamos un hilo para ejecutar uart_thread_function()
+    uart_thread = threading.Thread(target=uart_thread_function)
+    
+    # Iniciamos el hilo
+    uart_thread.start()
+ 
         
 
 
