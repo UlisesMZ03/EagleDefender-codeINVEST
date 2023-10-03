@@ -1,7 +1,11 @@
 import customtkinter as ctk
 import tkinter.messagebox as tkmb
-
+from usuarios import Usuario
+import serial
 import re
+import json
+import os
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
@@ -48,6 +52,36 @@ def register():
         ctk.CTkLabel(new_window, text=f"Name: {name}").pack()
         ctk.CTkLabel(new_window, text=f"Email: {email}").pack()
         ctk.CTkLabel(new_window, text=f"Age: {age}").pack()
+        ctk.CTkLabel(new_window, text=f"Ip: {ip_device}").pack()
+        user = Usuario(name,age,email,ip_device,password)
+        print(user)
+
+        # Convertir el objeto de usuario a un diccionario
+        user_dict = {
+            "Name": name,
+            "Email": email,
+            "Age": age,
+            "Ip": ip_device,
+            "Password": password
+        }
+        
+                # Verificar si el archivo usuarios.json existe
+        if not os.path.exists("usuarios.json"):
+            # Si no existe, crear un nuevo archivo y escribir el primer usuario
+            with open("usuarios.json", "w") as json_file:
+                json.dump([user_dict], json_file, indent=4)
+        else:
+            # Si el archivo existe, abrirlo y agregar el nuevo usuario al final
+            with open("usuarios.json", "r") as json_file:
+                print("holaaaaaaaaaaaa")
+                # Cargar datos existentes del archivo
+                users = json.load(json_file)
+            # Agregar el nuevo usuario a la lista existente
+            users.append(user_dict)
+            # Escribir la lista actualizada al archivo
+            with open("usuarios.json", "w") as json_file:
+                json.dump(users, json_file, indent=4)
+
     elif password != confirm_password:
         tkmb.showwarning(title='Password Mismatch', message='Password and confirm password do not match')
     elif not is_valid_email(email):
@@ -61,9 +95,35 @@ def register():
     else:
         tkmb.showerror(title="Register Failed", message="Invalid Username and password")
 
-# Resto del código permanece igual
+
+server_socket = None
+
+
+
+def receive_data_from_uart():
+    SERIAL_PORT = '/dev/ttyACM0'  # Reemplaza esto con el puerto serial al que está conectada la Raspberry Pi Pico en tu PC
+    BAUD_RATE = 9600
+    tkmb.showinfo("Registrar dispositivo", "Por favor, conéctese a la red WiFi llamada EagleDefender desde su celular o dispositivo electrónico, seguidamente abra la siguiente dirección: http://192.168.4.1.")
+   
+    ser = serial.Serial(SERIAL_PORT, BAUD_RATE)
+    while True:
+        data_received = ser.readline().decode().strip()
+        print("Datos recibidos desde Raspberry Pi Pico:", data_received)
+
+        global ip_device
+        ip_device = data_received
+       
+        break
+    
+        
+        
+
+
+
+
 
 font_size = 25
+
 font = "Roboto"
 
 label = ctk.CTkLabel(app, text="Register", font=("Arial", font_size))
@@ -71,10 +131,6 @@ label.pack(pady=0)
 
 frame = ctk.CTkFrame(master=app)
 frame.pack(pady=10, padx=10, fill='both', expand=True)
-
-name_entry = ctk.CTkEntry(master=frame, placeholder_text="Name", font=(font, font_size))
-name_entry.pack(pady=12, padx=10)
-
 email_entry = ctk.CTkEntry(master=frame, placeholder_text="Email", font=(font, font_size))
 email_entry.pack(pady=12, padx=10)
 
@@ -89,6 +145,15 @@ user_pass.pack(pady=12, padx=10)
 
 confirm_pass_entry = ctk.CTkEntry(master=frame, placeholder_text="Confirm Password", show="*", font=(font, font_size))
 confirm_pass_entry.pack(pady=12, padx=10)
+
+ip_label = ctk.CTkLabel(app, text="", font=("Arial", font_size))
+ip_label.pack(pady=10)
+
+
+connect_button = ctk.CTkButton(master=frame, text='Registrar celular', command=receive_data_from_uart, font=(font, font_size))
+name_entry = ctk.CTkEntry(master=frame, placeholder_text="Name", font=(font, font_size))
+name_entry.pack(pady=12, padx=10)
+connect_button.pack(pady=12, padx=10)
 
 button = ctk.CTkButton(master=frame, text='Register', command=register, font=(font, font_size))
 button.pack(pady=12, padx=10)
