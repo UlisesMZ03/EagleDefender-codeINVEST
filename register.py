@@ -47,12 +47,13 @@ def register():
 
     if username != "" and password == confirm_password and is_valid_email(email) and is_valid_password(password) and is_valid_username(username) and is_valid_age(age):
         
-        user = Usuario(name,age,email,ip_device,password)
+        user = Usuario(name,username,age,email,ip_device,password)
         print(user)
 
         # Convertir el objeto de usuario a un diccionario
         user_dict = {
             "Name": name,
+            "Username": username,
             "Email": email,
             "Age": age,
             "Ip": ip_device,
