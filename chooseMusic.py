@@ -1,50 +1,45 @@
+import os 
 from dotenv import load_dotenv
+from spotipy import Spotify
 import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-import os
+import webbrowser
+import pyautogui
 import time
+from spotipy.oauth2 import SpotifyClientCredentials
 import pygame
-import pprint
 load_dotenv()
-client_id = os.getenv("CLIENTID")
-client_secret = os.getenv("CLIENTSECRET")
+
+
+song="In Too Deep"
+author="sum 41"
+CLIENT_SECRET=os.getenv('CLIENTSECRET')
+CLIENT_ID=os.getenv("CLIENTID")
 
 
 
-client_credentials_manager = SpotifyClientCredentials(client_id, client_secret)
-sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+#filter
+#logica para agregar 1 0 3 canciones
 
-pygame.mixer.init()
-name='justin bieber'.upper()
-song = "STAY"
-results = sp.search(q=song, type='track', limit=2)
+#retorna las canciones 
 
+def list_music(song):
+    List_song=[]
+    sp=Spotify(client_credentials_manager=SpotifyClientCredentials(CLIENT_ID,CLIENT_SECRET))
+    result=sp.search(song)
+    for i in range(0,len(result['tracks']['items'])):
+        dato=result['tracks']['items'][i]
+        List_song=[{'name_artist':dato['artists'][0]['name'], 'name_song':song , 'url': dato['uri']}] + Lista
+    return List_song
 
-def searchSon():
-  if results['tracks']['items']:
-    print("cancion si encontrada")
-    track = results['tracks']['items'][0]
-    track_name = track['name']
-    track_preview_url = track['preview_url']
-    print(track_preview_url)
-    if track_preview_url:
-        print(f'Reproduciendo: {track_name}')
-        pygame.mixer.music.load(track_preview_url)
-        pygame.mixer.music.play()
-        
-        # Mantén el programa en ejecución mientras se reproduce la canción
-        while pygame.mixer.music.get_busy():
-            time.sleep(1)
-        else:
-            print('La canción no tiene una vista previa disponible.')
-    else:
-        print('Canción no encontrada.')
+song=input("ingresa la cancion")
+def music(n_song):
+   List_favorite_song=[]
+   for event in pygame.event.get():
+       if event.type==pygame.KEYDOWN:
+          if len(list_music)<3:
+            list_music(song)
 
-# Detén la reproducción de audio al final
-pygame.mixer.music.stop()
-pygame.mixer.quit()  
-"""
+           
+           
 
 
-print(results)
-"""
