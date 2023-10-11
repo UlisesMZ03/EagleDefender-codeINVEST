@@ -16,6 +16,8 @@ import os
 import pyautogui
 import tkinter as tk
 from tkinter import filedialog
+from chooseMusic import list_music
+
 
 import shutil
 
@@ -215,6 +217,52 @@ class TextInputBox:
 
 
 
+
+def showMusic(set_music):
+    favorite_song = []
+    scroll_offset = 0  # Desplazamiento de la lista de canciones
+    song_display_limit = 1  # Número de canciones visibles a la vez
+    font = pygame.font.Font(None, 30)
+    text_color = (255, 255, 255)
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    if scroll_offset > 0:
+                        scroll_offset -= 1
+                elif event.key == pygame.K_DOWN:
+                    if scroll_offset < len(set_music) - song_display_limit:
+                        scroll_offset += 1
+            elif event.type==pygame.QUIT:
+                running=False
+
+        win.fill((BACKGROUND ))  # Limpia la pantalla
+
+        y = 50  # Posición vertical inicial para la primera canción a mostrar
+        # Dibuja las canciones en la pantalla
+        for i in range(scroll_offset, min(scroll_offset + song_display_limit, len(set_music))):
+            text = font.render(" Artista: " + set_music[i]['name_artist'] + " Canción " + set_music[i]['name_song'], True, text_color)
+            win.blit(text, (50, y))
+            add_button = font.render("Agregar a favoritas", True, (0, 255, 0))
+            add_button_rect = add_button.get_rect()
+            add_button_rect.topleft = (500, y)
+            win.blit(add_button, add_button_rect)
+
+            # Verifica si el botón "Agregar a canciones favoritas" fue presionado
+            if add_button_rect.collidepoint(pygame.mouse.get_pos()):
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                        favorite_song+=[set_music[i]]
+
+        y += 50  # Espaciado entre canciones
+
+        
+
+        pygame.display.flip()
+    
+    
+
+    
 
 
 def cargar_usuarios_desde_archivo():
@@ -468,6 +516,8 @@ age_input = TextInputBox(300, 200, 200, 40,PCBUTTON,SCBUTTON, "Age")
 username_input = TextInputBox(300, 250, 200, 40,PCBUTTON,SCBUTTON, "Username")
 password_input = TextInputBox(300, 300, 200, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
 confirm_password_input = TextInputBox(300, 350, 200, 40, PCBUTTON,SCBUTTON,"Confirm Password",is_password=True)
+music_input = TextInputBox(300, 400,50, 40, PCBUTTON,SCBUTTON,"write the song")
+
 
 
 
@@ -477,6 +527,8 @@ add_device_button = Button('Add Device',140,40,(460,450),5,SCBUTTON)
 take_foto_button = Button('Take foto',200,40,(750,350),5,SCBUTTON)
 select_image_button = Button('select foto',200,40,(750,400),5,SCBUTTON)
 reset_button = Button('reset',200,40,(750,450),5,SCBUTTON)
+search_music_button = Button('look for',100,40,(620,400),5,SCBUTTON)
+song_list=[]
 
 def registration_screen():
     global selected_image_surface
@@ -489,15 +541,14 @@ def registration_screen():
             if event.type == pygame.QUIT:
                 running = False
 
-
-            
-            
+           
             email_input.handle_event(event,PCBUTTON,SCBUTTON)
             age_input.handle_event(event,PCBUTTON,SCBUTTON)
             username_input.handle_event(event,PCBUTTON,SCBUTTON)
             password_input.handle_event(event,PCBUTTON,SCBUTTON)
             confirm_password_input.handle_event(event,PCBUTTON,SCBUTTON)
             name_input.handle_event(event,PCBUTTON,SCBUTTON)
+            music_input.handle_event(event,PCBUTTON,SCBUTTON)
             manager.process_events(event)
                         # Manejar eventos de pygame_gui
 
@@ -505,6 +556,9 @@ def registration_screen():
                         if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
                             if event.text in temas:
                                 cambiar_tema(event.text)
+            
+            
+
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
@@ -516,7 +570,12 @@ def registration_screen():
                     file_dialog_thread = threading.Thread(target=select_folder)
                     file_dialog_thread.start()
                     
-               
+                elif search_music_button.top_rect.collidepoint(mouse_pos):
+                    print(list_music(music_input.get_text()))
+                    songs_list=list_music(music_input.get_text())
+                    showMusic(songs_list)
+                    
+                    
                 elif take_foto_button.top_rect.collidepoint(mouse_pos):
                     image = camera.get_image()
                     camera_image = pygame.transform.scale(image, (camera_preview_rect.width, camera_preview_rect.height))
@@ -528,6 +587,7 @@ def registration_screen():
                 elif reset_button.top_rect.collidepoint(mouse_pos):
                     # Restablecer el preview deseleccionando cualquier imagen
                     selected_image_surface = None
+        
 
 
         
@@ -537,6 +597,7 @@ def registration_screen():
         password_input.update()
         confirm_password_input.update()
         name_input.update()
+        music_input.update()
 
         win.fill(BACKGROUND)
         
@@ -546,11 +607,14 @@ def registration_screen():
         password_input.draw(win)
         confirm_password_input.draw(win)
         name_input.draw(win)
+        music_input.draw(win)
+        
         register_button.draw(PCBUTTON,TCBUTTOM)
         add_device_button.draw(PCBUTTON,TCBUTTOM)
         reset_button.draw(PCBUTTON,TCBUTTOM)
         select_image_button.draw(PCBUTTON,TCBUTTOM)
         take_foto_button.draw(PCBUTTON,TCBUTTOM)
+        search_music_button.draw(PCBUTTON,TCBUTTOM)
         
         if selected_image_surface:
             win.blit(selected_image_surface, camera_preview_rect.topleft)
