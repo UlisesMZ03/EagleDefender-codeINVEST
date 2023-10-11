@@ -35,7 +35,7 @@ manager = pygame_gui.UIManager((WIDTH, HEIGHT))
 selected_image_surface = None
 UID_device = None
 FONT = pygame.font.Font(None, 30)
-
+TITLE_FONT = pygame.font.Font(None,60)
 
 selected_theme = None
 
@@ -44,7 +44,8 @@ BACKGROUND = '#005b4d'
 PCBUTTON = '#01F0BF'
 SCBUTTON = '#00A383'
 TCBUTTOM = '#006350'
-
+register_surface = TITLE_FONT.render("REGISTER", True, PCBUTTON)  # Color blanco (#FFFFFF)
+register_rect = register_surface.get_rect(center=(WIDTH // 2, 50))  # Ajusta las coordenadas según la posición que desees
 
 temas = ['Dark Green', 'Dark Red', 'Tema 3']
 
@@ -453,7 +454,11 @@ def select_folder():
 
         # Copia y renombra la imagen seleccionada a la carpeta "profile_photos"
         shutil.copy(file_path, new_image_path)
-        
+
+
+def draw_rounded_rectangle(surface, color, rect, radius):
+    pygame.draw.rect(surface, color, rect, border_radius=radius)
+
 
 def verificar_formato(data):
     patron = r"b'\d+'"
@@ -499,8 +504,10 @@ def receive_data_from_uart():
     uart_thread.start()
     while uart_thread.is_alive():  
         mostrar_mensaje_error('Esperando conexión...', "\nPara conectarte, accede a la red WiFi llamada EagleDefender\ny visita la dirección 192.168.4.1 desde tu navegador favorito", PCBUTTON, SCBUTTON)
-        
-    mostrar_mensaje_error('Conexión establecida', "El ID asignado es:" + UID_device, PCBUTTON, SCBUTTON)
+    
+    if UID_device is not None:
+         mostrar_mensaje_error('Conexión establecida', "El ID asignado es:" + UID_device, PCBUTTON, SCBUTTON)
+    mostrar_mensaje_error('Error de conexion', "No se ha podido establecer conexion\n            Intentalo nuevamente", PCBUTTON, SCBUTTON)
     uart_thread.join()  # Esperar a que el hilo termine
     
     
@@ -600,7 +607,11 @@ def registration_screen():
         music_input.update()
 
         win.fill(BACKGROUND)
-        
+
+        rect_dimensions = (WIDTH//6, 80, WIDTH-(WIDTH//6)*2, 500)  # Ajusta las coordenadas y dimensiones según sea necesario
+        draw_rounded_rectangle(win, TCBUTTOM, rect_dimensions, 15)
+        register_surface = TITLE_FONT.render("REGISTER", True, PCBUTTON)
+        win.blit(register_surface, register_rect)
         email_input.draw(win)
         age_input.draw(win)
         username_input.draw(win)

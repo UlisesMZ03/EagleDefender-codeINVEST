@@ -30,6 +30,13 @@ manager = pygame_gui.UIManager((WIDTH, HEIGHT))
 
 UID_device = None
 FONT = pygame.font.Font(None, 30)
+FONT_2 = pygame.font.Font(None, 25)
+# En el área de inicialización del código
+TITLE_FONT = pygame.font.Font(None, 64)  # Tamaño de la fuente para el título "Login"
+# Dentro de la función login_screen() antes del bucle principal
+
+background_image = pygame.image.load("images/bg2.jpg").convert()
+
 
 
 selected_theme = None
@@ -40,17 +47,27 @@ PCBUTTON = '#01F0BF'
 SCBUTTON = '#00A383'
 TCBUTTOM = '#006350'
 
+login_surface = TITLE_FONT.render("Login", True, PCBUTTON)  # Color blanco (#FFFFFF)
+login_rect = login_surface.get_rect(center=(WIDTH // 2, 50))  # Ajusta las coordenadas según la posición que desees
+
+or_surface = FONT.render("or", True, SCBUTTON)  # Color blanco (#FFFFFF)
+or_rect = or_surface.get_rect(center=(WIDTH // 2, HEIGHT//2))  # Ajusta las coordenadas según la posición que desees
 
 temas = ['Dark Green', 'Dark Red', 'Tema 3']
 
 def cambiar_tema(selected_theme):
+    global background_image
     global BACKGROUND, PCBUTTON, SCBUTTON, TCBUTTOM
     if selected_theme == 'Dark Green':
+
+        background_image = pygame.image.load("images/bg2.jpg").convert()
         BACKGROUND = '#005b4d'
         PCBUTTON = '#01F0BF'
         SCBUTTON = '#00A383'
         TCBUTTOM = '#006350'
     elif selected_theme == 'Dark Red':
+
+        background_image = pygame.image.load("images/bg.jpg").convert()
         BACKGROUND = '#140200'
         PCBUTTON = '#660A00'
         SCBUTTON = '#9C1000'
@@ -84,6 +101,7 @@ class Button:
         
 		#text
 		self.text_surf = FONT.render(text,True,'#FFFFFF')
+          
 		self.text_rect = self.text_surf.get_rect(center = self.top_rect.center)
         
 
@@ -186,10 +204,10 @@ class TextInputBox:
         self.text = new_text
         self.cursor_pos = len(new_text)
 
-    def update(self):
+    def update(self,min_width):
         txt_surface = FONT.render(self.text, True, self.color)
         # Establece el ancho mínimo del campo de texto
-        min_width = 300
+        
         self.rect.w = max(min_width, txt_surface.get_width() + 10)
     def draw(self, surface):
         pygame.draw.rect(surface, self.color, self.rect, 2)
@@ -308,7 +326,34 @@ server_socket = None
 
 
 
+def crear_rectangulo_redondeado(color,x, y, width, height, radius, alpha):
+    rectangulo = pygame.Surface((width, height), pygame.SRCALPHA)
+    
+    # Dibuja los bordes redondeados del rectángulo
+    pygame.draw.rect(rectangulo, color + (alpha,), (radius, 0, width - 2*radius, height))
+    pygame.draw.rect(rectangulo, color + (alpha,), (0, radius, width, height - 2*radius))
+    
+    # Dibuja las esquinas redondeadas
+    pygame.draw.ellipse(rectangulo, color + (alpha,), (0, 0, 2*radius, 2*radius))
+    pygame.draw.ellipse(rectangulo, color + (alpha,), (width - 2*radius, 0, 2*radius, 2*radius))
+    pygame.draw.ellipse(rectangulo, color + (alpha,), (0, height - 2*radius, 2*radius, 2*radius))
+    pygame.draw.ellipse(rectangulo, color + (alpha,), (width - 2*radius, height - 2*radius, 2*radius, 2*radius))
+    
+    win.blit(rectangulo, (x, y))
 
+def hex_to_rgb(hex_color):
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
+def draw_rounded_rectangle(surface, color, rect, radius, alpha=255):
+    # Convierte el color hexadecimal a un objeto Color de Pygame
+    color_obj = pygame.Color(color)
+    # Establece el canal alfa del color
+    color_obj.a = alpha
+    # Crea una copia del rectángulo con los mismos valores y tipo, pero con los valores truncados a enteros
+    rect = pygame.Rect(rect)
+    # Dibuja el rectángulo con el color y el canal alfa especificados
+    pygame.draw.rect(surface, color_obj, rect, border_radius=radius)
 
 def verificar_formato(data):
     patron = r"b'\d+'"
@@ -356,23 +401,35 @@ def receive_data_from_uart():
     uart_thread.start()
     while uart_thread.is_alive():  
         mostrar_mensaje_error('Esperando conexión...', "\nPara conectarte, accede a la red WiFi llamada EagleDefender\ny visita la dirección 192.168.4.1 desde tu navegador favorito", PCBUTTON, SCBUTTON)
-        
-    mostrar_mensaje_error('Conexión establecida', "El ID asignado es:" + UID_device, PCBUTTON, SCBUTTON)
+    
+    if UID_device is not None:
+         mostrar_mensaje_error('Conexión establecida', "El ID asignado es:" + UID_device, PCBUTTON, SCBUTTON)
+    mostrar_mensaje_error('Error de conexion', "No se ha podido establecer conexion\n             Intentalo nuevamente", PCBUTTON, SCBUTTON)
     uart_thread.join()  # Esperar a que el hilo termine
     
     
 
 
+#CREDENCIALES LOGIN
+
+username_input = TextInputBox((WIDTH//60)*7, 250, (WIDTH//60)*10, 40,PCBUTTON,SCBUTTON, "Username")
+password_input = TextInputBox((WIDTH//60)*7, 300, 200, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
+
+olvido_texto = "¿Olvidó su contraseña?"
+olvido_surface = FONT_2.render(olvido_texto, True, PCBUTTON)  # Color del texto clicqueable
+olvido_rect = olvido_surface.get_rect(center=(WIDTH // 2, 400))  # Centra el texto en la pantalla
 
 
-username_input = TextInputBox(300, 250, 200, 40,PCBUTTON,SCBUTTON, "Username")
-password_input = TextInputBox(300, 300, 200, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
+login_button = Button('Log in',300,40,((WIDTH//60)*8,360),5,SCBUTTON)
+register_button = Button('Register ',300,40,((WIDTH//60)*8,450),5,SCBUTTON)
 
 
 
+#############
+#PHONE LOGIN
 
-login_button = Button('Log in',140,40,(300,450),5,SCBUTTON)
-log_device_button = Button('Phone Login ',140,40,(460,450),5,SCBUTTON)
+
+log_device_button = Button('Phone Login ',(WIDTH/60)*16,40,(((WIDTH/60)*37),450),5,SCBUTTON)
 
 def login_screen():
     running = True
@@ -403,25 +460,50 @@ def login_screen():
                     login()
                 elif log_device_button.top_rect.collidepoint(mouse_pos):
                      receive_data_from_uart()
-                
-
-
-        
-        username_input.update()
-        password_input.update()
+                elif olvido_rect.collidepoint(mouse_pos):
+                    # Acción a realizar cuando el usuario hace clic en "¿Olvidó su contraseña?"
+                    mostrar_mensaje_error("Recuperar Contraseña", "Por favor, contacte al soporte para recuperar su contraseña.", PCBUTTON, SCBUTTON)
+                            
 
         win.fill(BACKGROUND)
+        global background_image
+        win.blit(background_image, (0, 0))
+         # Dibujar el rectángulo detrás de los campos de texto y botones
+        crear_rectangulo_redondeado(hex_to_rgb(TCBUTTOM),WIDTH/60*5, HEIGHT-(HEIGHT//4*3), (WIDTH//60)*20, HEIGHT-(HEIGHT//4*2),15,alpha=200 )  # Ajusta las coordenadas y dimensiones según sea necesario
+
+
+       
+        crear_rectangulo_redondeado(hex_to_rgb(TCBUTTOM),WIDTH/60*35, HEIGHT-(HEIGHT//4*3), (WIDTH//60)*20, HEIGHT-(HEIGHT//4*2),15,alpha=200 )
+        crear_rectangulo_redondeado(hex_to_rgb(BACKGROUND),(WIDTH//60*25), 7, ((WIDTH//60)*11), (80),15,alpha=95)
+        crear_rectangulo_redondeado(hex_to_rgb(BACKGROUND),-15, 0, (WIDTH+30), (HEIGHT),15,alpha=95)
+   
+        
+        username_input.update((WIDTH/60)*16)
+        password_input.update((WIDTH/60)*16)
+
+        
         
         username_input.draw(win)
         password_input.draw(win)
-        login_button.draw(PCBUTTON,TCBUTTOM)
-        log_device_button.draw(PCBUTTON,TCBUTTOM)
+        login_button.draw(PCBUTTON,SCBUTTON)
+        register_button.draw(PCBUTTON,SCBUTTON)
+        log_device_button.draw(PCBUTTON,SCBUTTON)
         
         
         # Actualizar pygame_gui
         manager.update(time_delta)
         manager.draw_ui(win)
-   
+        # Dentro del bucle principal de la función login_screen()
+        login_surface = TITLE_FONT.render("Login", True, PCBUTTON)
+        win.blit(login_surface, login_rect)
+
+        or_surface = FONT.render("or", True, SCBUTTON)  # Color blanco (#FFFFFF)
+        win.blit(or_surface,or_rect)
+        
+        olvido_surface = FONT_2.render(olvido_texto, True, PCBUTTON)  # Renderiza el texto nuevamente si cambia
+        olvido_rect = olvido_surface.get_rect(center=(WIDTH//60*15,420))  # Actualiza las dimensiones del rectángulo según el texto
+        win.blit(olvido_surface, olvido_rect.topleft) 
+
         
         pygame.display.flip()
 
