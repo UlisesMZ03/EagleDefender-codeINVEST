@@ -3,6 +3,7 @@ import pygame_gui
 import pygame.camera
 import re
 import json
+import webbrowser
 from usuarios import Usuario
 import serial
 import os
@@ -17,6 +18,7 @@ import pyautogui
 import tkinter as tk
 from tkinter import filedialog
 from chooseMusic import list_music
+import time
 
 
 import shutil
@@ -105,7 +107,7 @@ class Button:
 
 
 
-	def draw(self,color,color2):
+	def draw(self,color,color2,place):
 		# elevation logic 
         
 		self.top_rect.y = self.original_y_pos - self.dynamic_elecation
@@ -114,8 +116,8 @@ class Button:
 		self.bottom_rect.midtop = self.top_rect.midtop
 		self.bottom_rect.height = self.top_rect.height + self.dynamic_elecation
 
-		pygame.draw.rect(win,self.bottom_color, self.bottom_rect,border_radius = 12)
-		pygame.draw.rect(win,self.top_color, self.top_rect,border_radius = 12)
+		pygame.draw.rect(place,self.bottom_color, self.bottom_rect,border_radius = 12)
+		pygame.draw.rect(place,self.top_color, self.top_rect,border_radius = 12)
 		win.blit(self.text_surf, self.text_rect)
 		self.check_click(color,color2)
     
@@ -215,19 +217,20 @@ class TextInputBox:
             cursor_x = self.rect.x + 5 + FONT.render(self.text[:self.cursor_pos], True, self.color).get_width()
             pygame.draw.line(surface, self.color, (cursor_x, self.rect.y + 5),
                             (cursor_x, self.rect.y + 5 + txt_surface.get_height()), 2)
+            
+    
 
 
-
-
-def showMusic(set_music):
-    favorite_song = []
+def showMusic(set_music,favorite_song):
     scroll_offset = 0  # Desplazamiento de la lista de canciones
     song_display_limit = 1  # Número de canciones visibles a la vez
     font = pygame.font.Font(None, 30)
     text_color = (255, 255, 255)
+    surfaceMusic=pygame.Surface((310,50))
     running = True
     while running:
         for event in pygame.event.get():
+            #music_input.handle_event(event,PCBUTTON,SCBUTTON)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     if scroll_offset > 0:
@@ -235,29 +238,47 @@ def showMusic(set_music):
                 elif event.key == pygame.K_DOWN:
                     if scroll_offset < len(set_music) - song_display_limit:
                         scroll_offset += 1
-            elif event.type==pygame.QUIT:
-                running=False
+            
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                # Verifica si el botón "Agregar" fue presionado
+                if add_music_button.top_rect.collidepoint(event.pos):
+                    if i < len(set_music):
+                        if len(favorite_song)<3:
+                            if set_music[i] in favorite_song:
+                                print('ya has agregado la cancion anteriormente')
+                            else:
+                                favorite_song.append(set_music[i])
+                                mostrar_mensaje_error("Canciones Favoritas", ' Has agregado la cancion ' + set_music[i]['name_song']+ ' de ' + set_music[i]['name_artist'] + 'a canciones favoritas' , PCBUTTON, SCBUTTON)
+                                print(f"Se agregó la canción {set_music[i]['name_artist']} a favoritas")
+                                running=False
+                        
+                        else:
+                            running=False
+                            mostrar_mensaje_error("Cantidad maxima de canciones alcanzada", 'Solo puedes agregar 3 Canciones', PCBUTTON, SCBUTTON)
+                            print("solo puedes agregar 3 canciones")
 
-        win.fill((BACKGROUND ))  # Limpia la pantalla
+        surfaceMusic.fill((BACKGROUND ))  # Limpia la pantalla
 
-        y = 50  # Posición vertical inicial para la primera canción a mostrar
+        y = 20  # Posición vertical inicial para la primera canción a mostrar
         # Dibuja las canciones en la pantalla
         for i in range(scroll_offset, min(scroll_offset + song_display_limit, len(set_music))):
-            text = font.render(" Artista: " + set_music[i]['name_artist'] + " Canción " + set_music[i]['name_song'], True, text_color)
-            win.blit(text, (50, y))
-            add_button = font.render("Agregar a favoritas", True, (0, 255, 0))
-            add_button_rect = add_button.get_rect()
-            add_button_rect.topleft = (500, y)
-            win.blit(add_button, add_button_rect)
+            text = font.render(" Artista: " + set_music[i]['name_artist'], True, text_color)
+            surfaceMusic.blit(text, (20, y))
+            add_music_button = Button('Agregar',140,40,(100,450),5,SCBUTTON)
+            
+            add_music_button.draw(PCBUTTON,TCBUTTOM,surfaceMusic)
+        
+            #add_button = font.render("Agregar a favoritas", True, (0, 255, 0))
+            #add_button_rect = add_button.get_rect()
+            #add_button_rect.topleft = (200, y)
+            #surfaceMusic.blit(add_button, add_button_rect)
 
             # Verifica si el botón "Agregar a canciones favoritas" fue presionado
-            if add_button_rect.collidepoint(pygame.mouse.get_pos()):
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                        favorite_song+=[set_music[i]]
+          
 
         y += 50  # Espaciado entre canciones
 
-        
+        win.blit(surfaceMusic, (300, 450))
 
         pygame.display.flip()
     
@@ -529,13 +550,14 @@ music_input = TextInputBox(300, 400,50, 40, PCBUTTON,SCBUTTON,"write the song")
 
 
 
-register_button = Button('Register',140,40,(300,450),5,SCBUTTON)
-add_device_button = Button('Add Device',140,40,(460,450),5,SCBUTTON)
+register_button = Button('Register',140,40,(300,520),5,SCBUTTON)
+add_device_button = Button('Add Device',140,40,(460,520),5,SCBUTTON)
 take_foto_button = Button('Take foto',200,40,(750,350),5,SCBUTTON)
 select_image_button = Button('select foto',200,40,(750,400),5,SCBUTTON)
 reset_button = Button('reset',200,40,(750,450),5,SCBUTTON)
 search_music_button = Button('look for',100,40,(620,400),5,SCBUTTON)
 song_list=[]
+favorite_song=[]
 
 def registration_screen():
     global selected_image_surface
@@ -580,7 +602,8 @@ def registration_screen():
                 elif search_music_button.top_rect.collidepoint(mouse_pos):
                     print(list_music(music_input.get_text()))
                     songs_list=list_music(music_input.get_text())
-                    showMusic(songs_list)
+                    
+                    showMusic(songs_list,favorite_song)
                     
                     
                 elif take_foto_button.top_rect.collidepoint(mouse_pos):
@@ -620,12 +643,12 @@ def registration_screen():
         name_input.draw(win)
         music_input.draw(win)
         
-        register_button.draw(PCBUTTON,TCBUTTOM)
-        add_device_button.draw(PCBUTTON,TCBUTTOM)
-        reset_button.draw(PCBUTTON,TCBUTTOM)
-        select_image_button.draw(PCBUTTON,TCBUTTOM)
-        take_foto_button.draw(PCBUTTON,TCBUTTOM)
-        search_music_button.draw(PCBUTTON,TCBUTTOM)
+        register_button.draw(PCBUTTON,TCBUTTOM,win)
+        add_device_button.draw(PCBUTTON,TCBUTTOM,win)
+        reset_button.draw(PCBUTTON,TCBUTTOM,win)
+        select_image_button.draw(PCBUTTON,TCBUTTOM,win)
+        take_foto_button.draw(PCBUTTON,TCBUTTOM,win)
+        search_music_button.draw(PCBUTTON,TCBUTTOM,win)
         
         if selected_image_surface:
             win.blit(selected_image_surface, camera_preview_rect.topleft)
@@ -644,6 +667,9 @@ def registration_screen():
     camera.stop()
     pygame.quit()
     sys.exit()
+    
+    
+
 
 
 if __name__ == "__main__":
