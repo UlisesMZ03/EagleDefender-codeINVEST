@@ -92,4 +92,3 @@ class Usuario:
         conn.close()
 
 
-

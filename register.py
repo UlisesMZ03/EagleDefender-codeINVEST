@@ -2,21 +2,15 @@ import pygame
 import pygame_gui
 import pygame.camera
 import re
-import json
 from usuarios import Usuario
 import serial
 import os
 import threading
-import pygame
-import pygame.camera
-import pygame_gui
 from pygame.locals import *
 import sys
-import os
-import pyautogui
-import tkinter as tk
 from tkinter import filedialog
-
+from pygame.locals import *
+import pyautogui
 import shutil
 
 pygame.init()
@@ -27,13 +21,54 @@ win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Eagle Defender")
 
 # Inicializar la cámara
-camera = pygame.camera.Camera("/dev/video0", (WIDTH, HEIGHT))
-camera.start()
+
+# Obtiene la lista de cámaras disponibles
+cameras = pygame.camera.list_cameras()
+camera = None
+
+# Itera sobre la lista de cámaras y trata de inicializar cada una
+for cam in cameras:
+    try:
+        # Intenta inicializar la cámara actual
+        camera = pygame.camera.Camera(cam, (WIDTH, HEIGHT))
+        camera.start()  # Inicia la captura de la cámara
+        break  # Si la inicialización fue exitosa, sal del bucle
+
+    except pygame.error as e:
+        # Si ocurre un error, imprímelo y pasa a la siguiente cámara
+        print(f"Error al iniciar la cámara {cam}: {e}")
+
+if camera:
+    try:
+        # Intenta capturar un fotograma
+        frame = camera.get_image()
+
+    
+
+    except pygame.error as e:
+        # Maneja errores al capturar el fotograma si es necesario
+        print(f"Error al capturar el fotograma: {e}")
+
+    finally:
+        # Finaliza la captura de la cámara
+        camera.stop()
+
+else:
+    # Si ninguna cámara pudo ser inicializada, imprime un mensaje
+    print("No se pudo inicializar ninguna cámara.")
+
+    pygame.camera.quit()
+
+
+
 manager = pygame_gui.UIManager((WIDTH, HEIGHT))
 selected_image_surface = None
+camera_on = False
 UID_device = None
 FONT = pygame.font.Font(None, 30)
 TITLE_FONT = pygame.font.Font(None,60)
+background_image = pygame.image.load("images/bg2.jpg").convert()
+
 
 selected_theme = None
 
@@ -48,13 +83,17 @@ register_rect = register_surface.get_rect(center=(WIDTH // 2, 50))  # Ajusta las
 temas = ['Dark Green', 'Dark Red', 'Tema 3']
 
 def cambiar_tema(selected_theme):
+
+    global background_image
     global BACKGROUND, PCBUTTON, SCBUTTON, TCBUTTOM
     if selected_theme == 'Dark Green':
+        background_image = pygame.image.load("images/bg2.jpg").convert()
         BACKGROUND = '#005b4d'
         PCBUTTON = '#01F0BF'
         SCBUTTON = '#00A383'
         TCBUTTOM = '#006350'
     elif selected_theme == 'Dark Red':
+        background_image = pygame.image.load("images/bg.jpg").convert()
         BACKGROUND = '#140200'
         PCBUTTON = '#660A00'
         SCBUTTON = '#9C1000'
@@ -103,6 +142,7 @@ class Button:
 
 
 
+
 	def draw(self,color,color2):
 		# elevation logic 
         
@@ -131,7 +171,6 @@ class Button:
 			else:
 				self.dynamic_elecation = self.elevation
 				if self.pressed == True:
-					print('click')
 					self.pressed = False
 		else: 
 			self.dynamic_elecation = self.elevation
@@ -184,13 +223,24 @@ class TextInputBox:
                     self.cursor_pos += 1
                 elif event.key == pygame.K_RETURN:
                     self.active = False
-                elif event.unicode.isalpha() or event.unicode.isdigit() or event.unicode in special_symbols:  # Permitir solo letras y números
+                elif self.is_password==True and (event.unicode.isalpha() or event.unicode.isdigit() or event.unicode in special_symbols):  # Permitir solo letras y números
                     # Mostrar el rombo si es una contraseña
                     char = '*' if self.is_password else event.unicode
                     self.text = self.text[:self.cursor_pos] + char + self.text[self.cursor_pos:]
                     self.real_text = self.real_text[:self.cursor_pos] + event.unicode + self.real_text[self.cursor_pos:]
-
                     self.cursor_pos += 1
+                elif not self.is_password and (event.unicode.isalpha() or event.unicode.isdigit() or event.unicode.isspace() or event.key == pygame.K_TAB or event.unicode in special_symbols):
+                    if event.key == pygame.K_TAB:
+                        # Ignorar la tecla Tab
+                        pass
+                    else:
+                        char = event.unicode
+                        self.text = self.text[:self.cursor_pos] + char + self.text[self.cursor_pos:]
+                        self.real_text = self.real_text[:self.cursor_pos] + char + self.real_text[self.cursor_pos:]
+                        self.cursor_pos += 1
+
+
+
     def get_text(self):
         """
         Obtiene el texto real del TextInputBox, incluso si is_password es True.
@@ -249,7 +299,15 @@ def validate_password(password):
 
 def validate_username(username):
     banned_words = ['badword1', 'badword2', 'badword3']
-    return all(word not in username.lower() for word in banned_words)
+
+    # Verificar si el nombre de usuario contiene espacios
+    if ' ' in username:
+        return 2
+    # Verificar si el nombre de usuario contiene palabras prohibidas
+    if any(word in username.lower() for word in banned_words):
+        return 1
+    # Si no hay espacios y no contiene palabras prohibidas, el nombre de usuario es válido
+    return True
 
 def validate_age(age):
     return age.isdigit()
@@ -318,9 +376,12 @@ def register():
     elif not validate_password(password):
         mostrar_mensaje_error('Invalid Password','Password must be at least 8 characters long with at least one uppercase letter and one special symbol',PCBUTTON,SCBUTTON)
        
-    elif not validate_username(username):
+
+    elif validate_username(username)==1:
         mostrar_mensaje_error('Invalid Username','Username contains prohibited words',PCBUTTON,SCBUTTON)
-       
+    elif validate_username(username)==2:
+        mostrar_mensaje_error('Invalid Username','Username cannot contain spaces.',PCBUTTON,SCBUTTON)
+
     elif not validate_age(age):
         mostrar_mensaje_error('Invalid Age','Age must be a number',PCBUTTON,SCBUTTON)
     elif UID_device==None:
@@ -352,8 +413,10 @@ def select_folder():
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
 
+        name_photo = Usuario._get_next_id(Usuario)
         # Nuevo nombre para la imagen (puedes cambiar esto según tus necesidades)
-        new_image_name = "nuevo_nombre.png"
+        new_image_name = str(name_photo)+".png"
+
 
         # Ruta completa de la nueva imagen
         new_image_path = os.path.join(output_folder, new_image_name)
@@ -362,8 +425,25 @@ def select_folder():
         shutil.copy(file_path, new_image_path)
 
 
-def draw_rounded_rectangle(surface, color, rect, radius):
-    pygame.draw.rect(surface, color, rect, border_radius=radius)
+
+def crear_rectangulo_redondeado(color,x, y, width, height, radius, alpha):
+    rectangulo = pygame.Surface((width, height), pygame.SRCALPHA)
+    
+    # Dibuja los bordes redondeados del rectángulo
+    pygame.draw.rect(rectangulo, color + (alpha,), (radius, 0, width - 2*radius, height))
+    pygame.draw.rect(rectangulo, color + (alpha,), (0, radius, width, height - 2*radius))
+    
+    # Dibuja las esquinas redondeadas
+    pygame.draw.ellipse(rectangulo, color + (alpha,), (0, 0, 2*radius, 2*radius))
+    pygame.draw.ellipse(rectangulo, color + (alpha,), (width - 2*radius, 0, 2*radius, 2*radius))
+    pygame.draw.ellipse(rectangulo, color + (alpha,), (0, height - 2*radius, 2*radius, 2*radius))
+    pygame.draw.ellipse(rectangulo, color + (alpha,), (width - 2*radius, height - 2*radius, 2*radius, 2*radius))
+    
+    win.blit(rectangulo, (x, y))
+
+def hex_to_rgb(hex_color):
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
 
 def verificar_formato(data):
@@ -374,7 +454,22 @@ def verificar_formato(data):
         return False
 def receive_data_from_uart():
     def uart_thread_function():
-        SERIAL_PORTS = ['/dev/ttyACM0', '/dev/ttyACM1', '/dev/ttyACM2']
+
+        # Puertos serie para Linux y Windows
+        SERIAL_PORTS = []
+
+        # Puertos serie en Linux
+        linux_serial_ports = ['/dev/ttyACM0', '/dev/ttyACM1', '/dev/ttyACM2', '/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyS0', '/dev/ttyS1']
+
+        # Puertos serie en Windows (los nombres pueden variar)
+        windows_serial_ports = ['COM1', 'COM2', 'COM3', 'COM4']
+
+        # Agregar puertos serie de Linux a la lista
+        SERIAL_PORTS.extend(linux_serial_ports)
+
+        # Agregar puertos serie de Windows a la lista
+        SERIAL_PORTS.extend(windows_serial_ports)
+
         BAUD_RATE = 9600
         global hilo_en_ejecucion
         global UID_device
@@ -413,16 +508,12 @@ def receive_data_from_uart():
     
     if UID_device is not None:
          mostrar_mensaje_error('Conexión establecida', "El ID asignado es:" + UID_device, PCBUTTON, SCBUTTON)
-    mostrar_mensaje_error('Error de conexion', "No se ha podido establecer conexion\n            Intentalo nuevamente", PCBUTTON, SCBUTTON)
+
+    else:
+        mostrar_mensaje_error('Error de conexion', "No se ha podido establecer conexion\n            Intentalo nuevamente", PCBUTTON, SCBUTTON)
     uart_thread.join()  # Esperar a que el hilo termine
     
     
-
-
-
-
- 
-
 email_input = TextInputBox(300, 100, 200, 40,PCBUTTON,SCBUTTON, "Email")
 name_input = TextInputBox(300, 150, 200, 40,PCBUTTON,SCBUTTON, "Name")
 age_input = TextInputBox(300, 200, 200, 40,PCBUTTON,SCBUTTON, "Age")
@@ -441,6 +532,7 @@ reset_button = Button('reset',200,40,(750,450),5,SCBUTTON)
 
 def registration_screen():
     global selected_image_surface
+    global camera_on
     running = True
     
     while running:
@@ -474,21 +566,41 @@ def registration_screen():
                 elif add_device_button.top_rect.collidepoint(mouse_pos):
                      receive_data_from_uart()
                 elif select_image_button.top_rect.collidepoint(mouse_pos):
+                    if camera_on:
+                        camera.stop()
+                        camera_on=False
+                    
                     file_dialog_thread = threading.Thread(target=select_folder)
                     file_dialog_thread.start()
-                    
-               
+                
                 elif take_foto_button.top_rect.collidepoint(mouse_pos):
-                    image = camera.get_image()
-                    camera_image = pygame.transform.scale(image, (camera_preview_rect.width, camera_preview_rect.height))
-                    image_filename = os.path.join("profile_photos", "profile_photo.png")
-                    pygame.image.save(camera_image, image_filename)
-                    print(f"Foto guardada en: {image_filename}")
-                    # Cambiar selected_image_surface para mostrar la última imagen capturada
-                    selected_image_surface = camera_image
+                    
+                    if not camera_on:
+                        selected_image_surface = None
+                        camera.start()
+                        camera_on=True
+                    else:
+                        
+                        image = camera.get_image()
+                        camera_image = pygame.transform.scale(image, (camera_preview_rect.width, camera_preview_rect.height))
+                        name_photo = Usuario._get_next_id(Usuario)
+                        image_filename = os.path.join("profile_photos", str(name_photo)+".png")
+                        pygame.image.save(camera_image, image_filename)
+                        print(f"Foto guardada en: {image_filename}")
+                        # Cambiar selected_image_surface para mostrar la última imagen capturada
+                        selected_image_surface = camera_image
+                        camera.stop()  # Detener la cámara después de tomar la foto
+                        camera_on=False
                 elif reset_button.top_rect.collidepoint(mouse_pos):
-                    # Restablecer el preview deseleccionando cualquier imagen
+                    if camera_on:
+                        camera.stop()
+                        camera_on=False
+                    camera.start()
                     selected_image_surface = None
+                    
+                    camera.stop()  # Detener la cámara si está encendida
+                    camera_on = False 
+
 
 
         
@@ -501,8 +613,14 @@ def registration_screen():
 
         win.fill(BACKGROUND)
 
-        rect_dimensions = (WIDTH//6, 80, WIDTH-(WIDTH//6)*2, 500)  # Ajusta las coordenadas y dimensiones según sea necesario
-        draw_rounded_rectangle(win, TCBUTTOM, rect_dimensions, 15)
+        global background_image
+        
+        win.blit(background_image, (0, 0))
+
+         # Ajusta las coordenadas y dimensiones según sea necesario
+        crear_rectangulo_redondeado(hex_to_rgb(TCBUTTOM),WIDTH//6, 80, WIDTH-(WIDTH//6)*2, 500,15,alpha=200 )  # Ajusta las coordenadas y dimensiones según sea necesario
+        crear_rectangulo_redondeado(hex_to_rgb(BACKGROUND),(WIDTH//60*25), 7, ((WIDTH//60)*11), (80),15,alpha=95)
+        #draw_rounded_rectangle(win, TCBUTTOM, rect_dimensions, 15)
         register_surface = TITLE_FONT.render("REGISTER", True, PCBUTTON)
         win.blit(register_surface, register_rect)
         email_input.draw(win)
@@ -516,14 +634,17 @@ def registration_screen():
         reset_button.draw(PCBUTTON,TCBUTTOM)
         select_image_button.draw(PCBUTTON,TCBUTTOM)
         take_foto_button.draw(PCBUTTON,TCBUTTOM)
-        
+
+
+
         if selected_image_surface:
             win.blit(selected_image_surface, camera_preview_rect.topleft)
         else:
-            image = camera.get_image()
-            camera_image = pygame.transform.scale(image, (camera_preview_rect.width, camera_preview_rect.height))
-            win.blit(camera_image, camera_preview_rect.topleft)
-
+            if camera_on:
+                image = camera.get_image()
+                camera_image = pygame.transform.scale(image, (camera_preview_rect.width, camera_preview_rect.height))
+                win.blit(camera_image, camera_preview_rect.topleft)
+        
         # Actualizar pygame_gui
         manager.update(time_delta)
         manager.draw_ui(win)
