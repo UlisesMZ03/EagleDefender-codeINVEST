@@ -135,7 +135,6 @@ class Button:
 			else:
 				self.dynamic_elecation = self.elevation
 				if self.pressed == True:
-					print('click')
 					self.pressed = False
 		else: 
 			self.dynamic_elecation = self.elevation
@@ -231,53 +230,20 @@ def login():
     password = password_input.get_text()
     
     # Abre el archivo JSON y carga los datos en una lista de diccionarios
-    with open("usuarios.json", "r") as json_file:
-        data = json.load(json_file)
-        
-    # Busca el usuario en la lista de usuarios registrados
-    for usuario_data in data:
-        if usuario_data["Username"] == username and usuario_data["Password"] == password:
-            mostrar_mensaje_error("Login Exitoso", "¡Bienvenido, {}!".format(username),PCBUTTON,SCBUTTON)
+    
+    if Usuario.check_credentials(username,password):
+         
+        mostrar_mensaje_error("Login Exitoso", "¡Bienvenido, {}!".format(username),PCBUTTON,SCBUTTON)
             # Aquí puedes agregar código para redirigir a la siguiente pantalla o realizar otras acciones
-            break
     else:
+         
         mostrar_mensaje_error("Error de Login", "Nombre de usuario o contraseña incorrectos",PCBUTTON,SCBUTTON)
 
     
 
-def cargar_usuarios_desde_archivo():
-    if os.path.exists("usuarios.json"):
-        with open("usuarios.json", "r") as json_file:
-            usuarios = json.load(json_file)
-        return usuarios
-    else:
-        return []
-
 
         
 
-
-def verificar_uid(UID_device):
-    # Asegúrate de que UID_device tenga un valor
-    if not UID_device:
-        print("Error: UID_device no tiene un valor.")
-        return
-    
-    # Abre el archivo JSON y carga los datos en una lista de diccionarios
-    with open("usuarios.json", "r") as json_file:
-        data = json.load(json_file)
-        
-    # Busca la dirección IP en la lista de usuarios registrados
-    for usuario_data in data:
-        if usuario_data["UID"] == UID_device:
-            print("Dispositivo Encontrado")
-            username_input.set_text(usuario_data["Username"])
-            password_input.set_text(usuario_data["Password"])
-            return usuario_data  # Retorna el diccionario del usuario si se encuentra
-    
-    # Si el UID no se encuentra
-    print("Dispositivo no encontrado")
-    return None  # Retorna None si el usuario no se encuentra
 
 
 
@@ -345,15 +311,7 @@ def hex_to_rgb(hex_color):
     hex_color = hex_color.lstrip('#')
     return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
-def draw_rounded_rectangle(surface, color, rect, radius, alpha=255):
-    # Convierte el color hexadecimal a un objeto Color de Pygame
-    color_obj = pygame.Color(color)
-    # Establece el canal alfa del color
-    color_obj.a = alpha
-    # Crea una copia del rectángulo con los mismos valores y tipo, pero con los valores truncados a enteros
-    rect = pygame.Rect(rect)
-    # Dibuja el rectángulo con el color y el canal alfa especificados
-    pygame.draw.rect(surface, color_obj, rect, border_radius=radius)
+
 
 def verificar_formato(data):
     patron = r"b'\d+'"
@@ -380,8 +338,7 @@ def receive_data_from_uart():
                         hilo_en_ejecucion = False  # Detener el hilo si se recibe algún dato
                         global UID_device
                         UID_device = data_received
-                        usuario = verificar_uid(UID_device)
-                        print(usuario)
+                        
                         
                     else:
                         # Si no se recibe ningún dato, continúa escuchando

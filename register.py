@@ -218,25 +218,10 @@ class TextInputBox:
 
 
 
-def cargar_usuarios_desde_archivo():
-    if os.path.exists("usuarios.json"):
-        with open("usuarios.json", "r") as json_file:
-            usuarios = json.load(json_file)
-        return usuarios
-    else:
-        return []
 
 
-def validar_datos_duplicados(username, email, UID):
-    usuarios_existentes = cargar_usuarios_desde_archivo()
-    for usuario in usuarios_existentes:
-        if usuario["Username"] == username:
-            return False, "Username already exists."
-        if usuario["Email"] == email:
-            return False, "Email already exists."
-        if usuario["UID"] == UID:
-            return False, "Mobile device is already linked to another account"
-    return True, None
+
+
 
 
 def validate_UID_device(UID_device):
@@ -312,50 +297,19 @@ def register():
     age = age_input.text
     username = username_input.text
     password = password_input.get_text()
-    print(password)
+
     confirm_password = confirm_password_input.get_text()
+    global UID_device
 
-    if username != "" and password == confirm_password and validate_email(email) and validate_password(password) and validate_username(username) and validate_age(age) and UID_device!=None:
-        
-        # Validar si los datos ya existen en los usuarios registrados
-        datos_validos, mensaje_error = validar_datos_duplicados(username, email, UID_device)
-        
-        if datos_validos:
+    if username != "" and password == confirm_password and validate_email(email) and validate_password(password) and validate_username(username) and validate_age(age):
             
-            
-
-            user = Usuario(name,username,age,email,UID_device,password)
-            print(user)
-
-            # Convertir el objeto de usuario a un diccionario
-            user_dict = {
-                "Name": name,
-                "Username": username,
-                "Email": email,
-                "Age": age,
-                "UID": UID_device,
-                "Password": password
-            }
-            
-                    # Verificar si el archivo usuarios.json existe
-            if not os.path.exists("usuarios.json"):
-                # Si no existe, crear un nuevo archivo y escribir el primer usuario
-                with open("usuarios.json", "w") as json_file:
-                    json.dump([user_dict], json_file, indent=4)
-            else:
-                # Si el archivo existe, abrirlo y agregar el nuevo usuario al final
-                with open("usuarios.json", "r") as json_file:
-                    
-                    # Cargar datos existentes del archivo
-                    users = json.load(json_file)
-                # Agregar el nuevo usuario a la lista existente
-                users.append(user_dict)
-                # Escribir la lista actualizada al archivo
-                with open("usuarios.json", "w") as json_file:
-                    json.dump(users, json_file, indent=4)
+        if UID_device == None:
+            user = Usuario(name,username,age,email,password,"")
+            user.save_to_db()
         else:
-            mostrar_mensaje_error("Registration Failed", mensaje_error, PCBUTTON, SCBUTTON)
-
+            user = Usuario(name,username,age,email,password,UID_device)
+            user.save_to_db()
+     
     elif password != confirm_password:
         mostrar_mensaje_error('Password Mismatch','Password and confirm password do not match',PCBUTTON,SCBUTTON)
       
