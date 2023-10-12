@@ -6,10 +6,11 @@ from usuarios import Usuario
 import serial
 import os
 import threading
-import pygame
 from pygame.locals import *
 import sys
 from tkinter import filedialog
+from pygame.locals import *
+import pyautogui
 import shutil
 
 pygame.init()
@@ -67,6 +68,8 @@ UID_device = None
 FONT = pygame.font.Font(None, 30)
 TITLE_FONT = pygame.font.Font(None,60)
 background_image = pygame.image.load("images/bg2.jpg").convert()
+
+
 selected_theme = None
 
 
@@ -80,6 +83,7 @@ register_rect = register_surface.get_rect(center=(WIDTH // 2, 50))  # Ajusta las
 temas = ['Dark Green', 'Dark Red', 'Tema 3']
 
 def cambiar_tema(selected_theme):
+
     global background_image
     global BACKGROUND, PCBUTTON, SCBUTTON, TCBUTTOM
     if selected_theme == 'Dark Green':
@@ -135,6 +139,7 @@ class Button:
 		self.text_surf = FONT.render(text,True,'#FFFFFF')
 		self.text_rect = self.text_surf.get_rect(center = self.top_rect.center)
         
+
 
 
 
@@ -294,6 +299,7 @@ def validate_password(password):
 
 def validate_username(username):
     banned_words = ['badword1', 'badword2', 'badword3']
+
     # Verificar si el nombre de usuario contiene espacios
     if ' ' in username:
         return 2
@@ -370,10 +376,12 @@ def register():
     elif not validate_password(password):
         mostrar_mensaje_error('Invalid Password','Password must be at least 8 characters long with at least one uppercase letter and one special symbol',PCBUTTON,SCBUTTON)
        
+
     elif validate_username(username)==1:
         mostrar_mensaje_error('Invalid Username','Username contains prohibited words',PCBUTTON,SCBUTTON)
     elif validate_username(username)==2:
         mostrar_mensaje_error('Invalid Username','Username cannot contain spaces.',PCBUTTON,SCBUTTON)
+
     elif not validate_age(age):
         mostrar_mensaje_error('Invalid Age','Age must be a number',PCBUTTON,SCBUTTON)
     elif UID_device==None:
@@ -404,15 +412,18 @@ def select_folder():
         # Crea la carpeta "profile_photos" si no existe
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
+
         name_photo = Usuario._get_next_id(Usuario)
         # Nuevo nombre para la imagen (puedes cambiar esto según tus necesidades)
         new_image_name = str(name_photo)+".png"
+
 
         # Ruta completa de la nueva imagen
         new_image_path = os.path.join(output_folder, new_image_name)
 
         # Copia y renombra la imagen seleccionada a la carpeta "profile_photos"
         shutil.copy(file_path, new_image_path)
+
 
 
 def crear_rectangulo_redondeado(color,x, y, width, height, radius, alpha):
@@ -434,6 +445,7 @@ def hex_to_rgb(hex_color):
     hex_color = hex_color.lstrip('#')
     return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
+
 def verificar_formato(data):
     patron = r"b'\d+'"
     if re.fullmatch(patron, data):
@@ -442,6 +454,7 @@ def verificar_formato(data):
         return False
 def receive_data_from_uart():
     def uart_thread_function():
+
         # Puertos serie para Linux y Windows
         SERIAL_PORTS = []
 
@@ -456,6 +469,7 @@ def receive_data_from_uart():
 
         # Agregar puertos serie de Windows a la lista
         SERIAL_PORTS.extend(windows_serial_ports)
+
         BAUD_RATE = 9600
         global hilo_en_ejecucion
         global UID_device
@@ -494,17 +508,12 @@ def receive_data_from_uart():
     
     if UID_device is not None:
          mostrar_mensaje_error('Conexión establecida', "El ID asignado es:" + UID_device, PCBUTTON, SCBUTTON)
+
     else:
         mostrar_mensaje_error('Error de conexion', "No se ha podido establecer conexion\n            Intentalo nuevamente", PCBUTTON, SCBUTTON)
     uart_thread.join()  # Esperar a que el hilo termine
     
     
-
-
-
-
- 
-
 email_input = TextInputBox(300, 100, 200, 40,PCBUTTON,SCBUTTON, "Email")
 name_input = TextInputBox(300, 150, 200, 40,PCBUTTON,SCBUTTON, "Name")
 age_input = TextInputBox(300, 200, 200, 40,PCBUTTON,SCBUTTON, "Age")
@@ -650,3 +659,4 @@ def registration_screen():
 
 if __name__ == "__main__":
     registration_screen()
+
