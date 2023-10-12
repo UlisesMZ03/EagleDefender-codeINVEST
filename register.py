@@ -218,13 +218,24 @@ class TextInputBox:
                     self.cursor_pos += 1
                 elif event.key == pygame.K_RETURN:
                     self.active = False
-                elif event.unicode.isalpha() or event.unicode.isdigit() or event.unicode in special_symbols:  # Permitir solo letras y números
+                elif self.is_password==True and (event.unicode.isalpha() or event.unicode.isdigit() or event.unicode in special_symbols):  # Permitir solo letras y números
                     # Mostrar el rombo si es una contraseña
                     char = '*' if self.is_password else event.unicode
                     self.text = self.text[:self.cursor_pos] + char + self.text[self.cursor_pos:]
                     self.real_text = self.real_text[:self.cursor_pos] + event.unicode + self.real_text[self.cursor_pos:]
-
                     self.cursor_pos += 1
+                elif not self.is_password and (event.unicode.isalpha() or event.unicode.isdigit() or event.unicode.isspace() or event.key == pygame.K_TAB or event.unicode in special_symbols):
+                    if event.key == pygame.K_TAB:
+                        # Ignorar la tecla Tab
+                        pass
+                    else:
+                        char = event.unicode
+                        self.text = self.text[:self.cursor_pos] + char + self.text[self.cursor_pos:]
+                        self.real_text = self.real_text[:self.cursor_pos] + char + self.real_text[self.cursor_pos:]
+                        self.cursor_pos += 1
+
+
+
     def get_text(self):
         """
         Obtiene el texto real del TextInputBox, incluso si is_password es True.
@@ -283,7 +294,14 @@ def validate_password(password):
 
 def validate_username(username):
     banned_words = ['badword1', 'badword2', 'badword3']
-    return all(word not in username.lower() for word in banned_words)
+    # Verificar si el nombre de usuario contiene espacios
+    if ' ' in username:
+        return 2
+    # Verificar si el nombre de usuario contiene palabras prohibidas
+    if any(word in username.lower() for word in banned_words):
+        return 1
+    # Si no hay espacios y no contiene palabras prohibidas, el nombre de usuario es válido
+    return True
 
 def validate_age(age):
     return age.isdigit()
@@ -352,9 +370,10 @@ def register():
     elif not validate_password(password):
         mostrar_mensaje_error('Invalid Password','Password must be at least 8 characters long with at least one uppercase letter and one special symbol',PCBUTTON,SCBUTTON)
        
-    elif not validate_username(username):
+    elif validate_username(username)==1:
         mostrar_mensaje_error('Invalid Username','Username contains prohibited words',PCBUTTON,SCBUTTON)
-       
+    elif validate_username(username)==2:
+        mostrar_mensaje_error('Invalid Username','Username cannot contain spaces.',PCBUTTON,SCBUTTON)
     elif not validate_age(age):
         mostrar_mensaje_error('Invalid Age','Age must be a number',PCBUTTON,SCBUTTON)
     elif UID_device==None:
