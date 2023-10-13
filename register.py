@@ -24,6 +24,7 @@ pygame.display.set_caption("Eagle Defender")
 
 # Obtiene la lista de cámaras disponibles
 cameras = pygame.camera.list_cameras()
+
 camera = None
 
 # Itera sobre la lista de cámaras y trata de inicializar cada una
@@ -56,7 +57,8 @@ if camera:
 else:
     # Si ninguna cámara pudo ser inicializada, imprime un mensaje
     print("No se pudo inicializar ninguna cámara.")
-
+    
+    camera=None
     pygame.camera.quit()
 
 
@@ -608,9 +610,10 @@ def registration_screen():
                 elif add_device_button.top_rect.collidepoint(mouse_pos):
                      receive_data_from_uart()
                 elif select_image_button.top_rect.collidepoint(mouse_pos):
-                    if camera_on:
-                        camera.stop()
-                        camera_on=False
+                    if camera:
+                        if camera_on:
+                            camera.stop()
+                            camera_on=False
                     if selected_image_surface==None:
                         initial_image_surface=pygame.transform.scale(image_pp, (camera_preview_rect.width, camera_preview_rect.height))
                                     
@@ -619,35 +622,39 @@ def registration_screen():
                     file_dialog_thread.start()
                 
                 elif take_foto_button.top_rect.collidepoint(mouse_pos):
-                    
-                    if not camera_on:
-                        take_foto_button.update_button('[\u25c9"]',(50,40))
-                        selected_image_surface = None
-                        camera.start()
-                        camera_on=True
-                    else:
-                        take_foto_button.update_button('\u25c9',(50,40))
+                    if camera:
+                        if not camera_on:
+                            take_foto_button.update_button('[\u25c9"]',(50,40))
+                            selected_image_surface = None
+                            camera.start()
+                            camera_on=True
+                        else:
+                            take_foto_button.update_button('\u25c9',(50,40))
 
-                        image = camera.get_image()
-                        camera_image = pygame.transform.scale(image, (camera_preview_rect.width, camera_preview_rect.height))
-                        name_photo = Usuario._get_next_id(Usuario)
-                        image_filename = os.path.join("profile_photos", str(name_photo)+".png")
-                        pygame.image.save(camera_image, image_filename)
-                        print(f"Foto guardada en: {image_filename}")
-                        # Cambiar selected_image_surface para mostrar la última imagen capturada
-                        selected_image_surface = camera_image
-                        camera.stop()  # Detener la cámara después de tomar la foto
-                        camera_on=False
+                            image = camera.get_image()
+                            camera_image = pygame.transform.scale(image, (camera_preview_rect.width, camera_preview_rect.height))
+                            name_photo = Usuario._get_next_id(Usuario)
+                            image_filename = os.path.join("profile_photos", str(name_photo)+".png")
+                            pygame.image.save(camera_image, image_filename)
+                            print(f"Foto guardada en: {image_filename}")
+                            # Cambiar selected_image_surface para mostrar la última imagen capturada
+                            selected_image_surface = camera_image
+                            camera.stop()  # Detener la cámara después de tomar la foto
+                            camera_on=False
                 elif reset_button.top_rect.collidepoint(mouse_pos):
-                    if camera_on:
-                        camera.stop()
-                        camera_on=False
-                    camera.start()
-                    selected_image_surface = initial_image_surface  # Restablecer la imagen al valor inicial
+                    if camera:
+                        if camera_on:
+                            camera.stop()
+                            camera_on=False
+                        camera.start()
+                        selected_image_surface = initial_image_surface  # Restablecer la imagen al valor inicial
 
-                    
-                    camera.stop()  # Detener la cámara si está encendida
-                    camera_on = False 
+                        
+                        camera.stop()  # Detener la cámara si está encendida
+                        camera_on = False 
+                    else:
+
+                        selected_image_surface = initial_image_surface
 
 
 
@@ -700,8 +707,7 @@ def registration_screen():
         # Actualizar pygame_gui
         manager.update(time_delta)
         manager.draw_ui(win)
-        print(selected_image_surface)
-        
+
         pygame.display.flip()
 
     camera.stop()
