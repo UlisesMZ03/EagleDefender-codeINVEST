@@ -65,8 +65,9 @@ manager = pygame_gui.UIManager((WIDTH, HEIGHT))
 selected_image_surface = None
 camera_on = False
 UID_device = None
-FONT = pygame.font.Font(None, 30)
+FONT = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
 TITLE_FONT = pygame.font.Font(None,60)
+FONT_SEC = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
 background_image = pygame.image.load("images/bg2.jpg").convert()
 
 
@@ -106,9 +107,17 @@ tema_dropdown = pygame_gui.elements.UIDropDownMenu(
     relative_rect=pygame.Rect((100, 100), (100, 30)),
     manager=manager
 )
+image_pp = pygame.image.load("images/User_Icon.png").convert_alpha()
+image_pp.fill(PCBUTTON, None, pygame.BLEND_MULT)
 # Configurar el rectángulo para la vista previa de la cámara
-camera_preview_rect = pygame.Rect(700, 100, 300, 200)
+camera_preview_rect = pygame.Rect(WIDTH/7*4, HEIGHT/14.4*3, WIDTH/7*2-55, HEIGHT/14.4*4)
+
 camera_image = None  # Inicializar la imagen de la cámara fuera del bucle princUIDal
+initial_image_surface = pygame.transform.scale(image_pp, (camera_preview_rect.width, camera_preview_rect.height))
+
+
+profile_surface = pygame.Surface((camera_preview_rect.width, camera_preview_rect.height))
+profile_surface.fill(SCBUTTON)
 
 
 def load_selected_image(image_path):
@@ -119,63 +128,75 @@ def load_selected_image(image_path):
 
 
 class Button:
-	def __init__(self,text,width,height,pos,elevation,color):
-        
+    def __init__(self,text,width,height,pos,elevation,color):
+        self.pressed = False
+        self.elevation = elevation
+        self.dynamic_elecation = elevation
+        self.original_y_pos = pos[1]
+        self.width = width
+        self.height = height
 		#Core attributes 
-		self.pressed = False
-		self.elevation = elevation
-		self.dynamic_elecation = elevation
-		self.original_y_pos = pos[1]
-
 		# top rectangle 
-		self.top_rect = pygame.Rect(pos,(width,height))
-		self.top_color = color
+        self.top_rect = pygame.Rect(pos,(width,height))
+        self.top_color = color
 
 		# bottom rectangle 
-		self.bottom_rect = pygame.Rect(pos,(width,height))
-		self.bottom_color = color
+        self.bottom_rect = pygame.Rect(pos,(width,height))
+        self.bottom_color = color
         
 		#text
-		self.text_surf = FONT.render(text,True,'#FFFFFF')
-		self.text_rect = self.text_surf.get_rect(center = self.top_rect.center)
+        self.text_surf = FONT.render(text,True,'#FFFFFF')
+        self.text_rect = self.text_surf.get_rect(center = self.top_rect.center)
+
         
 
 
+<<<<<<< HEAD
 
 
 	def draw(self,color,color2):
+=======
+    def draw(self,color,color2):
+>>>>>>> 5604a89 (feat: agregar pp default y reacomodar elementos)
 		# elevation logic 
         
-		self.top_rect.y = self.original_y_pos - self.dynamic_elecation
-		self.text_rect.center = self.top_rect.center 
+        self.top_rect.y = self.original_y_pos - self.dynamic_elecation
+        self.text_rect.center = self.top_rect.center 
 
-		self.bottom_rect.midtop = self.top_rect.midtop
-		self.bottom_rect.height = self.top_rect.height + self.dynamic_elecation
+        self.bottom_rect.midtop = self.top_rect.midtop
+        self.bottom_rect.height = self.top_rect.height + self.dynamic_elecation
 
-		pygame.draw.rect(win,self.bottom_color, self.bottom_rect,border_radius = 12)
-		pygame.draw.rect(win,self.top_color, self.top_rect,border_radius = 12)
-		win.blit(self.text_surf, self.text_rect)
-		self.check_click(color,color2)
+        pygame.draw.rect(win,self.bottom_color, self.bottom_rect,border_radius = 12)
+        pygame.draw.rect(win,self.top_color, self.top_rect,border_radius = 12)
+        win.blit(self.text_surf, self.text_rect)
+        self.check_click(color,color2)
     
 
-
-
-	def check_click(self, color,color2):
-		mouse_pos = pygame.mouse.get_pos()
-		if self.top_rect.collidepoint(mouse_pos):
-			self.top_color = color2
+    def check_click(self, color,color2):
+        mouse_pos = pygame.mouse.get_pos()
+        if self.top_rect.collidepoint(mouse_pos):
+            self.top_color = color2
             
-			if pygame.mouse.get_pressed()[0]:
-				self.dynamic_elecation = 0
-				self.pressed = True
-			else:
-				self.dynamic_elecation = self.elevation
-				if self.pressed == True:
-					self.pressed = False
-		else: 
-			self.dynamic_elecation = self.elevation
-			self.top_color = color
-			self.bottom_color = color2
+            if pygame.mouse.get_pressed()[0]:
+                self.dynamic_elecation = 0
+                self.pressed = True
+            else:
+                self.dynamic_elecation = self.elevation
+                if self.pressed == True:
+                    self.pressed = False
+        else: 
+            self.dynamic_elecation = self.elevation
+            self.top_color = color
+            self.bottom_color = color2
+    def update_button(self, new_text, new_size):
+        # Actualizar el texto del botón
+        self.text_surf = FONT.render(new_text, True, '#FFFFFF')
+        self.text_rect = self.text_surf.get_rect(center=self.top_rect.center)
+
+        # Actualizar el tamaño del botón
+        self.top_rect.width, self.top_rect.height = new_size
+        self.bottom_rect.width, self.bottom_rect.height = new_size
+
             
 special_symbols = ['!', '@', '#', '$', '%', '&', '*', '+', '-', '=', '_', '?', '<', '>', '.', ',', ':', ';']
 
@@ -184,6 +205,8 @@ class TextInputBox:
         self.rect = pygame.Rect(x, y, width, height)
         self.color = color
         self.text = ""
+        self.height=height
+        self.width=width
         self.placeholder = placeholder
         self.active = False
         self.cursor_pos = 0  # Posición del cursor en el texto
@@ -196,8 +219,9 @@ class TextInputBox:
                 self.active = True
                 # Calcular la posición del cursor en función de la posición del clic
                 click_x = event.pos[0] - (self.rect.x + 5)
+                
                 self.cursor_pos = len(self.text)
-                txt_surface = FONT.render(self.text, True, self.color)
+                txt_surface = FONT_SEC.render(self.text, True, self.color)
                 for i in range(len(self.text)):
                     if txt_surface.get_width() > click_x:
                         self.cursor_pos = i
@@ -209,12 +233,16 @@ class TextInputBox:
         if event.type == pygame.KEYDOWN:
             if self.active:
                 
-                if event.key == pygame.K_BACKSPACE and self.cursor_pos > 0:
+                if event.key == pygame.K_BACKSPACE and self.cursor_pos > 0 and not self.is_password:
                     self.real_text = self.real_text[:self.cursor_pos - 1] + self.real_text[self.cursor_pos:]
                     self.cursor_pos -= 1
                     
                     self.text = self.real_text
-                    
+                elif event.key == pygame.K_BACKSPACE and self.cursor_pos > 0 and self.is_password:
+                    self.real_text = self.real_text[:self.cursor_pos - 1] + self.real_text[self.cursor_pos:]
+                    self.cursor_pos -= 1
+                    self.text = u'\u25C6' * len(self.real_text)
+
                 elif event.key == pygame.K_DELETE and self.cursor_pos < len(self.text):
                     self.text = self.text[:self.cursor_pos] + self.text[self.cursor_pos + 1:]
                 elif event.key == pygame.K_LEFT and self.cursor_pos > 0:
@@ -225,7 +253,7 @@ class TextInputBox:
                     self.active = False
                 elif self.is_password==True and (event.unicode.isalpha() or event.unicode.isdigit() or event.unicode in special_symbols):  # Permitir solo letras y números
                     # Mostrar el rombo si es una contraseña
-                    char = '*' if self.is_password else event.unicode
+                    char = u'\u25C6' if self.is_password else event.unicode
                     self.text = self.text[:self.cursor_pos] + char + self.text[self.cursor_pos:]
                     self.real_text = self.real_text[:self.cursor_pos] + event.unicode + self.real_text[self.cursor_pos:]
                     self.cursor_pos += 1
@@ -247,22 +275,23 @@ class TextInputBox:
         """
         return self.real_text
     def update(self):
-        txt_surface = FONT.render(self.text, True, self.color)
+        txt_surface = FONT_SEC.render(self.text, True, self.color)
         # Establece el ancho mínimo del campo de texto
-        min_width = 300
+        min_width = self.width
         self.rect.w = max(min_width, txt_surface.get_width() + 10)
     def draw(self, surface):
         pygame.draw.rect(surface, self.color, self.rect, 2)
-        if self.is_password:
-            masked_text = '*' * len(self.real_text)
-            txt_surface = FONT.render(masked_text if masked_text else self.placeholder, True, self.color)
-        else:
-            txt_surface = FONT.render(self.real_text if self.real_text else self.placeholder, True, self.color)
+        
+        txt_surface = FONT_SEC.render(self.text if self.text else self.placeholder, True, self.color)
         surface.blit(txt_surface, (self.rect.x + 5, self.rect.y + 5))
         if self.active and self.text:  # Mostrar el cursor solo si el cuadro de texto está activo y tiene texto
-            cursor_x = self.rect.x + 5 + FONT.render(self.text[:self.cursor_pos], True, self.color).get_width()
+            cursor_x = self.rect.x + 5 + FONT_SEC.render(self.text[:self.cursor_pos], True, self.color).get_width()
             pygame.draw.line(surface, self.color, (cursor_x, self.rect.y + 5),
                             (cursor_x, self.rect.y + 5 + txt_surface.get_height()), 2)
+            
+            
+            
+            
 
 
 
@@ -514,27 +543,44 @@ def receive_data_from_uart():
     uart_thread.join()  # Esperar a que el hilo termine
     
     
+<<<<<<< HEAD
 email_input = TextInputBox(300, 100, 200, 40,PCBUTTON,SCBUTTON, "Email")
 name_input = TextInputBox(300, 150, 200, 40,PCBUTTON,SCBUTTON, "Name")
 age_input = TextInputBox(300, 200, 200, 40,PCBUTTON,SCBUTTON, "Age")
 username_input = TextInputBox(300, 250, 200, 40,PCBUTTON,SCBUTTON, "Username")
 password_input = TextInputBox(300, 300, 200, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
 confirm_password_input = TextInputBox(300, 350, 200, 40, PCBUTTON,SCBUTTON,"Confirm Password",is_password=True)
+=======
 
 
 
 
-register_button = Button('Register',140,40,(300,450),5,SCBUTTON)
-add_device_button = Button('Add Device',140,40,(460,450),5,SCBUTTON)
-take_foto_button = Button('Take foto',200,40,(750,350),5,SCBUTTON)
-select_image_button = Button('select foto',200,40,(750,400),5,SCBUTTON)
-reset_button = Button('reset',200,40,(750,450),5,SCBUTTON)
+ 
+
+email_input = TextInputBox(WIDTH/7, HEIGHT/14.4*3, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Email")
+name_input = TextInputBox(WIDTH/7, HEIGHT/14.4*4, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Name")
+age_input = TextInputBox(WIDTH/7, HEIGHT/14.4*5, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Age")
+username_input = TextInputBox(WIDTH/7, HEIGHT/14.4*6, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Username")
+password_input = TextInputBox(WIDTH/7, HEIGHT/14.4*7, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
+confirm_password_input = TextInputBox(WIDTH/7, HEIGHT/14.4*8, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,"Confirm Password",is_password=True)
+>>>>>>> 5604a89 (feat: agregar pp default y reacomodar elementos)
+
+
+
+
+register_button = Button('Register',WIDTH/7,40,(WIDTH/7*3,HEIGHT/14.4*11.3),5,SCBUTTON)
+add_device_button = Button('Add Device',WIDTH/7*2,40,(WIDTH/7,HEIGHT/14.4*9),5,SCBUTTON)
+take_foto_button = Button(u'\u25c9',50,40,(WIDTH/7*6-50,HEIGHT/14.4*3+10),5,SCBUTTON)
+select_image_button = Button(u'\u2191',50,40,(WIDTH/7*6-50,HEIGHT/14.4*4+5),5,SCBUTTON)
+reset_button = Button(u'\u2716',50,40,(WIDTH/7*6-50,HEIGHT/14.4*6+5),5,SCBUTTON)
 
 def registration_screen():
     global selected_image_surface
     global camera_on
+    global initial_image_surface
     running = True
-    
+    selected_image_surface = initial_image_surface  # Establecer la imagen inicial
+    profile_surface.blit(selected_image_surface, (0, 0))
     while running:
         time_delta = pygame.time.Clock().tick(60)/1000.0
 
@@ -558,6 +604,16 @@ def registration_screen():
                         if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
                             if event.text in temas:
                                 cambiar_tema(event.text)
+                                profile_surface.fill(SCBUTTON)
+                                image_pp.fill(PCBUTTON, None, pygame.BLEND_MULT)
+                                
+                                if selected_image_surface==initial_image_surface:
+                                    
+                                    initial_image_surface=pygame.transform.scale(image_pp, (camera_preview_rect.width, camera_preview_rect.height))
+                                    
+                                    profile_surface.blit(initial_image_surface, (0, 0))
+                                else:
+                                    profile_surface.blit(selected_image_surface, (0, 0))
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
@@ -569,18 +625,23 @@ def registration_screen():
                     if camera_on:
                         camera.stop()
                         camera_on=False
-                    
+                    if selected_image_surface==None:
+                        initial_image_surface=pygame.transform.scale(image_pp, (camera_preview_rect.width, camera_preview_rect.height))
+                                    
+                        selected_image_surface= initial_image_surface
                     file_dialog_thread = threading.Thread(target=select_folder)
                     file_dialog_thread.start()
                 
                 elif take_foto_button.top_rect.collidepoint(mouse_pos):
                     
                     if not camera_on:
+                        take_foto_button.update_button('[\u25c9"]',(50,40))
                         selected_image_surface = None
                         camera.start()
                         camera_on=True
                     else:
-                        
+                        take_foto_button.update_button('\u25c9',(50,40))
+
                         image = camera.get_image()
                         camera_image = pygame.transform.scale(image, (camera_preview_rect.width, camera_preview_rect.height))
                         name_photo = Usuario._get_next_id(Usuario)
@@ -596,7 +657,8 @@ def registration_screen():
                         camera.stop()
                         camera_on=False
                     camera.start()
-                    selected_image_surface = None
+                    selected_image_surface = initial_image_surface  # Restablecer la imagen al valor inicial
+
                     
                     camera.stop()  # Detener la cámara si está encendida
                     camera_on = False 
@@ -618,7 +680,7 @@ def registration_screen():
         win.blit(background_image, (0, 0))
 
          # Ajusta las coordenadas y dimensiones según sea necesario
-        crear_rectangulo_redondeado(hex_to_rgb(TCBUTTOM),WIDTH//6, 80, WIDTH-(WIDTH//6)*2, 500,15,alpha=200 )  # Ajusta las coordenadas y dimensiones según sea necesario
+        crear_rectangulo_redondeado(hex_to_rgb(TCBUTTOM),WIDTH/7-10, HEIGHT/14.4*3-10, WIDTH/7*5+20, HEIGHT/14.4*8,15,alpha=200 )  # Ajusta las coordenadas y dimensiones según sea necesario
         crear_rectangulo_redondeado(hex_to_rgb(BACKGROUND),(WIDTH//60*25), 7, ((WIDTH//60)*11), (80),15,alpha=95)
         #draw_rounded_rectangle(win, TCBUTTOM, rect_dimensions, 15)
         register_surface = TITLE_FONT.render("REGISTER", True, PCBUTTON)
@@ -638,7 +700,11 @@ def registration_screen():
 
 
         if selected_image_surface:
-            win.blit(selected_image_surface, camera_preview_rect.topleft)
+            if (selected_image_surface==initial_image_surface) :
+                win.blit(profile_surface, (camera_preview_rect.x, camera_preview_rect.y))
+            else:
+                win.blit(selected_image_surface, (camera_preview_rect.x, camera_preview_rect.y))
+
         else:
             if camera_on:
                 image = camera.get_image()
@@ -648,7 +714,7 @@ def registration_screen():
         # Actualizar pygame_gui
         manager.update(time_delta)
         manager.draw_ui(win)
-   
+        print(selected_image_surface)
         
         pygame.display.flip()
 
