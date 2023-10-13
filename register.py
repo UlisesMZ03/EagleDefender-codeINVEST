@@ -151,13 +151,9 @@ class Button:
         
 
 
-<<<<<<< HEAD
 
-
-	def draw(self,color,color2):
-=======
     def draw(self,color,color2):
->>>>>>> 5604a89 (feat: agregar pp default y reacomodar elementos)
+
 		# elevation logic 
         
         self.top_rect.y = self.original_y_pos - self.dynamic_elecation
@@ -542,16 +538,6 @@ def receive_data_from_uart():
         mostrar_mensaje_error('Error de conexion', "No se ha podido establecer conexion\n            Intentalo nuevamente", PCBUTTON, SCBUTTON)
     uart_thread.join()  # Esperar a que el hilo termine
     
-    
-<<<<<<< HEAD
-email_input = TextInputBox(300, 100, 200, 40,PCBUTTON,SCBUTTON, "Email")
-name_input = TextInputBox(300, 150, 200, 40,PCBUTTON,SCBUTTON, "Name")
-age_input = TextInputBox(300, 200, 200, 40,PCBUTTON,SCBUTTON, "Age")
-username_input = TextInputBox(300, 250, 200, 40,PCBUTTON,SCBUTTON, "Username")
-password_input = TextInputBox(300, 300, 200, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
-confirm_password_input = TextInputBox(300, 350, 200, 40, PCBUTTON,SCBUTTON,"Confirm Password",is_password=True)
-=======
-
 
 
 
@@ -563,7 +549,7 @@ age_input = TextInputBox(WIDTH/7, HEIGHT/14.4*5, WIDTH/7*2, 40,PCBUTTON,SCBUTTON
 username_input = TextInputBox(WIDTH/7, HEIGHT/14.4*6, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Username")
 password_input = TextInputBox(WIDTH/7, HEIGHT/14.4*7, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
 confirm_password_input = TextInputBox(WIDTH/7, HEIGHT/14.4*8, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,"Confirm Password",is_password=True)
->>>>>>> 5604a89 (feat: agregar pp default y reacomodar elementos)
+
 
 
 
