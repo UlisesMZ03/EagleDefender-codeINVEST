@@ -356,6 +356,12 @@ def register():
     username = username_input.text
     password = password_input.get_text()
 
+    song=song_input.text
+
+    # HACER AQUI QUE SE LLAME A MUSIC.PY Y SE LE PASE SONG. 
+    print ("esta es la cancionnnnn", song)
+
+
     confirm_password = confirm_password_input.get_text()
     global UID_device
 
@@ -521,7 +527,7 @@ username_input = TextInputBox(300, 250, 200, 40,PCBUTTON,SCBUTTON, "Username")
 password_input = TextInputBox(300, 300, 200, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
 confirm_password_input = TextInputBox(300, 350, 200, 40, PCBUTTON,SCBUTTON,"Confirm Password",is_password=True)
 
-
+song_input = TextInputBox(300, 400, 200, 40, PCBUTTON,SCBUTTON,"Favorite Song")
 
 
 register_button = Button('Register',140,40,(300,450),5,SCBUTTON)
@@ -550,6 +556,7 @@ def registration_screen():
             username_input.handle_event(event,PCBUTTON,SCBUTTON)
             password_input.handle_event(event,PCBUTTON,SCBUTTON)
             confirm_password_input.handle_event(event,PCBUTTON,SCBUTTON)
+            song_input.handle_event(event,PCBUTTON,SCBUTTON)
             name_input.handle_event(event,PCBUTTON,SCBUTTON)
             manager.process_events(event)
                         # Manejar eventos de pygame_gui
@@ -610,6 +617,8 @@ def registration_screen():
         password_input.update()
         confirm_password_input.update()
         name_input.update()
+        song_input.update()
+
 
         win.fill(BACKGROUND)
 
@@ -627,6 +636,7 @@ def registration_screen():
         age_input.draw(win)
         username_input.draw(win)
         password_input.draw(win)
+        song_input.draw(win)
         confirm_password_input.draw(win)
         name_input.draw(win)
         register_button.draw(PCBUTTON,TCBUTTOM)
