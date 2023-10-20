@@ -10,17 +10,6 @@ import pygame
 import dbus
 
 
-song="In Too Deep"
-author="sum 41"
-
-
-
-
-#filter
-#logica para agregar 1 0 3 canciones
-
-#retorna las canciones 
-
 def list_music(song):
     load_dotenv()
     CLIENT_SECRET=os.getenv('CLIENTSECRET')
@@ -38,6 +27,6 @@ def list_music(song):
         return -1
 
 
-  
+
 
 
