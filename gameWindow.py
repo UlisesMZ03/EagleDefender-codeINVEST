@@ -1,9 +1,14 @@
 import pygame
-
+import pyautogui
 pygame.init()
 
 # Configuración de la pantalla
-screen_width, screen_height = 1600,900
+transparent_color=(128,128,128,128)# R,G,B, Alpha
+size=pyautogui.size()
+screen_width, screen_height = size.width,size.height
+screen_bloques=pygame.Surface((400,size.height),pygame.SRCALPHA)
+screen_bloques.fill(transparent_color)
+
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Animación de Sprites")
 fondo = pygame.image.load("images/game/backgrounds/game_background_4.png").convert()
@@ -72,18 +77,60 @@ frame_counter = 0
 
 
 obstaculo_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
-proyectile_img = pygame.image.load('/home/ulisesmz/Escritorio/pro.png')
+proyectile_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
 class Obstaculo(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x,y,img):
         super().__init__()
-        self.image = obstaculo_img
+        self.image = img
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.active_box=None
+        self.angle = 0 
 
     def update(self):
         # Lógica de actualización si es necesario
+
         pass
+    def draw(self,surface):
+        print('dibujando')
+        rotated_image = pygame.transform.rotate(self.image, self.angle)
+        rect = rotated_image.get_rect(center=self.rect.center)
+        surface.blit(rotated_image, rect.topleft)
+
+
+        
+        
+    def rotate(self,angle_change):
+        self.angle += angle_change
+        if self.angle >= 360:
+            self.angle -= 360
+        if self.angle < 0:
+            self.angle += 360
+    def dragg(self,event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                print('presiono el boton')
+                if self.rect.collidepoint(event.pos):
+                    print("objeto")
+                    self.active_box = self.rect
+
+        if event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1:
+                   self.active_box = None
+
+        if event.type == pygame.MOUSEMOTION:
+            if self.active_box is not None:
+                self.active_box.move_ip(event.rel)
+    
+    def handle_key_event(self, key_event):
+        if key_event.type == pygame.KEYDOWN:
+            if key_event.unicode == 'r':
+                self.rotate(-90)  # Rotate 90 degrees counterclockwise on 'r' key press
+            elif key_event.unicode == 't':
+                self.rotate(90)  # Rotate 90 degrees clockwise on 't' key press
+
+
 
 class Defensor(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -212,8 +259,10 @@ class Proyectil(pygame.sprite.Sprite):
 obstaculos = pygame.sprite.Group()
 proyectiles = pygame.sprite.Group()
 
-obstaculo = Obstaculo(400, 300)
+obstaculo = Obstaculo(size.width-370, size.height//2, obstaculo_img)
 obstaculos.add(obstaculo)
+
+
 # Nuevas dimensiones del sprite
 atacante = Atacante(screen_width // 2, screen_height // 2)
 defensor = Defensor(screen_width // 8 - 42, screen_height // 2 - 37)
@@ -223,6 +272,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+       
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 3:
@@ -238,6 +288,9 @@ while running:
                 # Disparar un proyectil al hacer clic en la pantalla
                 proyectil = Proyectil(atacante.rect.x+nuevo_ancho/2,atacante.rect.y+nuevo_alto/2, proyectil_velocidad)
                 proyectiles.add(proyectil)
+        obstaculo.dragg(event)
+        obstaculo.handle_key_event(event)
+       
 
   
 
@@ -248,6 +301,7 @@ while running:
 
     # Dibujar el atacante en la pantalla
     screen.blit(fondo, (0, 0))
+    obstaculos.update()
     obstaculos.draw(screen)
     atacante.update()
     # Actualizar el águila
@@ -257,6 +311,7 @@ while running:
     # Dibujar los proyectiles
     proyectiles.update()
     proyectiles.draw(screen)
+    obstaculo.draw(screen)
 
 
     
@@ -275,6 +330,7 @@ while running:
 
     screen.blit(campfiresprite[current_frame%len(campfiresprite)], (screen_width // 22*21 - 32, screen_height // 8*3))
     screen.blit(layer, (0, 45))
+    screen.blit(screen_bloques,(size.width-400,0))
 
     pygame.display.flip()
     clock.tick(75)
@@ -282,7 +338,7 @@ while running:
     if not obstaculos:
         nueva_posicion_x = pygame.display.get_surface().get_width() + obstaculo.rect.width
         nueva_posicion_y = pygame.display.get_surface().get_height() // 2
-        obstaculo = Obstaculo(nueva_posicion_x, nueva_posicion_y)
+        obstaculo = Obstaculo(nueva_posicion_x, nueva_posicion_y,obstaculo_img)
         obstaculos.add(obstaculo)
 
 pygame.quit()
