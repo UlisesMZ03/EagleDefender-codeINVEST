@@ -1,6 +1,13 @@
 import spotipy
 import spotipy.util as util
 import time
+ 
+
+import conteopts
+
+
+duration_sec = None
+duration_sec2 = None
 
 # (Tus datos de configuración)
 SPOTIPY_CLIENT_ID = "7f5a881f950c4eeca17b098bd9e62b2c"
@@ -25,14 +32,18 @@ def play_song(song):
         # Obtenemos la duración de la canción en milisegundos
         duration_ms = results["tracks"]["items"][0]["duration_ms"]
         # Convertimos la duración a segundos
+        global duration_sec
         duration_sec = duration_ms / 1000
 
         # Espera hasta que falte aproximadamente 1 segundo para que la canción termine
         time.sleep(duration_sec - 1)
 
         print("Aproximadamente 1 segundo para que la canción termine")
-        play_song2("COLOGNE")
+        
+        play_song2("poor little match boy")
 
+        defense_time(duration_sec)
+        return(duration_sec)
     else:
         print("No se encontró la canción")
 
@@ -50,6 +61,34 @@ def play_song2(song):
         print("Reproduciendo la canción:", song)
 
 
+        duration_ms2 = results["tracks"]["items"][0]["duration_ms"]
+        # Convertimos la duración a segundos
+        global duration_sec2
+        duration_sec2 = duration_ms2 / 1000
+
+        # Espera hasta que falte aproximadamente 1 segundo para que la canción termine
+        time.sleep(duration_sec2 - 1)
+
+        print("Aproximadamente 1 segundo para que la canción termine")
+        
+
+        attack_time(duration_sec2)
+        return(duration_sec2)
+    
+
+def attack_time(duration):
+    print (duration)
+    return(duration)
+
+def defense_time(durationt):
+    print (durationt)
+    return(durationt)
 
 # Ejemplo de cómo llamar a la función play_song
-#play_song("GO TELLL IT TO THE MOUNTAIN")
+play_song("GO TELLL IT TO THE MOUNTAIN")
+
+print("Duración de la canción 1:", duration_sec)
+print("Duración de la canción 2:", duration_sec2)
+
+
+
