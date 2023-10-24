@@ -4,7 +4,7 @@ import sys
 pygame.init()
 
 # Configuración de la pantalla
-transparent_color=(128,128,128,128)# R,G,B, Alpha
+
 size=pyautogui.size()
 screen_width, screen_height = size.width,size.height
 
@@ -75,9 +75,9 @@ animation_speed = 10  # Velocidad de la animación (cambia este valor para ajust
 frame_counter = 0
 
 
-nuevo_tamano=(100,100/2+20)
-tamano_textrura=(30,10)
-tam_primerElemento=(50,50//3)
+nuevo_tamano=(150//3,150)
+tamano_textrura=(20,20)
+tam_primerElemento=(40,40)
 #cargando imagenes
 textura_madera=pygame.image.load('images/game/texturaMadera.png')
 textura_madera=pygame.transform.smoothscale(textura_madera,tamano_textrura)
@@ -102,6 +102,9 @@ obstaculoConcreto = pygame.transform.smoothscale(obstaculoConcreto, nuevo_tamano
 
 proyectile_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
 
+
+
+
 class Obstaculo(pygame.sprite.Sprite):
     def __init__(self, x,y,img,obst_img):
         super().__init__()
@@ -117,6 +120,14 @@ class Obstaculo(pygame.sprite.Sprite):
         self.is_rotate=False
         self.dragging_offset = (0, 0)
         self.originalPosition=(x,y)
+        self.filter=pygame.Surface(self.image.get_size(), pygame.SRCALPHA)
+        self.filter.fill((255, 0, 0, 128))
+
+    def addFilter(self,screen,pos):
+        self.filter=pygame.Surface(self.image.get_size(), pygame.SRCALPHA)
+        self.filter.fill((255, 0, 0, 128))
+        screen.blit(self.image,pos)
+        screen.blit(self.filter,pos, special_flags=pygame.BLEND_RGBA_ADD)
 
     def imgBack(self):
         self.image = self.imgBefore
@@ -276,7 +287,7 @@ class Proyectil(pygame.sprite.Sprite):
         # Mover el proyectil
         self.rect.x -= self.velocidad
         # Ocultar el proyectil si sale de la pantalla
-        if self.rect.left < 400:
+        if self.rect.left < screen_width//8:
             self.kill()  # Eliminar el proyectil del grupo cuando sale de la pantalla
 
 obstaculos = pygame.sprite.Group()
@@ -295,9 +306,9 @@ obstaculodrag=None
 def agregarBloquesEstante(cant,x,y,texturaElem1,textura,bloque_img):
     for i in range(cant):
         if i==0:
-            obstaculos.add(Obstaculo(x-i*35,y-((50//3)//2)+5,texturaElem1,bloque_img))
+            obstaculos.add(Obstaculo(x-i*25,y-((50//3)//2)+5,texturaElem1,bloque_img))
         else:
-            obstaculos.add(Obstaculo(x-i*35,y,textura,bloque_img))
+            obstaculos.add(Obstaculo(x-i*25,y,textura,bloque_img))
 
 
 def check_collision(block, group):
@@ -309,9 +320,9 @@ obstaculodrag=None
 offset_x, offset_y = 0, 0
 dragging=False
 
-agregarBloquesEstante(10,330,size.height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera)
-agregarBloquesEstante(10,330,size.height//2-50,textura_piedraElem1,textura_piedra,obstaculoPiedra)
-agregarBloquesEstante(10,330,size.height//2-150,textura_concretoElem1,textura_concreto,obstaculoConcreto)
+agregarBloquesEstante(10,150,size.height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera)
+agregarBloquesEstante(10,150,size.height//2-50,textura_piedraElem1,textura_piedra,obstaculoPiedra)
+agregarBloquesEstante(10,150,size.height//2-150,textura_concretoElem1,textura_concreto,obstaculoConcreto)
 
 while running:
    
@@ -342,6 +353,8 @@ while running:
  
                         if check_collision(obstaculodrag, obstaculos):
                             obstaculodrag.rect.center=obstaculodrag.originalPosition
+                            #obstaculodrag.addFilter(screen,event.pos)
+                            #obstaculos.add(obstaculodrag)
                                 #obstaculodrag.imgBack()
                             print('colision')
                         obstaculodrag = None
