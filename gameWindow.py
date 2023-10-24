@@ -338,14 +338,13 @@ while running:
                     obstaculodrag.changeImg(event.pos)
                     mouse_x, mouse_y = event.pos
                     #Verificar que no se coloque el bloque en el area enemiga
-                    #if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
-                            #print('te  pasastes')
-                    
-                    if check_collision(obstaculodrag, obstaculos):
-                        obstaculodrag.rect.center=obstaculodrag.originalPosition
-                            #obstaculodrag.imgBack()
-                        print('colision')
-                    obstaculodrag = None
+                    if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
+ 
+                        if check_collision(obstaculodrag, obstaculos):
+                            obstaculodrag.rect.center=obstaculodrag.originalPosition
+                                #obstaculodrag.imgBack()
+                            print('colision')
+                        obstaculodrag = None
                     # Clear the dragging flag
             if event.button==3:
                 proyectil = Proyectil(atacante.rect.x+nuevo_ancho/2,atacante.rect.y+nuevo_alto/2, proyectil_velocidad)
