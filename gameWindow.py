@@ -286,7 +286,7 @@ class Proyectil(pygame.sprite.Sprite):
     def update(self):
         # Mover el proyectil
         self.rect.x -= self.velocidad
-        # Ocultar el proyectil si sale de la pantalla
+       
         if self.rect.left < screen_width//8:
             self.kill()  # Eliminar el proyectil del grupo cuando sale de la pantalla
 
