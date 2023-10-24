@@ -17,6 +17,7 @@ class Usuario:
         self.password = self._encrypt_data(password)
         self.uid = self._encrypt_data(uid)
         self.id = self._get_next_id()
+        
 
     def _get_next_id(self):
         conn = sqlite3.connect(self.db_path)
@@ -80,8 +81,8 @@ class Usuario:
             print("No se pudo crear el usuario. El username ya está en uso.")
         elif existing_email:
             print("No se pudo crear el usuario. El email ya está en uso.")
-        elif existing_uid:
-            print("No se pudo crear el usuario. El UID ya está en uso.")
+        elif existing_uid and self.uid!=16188:
+            print(self.uid)
         else:
             # Inserta el usuario en la base de datos
             cursor.execute('''INSERT INTO usuarios (id, name, username, age, email, password, uid) VALUES (?, ?, ?, ?, ?, ?, ?)''',

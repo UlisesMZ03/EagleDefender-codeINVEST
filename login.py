@@ -13,11 +13,16 @@ import pygame_gui
 from pygame.locals import *
 import sys
 import os
-
+import gameWindow 
+import register
 
 import shutil
+import pygame.mixer
+pygame.mixer.init()
 
 pygame.init()
+pygame.mixer.music.load('sounds/login.mp3')
+pygame.mixer.music.play(-1)  # El argumento -1 hace que la canción se reproduzca en un bucle infinito
 
 WIDTH, HEIGHT = 1280, 720
 
@@ -81,6 +86,12 @@ tema_dropdown = pygame_gui.elements.UIDropDownMenu(
     manager=manager
 )
 
+muted = False
+
+def toggle_mute():
+    global muted
+    pygame.mixer.music.set_volume(0 if muted else 1)  # Configura el volumen en 0 para silenciar y 1 para restaurar el volumen original
+    muted = not muted  # Cambia el estado de silencio
 
 class Button:
 	def __init__(self,text,width,height,pos,elevation,color):
@@ -223,7 +234,7 @@ class TextInputBox:
 
 
 
-
+usuarios_autenticados= []
 def login():
     # Obtiene los datos ingresados por el usuario
     username = username_input.text
@@ -232,9 +243,26 @@ def login():
     # Abre el archivo JSON y carga los datos en una lista de diccionarios
     
     if Usuario.check_credentials(username,password):
+        if len(usuarios_autenticados)>0:
+            if username==usuarios_autenticados[0]:
+                mostrar_mensaje_error("Error", "username logueado, {}!".format(username),PCBUTTON,SCBUTTON)
+            else:
+                mostrar_mensaje_error("Login Exitoso", "¡Bienvenido, {}!".format(username),PCBUTTON,SCBUTTON)
+            
+
+                # Aquí puedes agregar código para redirigir a la siguiente pantalla o realizar otras acciones
+            # Reemplaza 'otra_ventana' con el nombre real de tu script
+                usuarios_autenticados.append(username)
+                if len(usuarios_autenticados)==2:
+                    gameWindow.game() 
+                    pygame.quit()
+                    sys.exit()
+        else:
+            
+            mostrar_mensaje_error("Login Exitoso", "¡Bienvenido, {}!".format(username),PCBUTTON,SCBUTTON)
          
-        mostrar_mensaje_error("Login Exitoso", "¡Bienvenido, {}!".format(username),PCBUTTON,SCBUTTON)
-            # Aquí puedes agregar código para redirigir a la siguiente pantalla o realizar otras acciones
+            usuarios_autenticados.append(username)
+        
     else:
          
         mostrar_mensaje_error("Error de Login", "Nombre de usuario o contraseña incorrectos",PCBUTTON,SCBUTTON)
@@ -385,6 +413,7 @@ register_button = Button('Register ',300,40,((WIDTH//60)*8,450),5,SCBUTTON)
 #############
 #PHONE LOGIN
 
+mute_button = Button('Mute', 100, 40, (20, 20), 5, SCBUTTON)
 
 log_device_button = Button('Phone Login ',(WIDTH/60)*16,40,(((WIDTH/60)*37),450),5,SCBUTTON)
 
@@ -420,6 +449,13 @@ def login_screen():
                 elif olvido_rect.collidepoint(mouse_pos):
                     # Acción a realizar cuando el usuario hace clic en "¿Olvidó su contraseña?"
                     mostrar_mensaje_error("Recuperar Contraseña", "Por favor, contacte al soporte para recuperar su contraseña.", PCBUTTON, SCBUTTON)
+                elif mute_button.top_rect.collidepoint(mouse_pos):
+                     toggle_mute()
+                elif register_button.top_rect.collidepoint(mouse_pos):
+                    register.registration_screen() 
+                    pygame.quit()
+                    
+                    sys.exit()
                             
 
         win.fill(BACKGROUND)
@@ -439,19 +475,19 @@ def login_screen():
         password_input.update((WIDTH/60)*16)
 
         
-        
         username_input.draw(win)
         password_input.draw(win)
         login_button.draw(PCBUTTON,SCBUTTON)
         register_button.draw(PCBUTTON,SCBUTTON)
         log_device_button.draw(PCBUTTON,SCBUTTON)
-        
+        mute_button.draw(PCBUTTON,SCBUTTON)
         
         # Actualizar pygame_gui
         manager.update(time_delta)
         manager.draw_ui(win)
         # Dentro del bucle principal de la función login_screen()
-        login_surface = TITLE_FONT.render("Login", True, PCBUTTON)
+        login_text = "User " + str(len(usuarios_autenticados)+1)
+        login_surface = TITLE_FONT.render(login_text, True, PCBUTTON)
         win.blit(login_surface, login_rect)
 
         or_surface = FONT.render("or", True, SCBUTTON)  # Color blanco (#FFFFFF)
