@@ -1,4 +1,5 @@
 import pygame
+import math
 
 pygame.init()
 
@@ -70,9 +71,14 @@ current_frame = 0
 animation_speed = 10  # Velocidad de la animación (cambia este valor para ajustar la velocidad)
 frame_counter = 0
 
-
 obstaculo_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
-proyectile_img = pygame.image.load('/home/ulisesmz/Escritorio/pro.png')
+#ulises no subio la foto, use esta momentaneamente (cambiar)
+nuevo_tamano= (30, 30)
+proyectile_imgg = pygame.image.load('C:\\Users\\eemma\\OneDrive\\Escritorio\\bullet.png')
+proyectile_img = pygame.transform.scale(proyectile_imgg, nuevo_tamano)
+
+
+
 class Obstaculo(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -145,6 +151,7 @@ class Atacante(pygame.sprite.Sprite):
     def update(self):
         
         keys = pygame.key.get_pressed()
+        
 
         if keys[pygame.K_UP] and keys[pygame.K_RIGHT]:
             self.rect.y -= self.sprite_speed
@@ -193,31 +200,114 @@ class Atacante(pygame.sprite.Sprite):
         self.image = self.get_current_sprite()
 
 class Proyectil(pygame.sprite.Sprite):
-    def __init__(self, x, y, velocidad):
+    def __init__(self, x, y, velocidad, direction):
         super().__init__()
         self.image = proyectile_img
-       # Color del proyectil (rojo)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
         self.velocidad = velocidad
+        self.direction_x, self.direction_y = direction  # Almacenar las componentes de dirección
 
     def update(self):
-        # Mover el proyectil
-        self.rect.x -= self.velocidad
-        # Ocultar el proyectil si sale de la pantalla
-        if self.rect.left > screen_width:
-            self.kill()  # Eliminar el proyectil del grupo cuando sale de la pantalla
+        self.rect.x += self.velocidad * self.direction_x
+        self.rect.y += self.velocidad * self.direction_y
 
+        if self.rect.left > screen_width or self.rect.right < 0 or self.rect.top > screen_height or self.rect.bottom < 0:
+            self.kill()
+
+    def set_direction(self, target_x, target_y):
+        # Calcular la dirección en función de las coordenadas de la punta de la mirilla y el punto de origen del proyectil
+        start_x = self.rect.x
+        start_y = self.rect.y
+        dx = target_x - start_x
+        dy = target_y - start_y
+
+        # Calcular la distancia entre los puntos
+        distance = math.sqrt(dx ** 2 + dy ** 2)
+
+        # Establecer las componentes de dirección normalizadas en función de la distancia
+        if distance != 0:
+            self.direction_x = -1  # Ajustar la dirección horizontalmente
+            self.direction_y = 0  # No cambiar la dirección verticalmente
+
+        # Ajustar la velocidad del proyectil para que se mueva suavemente
+        if distance != 0:
+            self.direction_x *= self.velocidad / distance
+            self.direction_y *= self.velocidad / distance
+        else:
+            self.direction_x, self.direction_y = 0, 0
+
+
+
+class Mirilla(pygame.sprite.Sprite):
+
+    def __init__(self, sprite, offset=(0, 0), angular_speed=0.1):
+        super().__init__()
+        self.sprite = sprite
+        self.offset = offset
+        self.angular_speed = angular_speed
+        self.angle = 0
+        self.last_update = pygame.time.get_ticks()
+        self.radius = 40  # Radio del círculo de rotación de la mirilla
+        self.image_original = pygame.image.load("C:\\Users\\eemma\\OneDrive\\Escritorio\\prr.png")  # Ruta de la imagen de la flecha
+        self.image_original = pygame.transform.scale(self.image_original, (40, 40))  # Ajustar tamaño según sea necesario
+        self.image = self.image_original.copy()
+        self.rect = self.image.get_rect()
+        self.update_position()
+
+    def get_tip_position(self):
+        angle_rad = math.radians(self.angle)
+        tip_x = self.sprite.rect.centerx + self.radius * math.cos(angle_rad)
+        tip_y = self.sprite.rect.centery + self.radius * math.sin(angle_rad)
+        return tip_x, tip_y
+
+    def update_position(self):
+        # Calcular la posición de la mirilla en el círculo alrededor del sprite
+        center_x, center_y = self.sprite.rect.center
+        self.rect.centerx = center_x + self.radius * math.cos(math.radians(self.angle))
+        self.rect.centery = center_y + self.radius * math.sin(math.radians(self.angle))
+
+    def update(self):
+        # Actualizar la posición de la mirilla en el círculo
+        self.update_position()
+
+        # Calcular el tiempo transcurrido
+        now = pygame.time.get_ticks()
+        elapsed_time = now - self.last_update
+        self.last_update = now
+
+        # Incrementar el ángulo de la mirilla en función del tiempo transcurrido
+        self.angle += self.angular_speed * elapsed_time
+        self.angle %= 360
+
+        # Rotar la imagen de la mirilla para que esté siempre orientada hacia el centro
+        self.image = pygame.transform.rotate(self.image_original, -self.angle)
+        self.rect = self.image.get_rect(center=self.rect.center)
+          
 obstaculos = pygame.sprite.Group()
 proyectiles = pygame.sprite.Group()
 
 obstaculo = Obstaculo(400, 300)
 obstaculos.add(obstaculo)
+
+
+
 # Nuevas dimensiones del sprite
 atacante = Atacante(screen_width // 2, screen_height // 2)
 defensor = Defensor(screen_width // 8 - 42, screen_height // 2 - 37)
+
+todos_los_sprites = pygame.sprite.Group()  
+
+mirilla = Mirilla(atacante, offset=(0, 0))
+todos_los_sprites.add(mirilla)  
+
+
+
+
 proyectil_velocidad = 5
+
+
 running = True
 while running:
     for event in pygame.event.get():
@@ -225,26 +315,24 @@ while running:
             running = False
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 3:
+            if event.button == 1:  # Botón izquierdo del ratón
                 mouse_x, mouse_y = event.pos
-                if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
-
-                    # Verificar si el nuevo obstáculo colisiona con otros obstáculos existentes
-                    colision = any(obstaculo.rect.colliderect(pygame.Rect(mouse_x - 32, mouse_y - 32, obstaculo_img.get_width(), obstaculo_img.get_height())) for obstaculo in obstaculos)
-                    if not colision:
-                        nuevo_obstaculo = Obstaculo(mouse_x - 32, mouse_y - 32)
-                        obstaculos.add(nuevo_obstaculo)
-            else:
-                # Disparar un proyectil al hacer clic en la pantalla
-                proyectil = Proyectil(atacante.rect.x+nuevo_ancho/2,atacante.rect.y+nuevo_alto/2, proyectil_velocidad)
+                proyectil = Proyectil(mirilla.rect.centerx, mirilla.rect.centery, proyectil_velocidad, (0, 0))  
+                proyectil.set_direction(mouse_x, mouse_y)  
                 proyectiles.add(proyectil)
+
 
   
 
     # Detectar colisión entre proyectiles y obstáculos y eliminar los obstáculos
     colisiones = pygame.sprite.groupcollide(obstaculos, proyectiles, True, True)
     # Actualizar el atacante
-    
+    colisiones = pygame.sprite.groupcollide(obstaculos, proyectiles, True, True)  # Eliminar obstáculos y proyectiles en caso de colisión
+
+    # Eliminar proyectiles que estén fuera de los límites de la pantalla
+    for proyectil in proyectiles:
+        if proyectil.rect.left > screen_width or proyectil.rect.right < 0 or proyectil.rect.top > screen_height or proyectil.rect.bottom < 0:
+            proyectil.kill()
 
     # Dibujar el atacante en la pantalla
     screen.blit(fondo, (0, 0))
@@ -257,7 +345,7 @@ while running:
     # Dibujar los proyectiles
     proyectiles.update()
     proyectiles.draw(screen)
-
+    mirilla.update()
 
     
     frame_counter += 1
@@ -275,6 +363,9 @@ while running:
 
     screen.blit(campfiresprite[current_frame%len(campfiresprite)], (screen_width // 22*21 - 32, screen_height // 8*3))
     screen.blit(layer, (0, 45))
+
+    todos_los_sprites.update()
+    todos_los_sprites.draw(screen)
 
     pygame.display.flip()
     clock.tick(75)
