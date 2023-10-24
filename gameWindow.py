@@ -1,13 +1,12 @@
 import pygame
 import pyautogui
+import sys
 pygame.init()
 
 # Configuración de la pantalla
 transparent_color=(128,128,128,128)# R,G,B, Alpha
 size=pyautogui.size()
 screen_width, screen_height = size.width,size.height
-screen_bloques=pygame.Surface((400,size.height),pygame.SRCALPHA)
-screen_bloques.fill(transparent_color)
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Animación de Sprites")
@@ -76,61 +75,85 @@ animation_speed = 10  # Velocidad de la animación (cambia este valor para ajust
 frame_counter = 0
 
 
-obstaculo_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
+nuevo_tamano=(100,100/2+20)
+tamano_textrura=(30,10)
+tam_primerElemento=(50,50//3)
+#cargando imagenes
+textura_madera=pygame.image.load('images/game/texturaMadera.png')
+textura_madera=pygame.transform.smoothscale(textura_madera,tamano_textrura)
+textura_maderaElem1=pygame.transform.smoothscale(textura_madera,tam_primerElemento)
+
+textura_piedra=pygame.image.load('images/game/texturaPiedra.jpeg')
+textura_piedra=pygame.transform.smoothscale(textura_piedra,tamano_textrura)
+textura_piedraElem1=pygame.transform.smoothscale(textura_piedra,tam_primerElemento)
+
+
+textura_concreto=pygame.image.load('images/game/texturaConcreto.png')
+textura_concreto=pygame.transform.smoothscale(textura_concreto,tamano_textrura)
+textura_concretoElem1=pygame.transform.smoothscale(textura_concreto,tam_primerElemento)
+
+obstaculoMadera = pygame.image.load('images/game/madera4.png').convert_alpha()
+obstaculoPiedra=pygame.image.load('images/game/bloquePiedra.png').convert_alpha()
+obstaculoPiedra=pygame.transform.smoothscale(obstaculoPiedra,nuevo_tamano).convert_alpha()
+obstaculoMadera = pygame.transform.smoothscale(obstaculoMadera, nuevo_tamano).convert_alpha()
+
+obstaculoConcreto= pygame.image.load('images/game/bloqueConcreto.png').convert_alpha()
+obstaculoConcreto = pygame.transform.smoothscale(obstaculoConcreto, nuevo_tamano).convert_alpha()
+
 proyectile_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
+
 class Obstaculo(pygame.sprite.Sprite):
-    def __init__(self, x,y,img):
+    def __init__(self, x,y,img,obst_img):
         super().__init__()
+        self.imgBefore=img
         self.image = img
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.active_box=None
-        self.angle = 0 
+        self.angle = 0
+        self.obs_img=obst_img
+        self.offset=(0,0)
+        self.dragging=False
+        self.is_rotate=False
+        self.dragging_offset = (0, 0)
+        self.originalPosition=(x,y)
 
-    def update(self):
-        # Lógica de actualización si es necesario
+    def imgBack(self):
+        self.image = self.imgBefore
 
-        pass
-    def draw(self,surface):
-        print('dibujando')
-        rotated_image = pygame.transform.rotate(self.image, self.angle)
-        rect = rotated_image.get_rect(center=self.rect.center)
-        surface.blit(rotated_image, rect.topleft)
-
-
-        
-        
     def rotate(self,angle_change):
         self.angle += angle_change
         if self.angle >= 360:
             self.angle -= 360
         if self.angle < 0:
             self.angle += 360
-    def dragg(self,event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                print('presiono el boton')
-                if self.rect.collidepoint(event.pos):
-                    print("objeto")
-                    self.active_box = self.rect
+         # Rotar la imagen original
 
-        if event.type == pygame.MOUSEBUTTONUP:
-            if event.button == 1:
-                   self.active_box = None
+        self.image = pygame.transform.rotate(self.image, self.angle)
+        # Actualizar el rectángulo con la nueva imagen
+        self.rect = self.image.get_rect(center=self.rect.center)  
 
-        if event.type == pygame.MOUSEMOTION:
-            if self.active_box is not None:
-                self.active_box.move_ip(event.rel)
+
+    def start_dragg(self):
+        self.dragging=True
+     
     
-    def handle_key_event(self, key_event):
-        if key_event.type == pygame.KEYDOWN:
-            if key_event.unicode == 'r':
-                self.rotate(-90)  # Rotate 90 degrees counterclockwise on 'r' key press
-            elif key_event.unicode == 't':
-                self.rotate(90)  # Rotate 90 degrees clockwise on 't' key press
-
-
+    def stop_dragg(self):
+        self.dragging=False
+        
+    def drag(self,pos):
+        if self.dragging:
+            self.rect.center=pos
+            
+    def changeImg(self,pos):
+        if not self.dragging:
+            obstaculos.remove(self)
+            self.image=self.obs_img
+            self.rect = self.image.get_rect()
+            self.rect.center=pos
+          
+            obstaculos.add(self) 
+           
 
 class Defensor(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -253,14 +276,13 @@ class Proyectil(pygame.sprite.Sprite):
         # Mover el proyectil
         self.rect.x -= self.velocidad
         # Ocultar el proyectil si sale de la pantalla
-        if self.rect.left > screen_width:
+        if self.rect.left < 400:
             self.kill()  # Eliminar el proyectil del grupo cuando sale de la pantalla
 
 obstaculos = pygame.sprite.Group()
+
 proyectiles = pygame.sprite.Group()
 
-obstaculo = Obstaculo(size.width-370, size.height//2, obstaculo_img)
-obstaculos.add(obstaculo)
 
 
 # Nuevas dimensiones del sprite
@@ -268,40 +290,86 @@ atacante = Atacante(screen_width // 2, screen_height // 2)
 defensor = Defensor(screen_width // 8 - 42, screen_height // 2 - 37)
 proyectil_velocidad = 5
 running = True
+obstaculodrag=None
+
+def agregarBloquesEstante(cant,x,y,texturaElem1,textura,bloque_img):
+    for i in range(cant):
+        if i==0:
+            obstaculos.add(Obstaculo(x-i*35,y-((50//3)//2)+5,texturaElem1,bloque_img))
+        else:
+            obstaculos.add(Obstaculo(x-i*35,y,textura,bloque_img))
+
+
+def check_collision(block, group):
+    for other_block in group:
+        if block != other_block and block.rect.colliderect(other_block.rect):
+            return True
+    return False
+obstaculodrag=None
+offset_x, offset_y = 0, 0
+dragging=False
+
+agregarBloquesEstante(10,330,size.height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera)
+agregarBloquesEstante(10,330,size.height//2-50,textura_piedraElem1,textura_piedra,obstaculoPiedra)
+agregarBloquesEstante(10,330,size.height//2-150,textura_concretoElem1,textura_concreto,obstaculoConcreto)
+
 while running:
+   
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-       
-
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 3:
-                mouse_x, mouse_y = event.pos
-                if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
-
-                    # Verificar si el nuevo obstáculo colisiona con otros obstáculos existentes
-                    colision = any(obstaculo.rect.colliderect(pygame.Rect(mouse_x - 32, mouse_y - 32, obstaculo_img.get_width(), obstaculo_img.get_height())) for obstaculo in obstaculos)
-                    if not colision:
-                        nuevo_obstaculo = Obstaculo(mouse_x - 32, mouse_y - 32)
-                        obstaculos.add(nuevo_obstaculo)
-            else:
-                # Disparar un proyectil al hacer clic en la pantalla
+            sys.exit()
+        
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                for obstaculo in obstaculos:
+                    if obstaculo.rect.collidepoint(event.pos):
+                        obstaculo.start_dragg()
+                        obstaculodrag = obstaculo
+                        dragging=True
+                        break
+                        
+        if event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1:
+                
+                if obstaculodrag:
+                    dragging=False
+                    obstaculodrag.stop_dragg()
+                    obstaculodrag.changeImg(event.pos)
+                    mouse_x, mouse_y = event.pos
+                    #Verificar que no se coloque el bloque en el area enemiga
+                    #if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
+                            #print('te  pasastes')
+                    
+                    if check_collision(obstaculodrag, obstaculos):
+                        obstaculodrag.rect.center=obstaculodrag.originalPosition
+                            #obstaculodrag.imgBack()
+                        print('colision')
+                    obstaculodrag = None
+                    # Clear the dragging flag
+            if event.button==3:
                 proyectil = Proyectil(atacante.rect.x+nuevo_ancho/2,atacante.rect.y+nuevo_alto/2, proyectil_velocidad)
                 proyectiles.add(proyectil)
-        obstaculo.dragg(event)
-        obstaculo.handle_key_event(event)
-       
 
-  
+        if event.type == pygame.MOUSEMOTION:
+            if obstaculodrag:  # Check the dragging flag
+               obstaculodrag.rect.move_ip(event.rel)
+
+        elif event.type == pygame.KEYDOWN:
+            print(f'presionando tecla´{event.key}')
+            if event.key == pygame.K_LSHIFT:  # Verifica si se presionó la tecla Shift derecha
+                if obstaculodrag:
+                    obstaculodrag.rotate(90) 
+            
 
     # Detectar colisión entre proyectiles y obstáculos y eliminar los obstáculos
     colisiones = pygame.sprite.groupcollide(obstaculos, proyectiles, True, True)
     # Actualizar el atacante
     
-
+   
     # Dibujar el atacante en la pantalla
     screen.blit(fondo, (0, 0))
-    obstaculos.update()
+   
     obstaculos.draw(screen)
     atacante.update()
     # Actualizar el águila
@@ -311,7 +379,8 @@ while running:
     # Dibujar los proyectiles
     proyectiles.update()
     proyectiles.draw(screen)
-    obstaculo.draw(screen)
+    #actualiza los obstaculos
+ 
 
 
     
@@ -330,15 +399,16 @@ while running:
 
     screen.blit(campfiresprite[current_frame%len(campfiresprite)], (screen_width // 22*21 - 32, screen_height // 8*3))
     screen.blit(layer, (0, 45))
-    screen.blit(screen_bloques,(size.width-400,0))
+   
+
+    
+
+
+
 
     pygame.display.flip()
     clock.tick(75)
     # Crear un nuevo obstáculo si todos los obstáculos han sido destruidos
-    if not obstaculos:
-        nueva_posicion_x = pygame.display.get_surface().get_width() + obstaculo.rect.width
-        nueva_posicion_y = pygame.display.get_surface().get_height() // 2
-        obstaculo = Obstaculo(nueva_posicion_x, nueva_posicion_y,obstaculo_img)
-        obstaculos.add(obstaculo)
+    
 
 pygame.quit()
