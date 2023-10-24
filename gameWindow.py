@@ -1,4 +1,5 @@
 import pygame
+import math
 
 def game():
     
@@ -194,31 +195,80 @@ def game():
             # Actualizar el sprite actual
             self.image = self.get_current_sprite()
 
+    
     class Proyectil(pygame.sprite.Sprite):
-        def __init__(self, x, y, velocidad):
+        def __init__(self, x, y, velocidad, angulo):
             super().__init__()
             self.image = proyectile_img
-        # Color del proyectil (rojo)
             self.rect = self.image.get_rect()
             self.rect.x = x
             self.rect.y = y
             self.velocidad = velocidad
 
-        def update(self):
-            # Mover el proyectil
-            self.rect.x -= self.velocidad
-            # Ocultar el proyectil si sale de la pantalla
-            if self.rect.left > screen_width:
-                self.kill()  # Eliminar el proyectil del grupo cuando sale de la pantalla
+            # Calcular componentes de dirección basadas en el ángulo
+            self.direction_x = math.cos(math.radians(angulo))
+            self.direction_y = -math.sin(math.radians(angulo))  # El signo negativo es porque en pygame, el eje y aumenta hacia abajo
 
+        def update(self):
+            self.rect.x += self.velocidad * self.direction_x
+            self.rect.y += self.velocidad * self.direction_y
+
+            if self.rect.left > screen_width or self.rect.right < 0 or self.rect.top > screen_height or self.rect.bottom < 0:
+                self.kill()
+
+
+
+
+
+    class Mirilla(pygame.sprite.Sprite):
+
+        def __init__(self, sprite, offset=(0, 0), angular_speed=0.1):
+            super().__init__()
+            self.sprite = sprite
+            self.offset = offset
+            self.angular_speed = angular_speed
+            self.angle = 0
+            self.last_update = pygame.time.get_ticks()
+            self.radius = 40
+            self.image_original = pygame.image.load("images/game/Rock1_1_no_shadow.png")
+            self.image_original = pygame.transform.scale(self.image_original, (40, 40))
+            self.image = self.image_original.copy()
+            self.rect = self.image.get_rect()
+            self.update_position()
+
+        def get_tip_position(self):
+            angle_rad = math.radians(self.angle)
+            tip_x = self.sprite.rect.centerx + self.radius * math.cos(angle_rad)
+            tip_y = self.sprite.rect.centery + self.radius * math.sin(angle_rad)
+            return tip_x, tip_y
+
+        def update_position(self):
+            center_x, center_y = self.sprite.rect.center
+            self.rect.centerx = center_x + self.radius * math.cos(math.radians(self.angle))
+            self.rect.centery = center_y + self.radius * math.sin(math.radians(self.angle))
+        def update(self):
+                self.update_position()
+                now = pygame.time.get_ticks()
+                elapsed_time = now - self.last_update
+                self.last_update = now
+                self.angle += self.angular_speed * elapsed_time
+                self.angle %= 360
+                self.image = pygame.transform.rotate(self.image_original, -self.angle)
+                self.rect = self.image.get_rect(center=self.rect.center)
+    
     obstaculos = pygame.sprite.Group()
-    proyectiles = pygame.sprite.Group()
+    
 
     obstaculo = Obstaculo(400, 300)
     obstaculos.add(obstaculo)
     # Nuevas dimensiones del sprite
     atacante = Atacante(screen_width // 2, screen_height // 2)
     defensor = Defensor(screen_width // 8 - 42, screen_height // 2 - 37)
+    proyectiles = pygame.sprite.Group()
+    todos_los_sprites = pygame.sprite.Group()  
+
+    mirilla = Mirilla(atacante, offset=(0, 0))
+    todos_los_sprites.add(mirilla)  
     proyectil_velocidad = 5
     running = True
     while running:
@@ -236,9 +286,13 @@ def game():
                         if not colision:
                             nuevo_obstaculo = Obstaculo(mouse_x - 32, mouse_y - 32)
                             obstaculos.add(nuevo_obstaculo)
-                else:
-                    # Disparar un proyectil al hacer clic en la pantalla
-                    proyectil = Proyectil(atacante.rect.x+nuevo_ancho/2,atacante.rect.y+nuevo_alto/2, proyectil_velocidad)
+              
+                if event.button == 1:  # Botón izquierdo del ratón
+                    print(1)
+                    tip_x, tip_y = mirilla.get_tip_position()
+                    angle_rad = mirilla.angle
+                    proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad)
+            
                     proyectiles.add(proyectil)
 
     
@@ -259,7 +313,7 @@ def game():
         # Dibujar los proyectiles
         proyectiles.update()
         proyectiles.draw(screen)
-
+        mirilla.update()
 
         
         frame_counter += 1
@@ -277,7 +331,8 @@ def game():
 
         screen.blit(campfiresprite[current_frame%len(campfiresprite)], (screen_width // 22*21 - 32, screen_height // 8*3))
         screen.blit(layer, (0, 45))
-
+        todos_los_sprites.update()
+        todos_los_sprites.draw(screen)
         pygame.display.flip()
         clock.tick(75)
         # Crear un nuevo obstáculo si todos los obstáculos han sido destruidos
@@ -288,3 +343,7 @@ def game():
             obstaculos.add(obstaculo)
 
     pygame.quit()
+
+
+if __name__ == "__main__":
+    game()
