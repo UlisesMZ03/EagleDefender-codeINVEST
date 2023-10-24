@@ -13,6 +13,8 @@ from pygame.locals import *
 import pyautogui
 import shutil
 
+import music
+
 pygame.init()
 pygame.camera.init()
 WIDTH, HEIGHT = 1280, 720
@@ -358,9 +360,10 @@ def register():
 
     song=song_input.text
 
-    # HACER AQUI QUE SE LLAME A MUSIC.PY Y SE LE PASE SONG. 
+    # LLAMA A MUSIC.PY Y SE LE PASE SONG. 
     print ("esta es la cancionnnnn", song)
-
+    music.play_song(song)
+    
 
     confirm_password = confirm_password_input.get_text()
     global UID_device
