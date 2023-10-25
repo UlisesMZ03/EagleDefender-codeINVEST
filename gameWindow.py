@@ -295,12 +295,7 @@ def game():
             
                     proyectiles.add(proyectil)
 
-    
-
-        # Detectar colisión entre proyectiles y obstáculos y eliminar los obstáculos
         colisiones = pygame.sprite.groupcollide(obstaculos, proyectiles, True, True)
-        # Actualizar el atacante
-        
 
         # Dibujar el atacante en la pantalla
         screen.blit(fondo, (0, 0))
@@ -344,6 +339,6 @@ def game():
 
     pygame.quit()
 
-
 if __name__ == "__main__":
     game()
+
