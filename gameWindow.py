@@ -4,10 +4,14 @@ import math
 def game():
     
     pygame.init()
+    # Obtener información sobre la pantalla del sistema
+    screen_info = pygame.display.Info()
 
     # Configuración de la pantalla
-    screen_width, screen_height = 1600,900
-    screen = pygame.display.set_mode((screen_width, screen_height))
+    screen_width, screen_height = screen_info.current_w, screen_info.current_h
+    
+    screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+
     pygame.display.set_caption("Animación de Sprites")
     fondo = pygame.image.load("images/game/backgrounds/game_background_4.png").convert()
     fondo = pygame.transform.scale(fondo, (screen_width, screen_height))
@@ -72,21 +76,104 @@ def game():
     current_frame = 0
     animation_speed = 10  # Velocidad de la animación (cambia este valor para ajustar la velocidad)
     frame_counter = 0
+    nuevo_tamano=(150//3,150)
+    tamano_textrura=(20,20)
+    tam_primerElemento=(40,40)
+    #cargando imagenes
+    textura_madera=pygame.image.load('images/game/texturaMadera.png')
+    textura_madera=pygame.transform.smoothscale(textura_madera,tamano_textrura)
+    textura_maderaElem1=pygame.transform.smoothscale(textura_madera,tam_primerElemento)
 
+    textura_piedra=pygame.image.load('images/game/texturaPiedra.jpeg')
+    textura_piedra=pygame.transform.smoothscale(textura_piedra,tamano_textrura)
+    textura_piedraElem1=pygame.transform.smoothscale(textura_piedra,tam_primerElemento)
+
+
+    textura_concreto=pygame.image.load('images/game/texturaConcreto.png')
+    textura_concreto=pygame.transform.smoothscale(textura_concreto,tamano_textrura)
+    textura_concretoElem1=pygame.transform.smoothscale(textura_concreto,tam_primerElemento)
+
+    obstaculoMadera = pygame.image.load('images/game/madera4.png').convert_alpha()
+    obstaculoPiedra=pygame.image.load('images/game/bloquePiedra.png').convert_alpha()
+    obstaculoPiedra=pygame.transform.smoothscale(obstaculoPiedra,nuevo_tamano).convert_alpha()
+    obstaculoMadera = pygame.transform.smoothscale(obstaculoMadera, nuevo_tamano).convert_alpha()
+
+    obstaculoConcreto= pygame.image.load('images/game/bloqueConcreto.png').convert_alpha()
+    obstaculoConcreto = pygame.transform.smoothscale(obstaculoConcreto, nuevo_tamano).convert_alpha()
 
     obstaculo_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
     proyectile_img = pygame.image.load('/home/ulisesmz/Escritorio/pro.png')
     class Obstaculo(pygame.sprite.Sprite):
-        def __init__(self, x, y):
+        def __init__(self, x,y,img,obst_img, tipo):
             super().__init__()
-            self.image = obstaculo_img
+            self.imgBefore=img
+            self.image = img
             self.rect = self.image.get_rect()
             self.rect.x = x
             self.rect.y = y
+            self.angle = 0
+            self.obs_img=obst_img
+            self.offset=(0,0)
+            self.dragging=False
+            self.is_rotate=False
+            self.dragging_offset = (0, 0)
+            self.originalPosition=(x,y)
+            self.filter=pygame.Surface(self.image.get_size(), pygame.SRCALPHA)
+            self.filter.fill((255, 0, 0, 128))
+            self.is_active = False
+            self.tipo=tipo
+        def activate(self):
+            # Logic to activate/placement of the object
+            # You can customize this logic based on your requirements
+            self.is_active = True
 
-        def update(self):
-            # Lógica de actualización si es necesario
-            pass
+        def deactivate(self):
+            print("desactivado")
+            # Logic to deactivate/unplace the object
+            self.is_active = False
+        def addFilter(self,screen,pos):
+            self.filter=pygame.Surface(self.image.get_size(), pygame.SRCALPHA)
+            self.filter.fill((255, 0, 0, 128))
+            screen.blit(self.image,pos)
+            screen.blit(self.filter,pos, special_flags=pygame.BLEND_RGBA_ADD)
+
+        def imgBack(self):
+            self.image = self.imgBefore
+
+        def rotate(self,angle_change):
+            self.angle += angle_change
+            if self.angle >= 360:
+                self.angle -= 360
+            if self.angle < 0:
+                self.angle += 360
+            # Rotar la imagen original
+
+            self.image = pygame.transform.rotate(self.image, self.angle)
+            # Actualizar el rectángulo con la nueva imagen
+            self.rect = self.image.get_rect(center=self.rect.center)  
+
+
+        def start_dragg(self):
+            self.dragging=True
+        
+        
+        def stop_dragg(self):
+            self.dragging=False
+            
+        def drag(self,pos):
+            if self.dragging:
+                self.rect.center=pos
+                
+        def changeImg(self,pos):
+            if not self.dragging:
+                obstaculos.remove(self)
+                
+                self.image=self.obs_img
+               
+                self.rect = self.image.get_rect()
+                self.rect.center=pos
+            
+                obstaculos.add(self) 
 
     class Defensor(pygame.sprite.Sprite):
         def __init__(self, x, y):
@@ -149,39 +236,39 @@ def game():
             
             keys = pygame.key.get_pressed()
 
-            if keys[pygame.K_UP] and keys[pygame.K_RIGHT]:
+            if keys[pygame.K_w] and keys[pygame.K_d]:
                 self.rect.y -= self.sprite_speed
                 self.rect.x += self.sprite_speed
                 self.current_direction = UPRIGHT
                 self.sprite_index+=1
-            elif keys[pygame.K_UP] and keys[pygame.K_LEFT]:
+            elif keys[pygame.K_w] and keys[pygame.K_a]:
                 self.rect.y -= self.sprite_speed
                 self.rect.x -= self.sprite_speed
                 self.current_direction = UPLEFT
                 self.sprite_index+=1
-            elif keys[pygame.K_DOWN] and keys[pygame.K_RIGHT]:
+            elif keys[pygame.K_s] and keys[pygame.K_d]:
                 self.rect.y += self.sprite_speed
                 self.rect.x += self.sprite_speed
                 self.current_direction = DOWNRIGHT
                 self.sprite_index+=1
-            elif keys[pygame.K_DOWN] and keys[pygame.K_LEFT]:
+            elif keys[pygame.K_s] and keys[pygame.K_a]:
                 self.rect.y += self.sprite_speed
                 self.rect.x -= self.sprite_speed
                 self.current_direction = DOWNLEFT
                 self.sprite_index+=1
-            elif keys[pygame.K_UP]:
+            elif keys[pygame.K_w]:
                 self.rect.y -= self.sprite_speed
                 self.current_direction = UP
                 self.sprite_index+=1
-            elif keys[pygame.K_DOWN]:
+            elif keys[pygame.K_s]:
                 self.rect.y += self.sprite_speed
                 self.current_direction = DOWN
                 self.sprite_index+=1
-            elif keys[pygame.K_LEFT]:
+            elif keys[pygame.K_a]:
                 self.rect.x -= self.sprite_speed
                 self.current_direction = LEFT
                 self.sprite_index+=1
-            elif keys[pygame.K_RIGHT]:
+            elif keys[pygame.K_d]:
                 self.rect.x += self.sprite_speed
                 self.current_direction = RIGHT
                 self.sprite_index+=1
@@ -199,7 +286,15 @@ def game():
     class Proyectil(pygame.sprite.Sprite):
         def __init__(self, x, y, velocidad, angulo):
             super().__init__()
-            self.image = proyectile_img
+            self.spritesheet = pygame.image.load("images/game/powers/fire.png")  # Cargar el spritesheet
+            self.current_frame = 0  # Inicializar el índice del fotograma actual
+            self.frames = []  # Lista para almacenar las imágenes individuales del spritesheet
+            self.load_frames()  # Cargar las imágenes del spritesheet en la lista de frames
+            self.angulo=angulo
+            # Establecer la imagen inicial del proyectil
+            self.image = self.frames[self.current_frame]
+           
+            
             self.rect = self.image.get_rect()
             self.rect.x = x
             self.rect.y = y
@@ -207,12 +302,32 @@ def game():
 
             # Calcular componentes de dirección basadas en el ángulo
             self.direction_x = math.cos(math.radians(angulo))
-            self.direction_y = -math.sin(math.radians(angulo))  # El signo negativo es porque en pygame, el eje y aumenta hacia abajo
+            self.direction_y = -math.sin(math.radians(angulo))
 
+        def load_frames(self):
+            # Dividir el spritesheet en imágenes individuales y añadirlas a la lista de frames
+            # Asumiendo que el spritesheet contiene 5 imágenes en una fila
+            frame_width = self.spritesheet.get_width() // 5
+            frame_height = self.spritesheet.get_height()
+            for i in range(5):
+                frame = self.spritesheet.subsurface((i * frame_width, 0, frame_width, frame_height))
+                self.frames.append(frame)
+        contador=0
         def update(self):
+            self.contador+=1
+            # Cambiar la imagen del proyectil en cada fotograma para crear la animación
+            if self.contador==8:
+                self.contador=0
+                self.current_frame = (self.current_frame + 1) % 5  # Cambiar al siguiente fotograma
+            self.image = self.frames[self.current_frame]  # Establecer la nueva imagen del proyectil
+            # Rotar la imagen del proyectil según el ángulo (en grados)
+            self.image = pygame.transform.rotate(self.image, self.angulo)
+            
+            # Mover el proyectil en la dirección calculada
             self.rect.x += self.velocidad * self.direction_x
             self.rect.y += self.velocidad * self.direction_y
 
+            # Verificar si el proyectil ha salido de los límites de la pantalla y eliminarlo
             if self.rect.left > screen_width or self.rect.right < 0 or self.rect.top > screen_height or self.rect.bottom < 0:
                 self.kill()
 
@@ -230,7 +345,7 @@ def game():
             self.angle = 0
             self.last_update = pygame.time.get_ticks()
             self.radius = 40
-            self.image_original = pygame.image.load("images/game/Rock1_1_no_shadow.png")
+            self.image_original = pygame.image.load("images/game/flecha.png")
             self.image_original = pygame.transform.scale(self.image_original, (40, 40))
             self.image = self.image_original.copy()
             self.rect = self.image.get_rect()
@@ -259,44 +374,125 @@ def game():
     obstaculos = pygame.sprite.Group()
     
 
-    obstaculo = Obstaculo(400, 300)
-    obstaculos.add(obstaculo)
+
     # Nuevas dimensiones del sprite
     atacante = Atacante(screen_width // 2, screen_height // 2)
     defensor = Defensor(screen_width // 8 - 42, screen_height // 2 - 37)
     proyectiles = pygame.sprite.Group()
     todos_los_sprites = pygame.sprite.Group()  
-
+    obstaculos_activos = pygame.sprite.Group()
     mirilla = Mirilla(atacante, offset=(0, 0))
     todos_los_sprites.add(mirilla)  
     proyectil_velocidad = 5
     running = True
+    def agregarBloquesEstante(cant,x,y,texturaElem1,textura,bloque_img,tipo):
+
+        for i in range(cant):
+            obstaculos.add(Obstaculo(x-i*25,y,textura,bloque_img,tipo))
+    
+       
+        m_x=0
+        c_x=0
+        p_x=0
+        for obstaculo in obstaculos:
+            
+            if not obstaculo.is_active:
+                if obstaculo.tipo=="madera" and m_x<10:
+                    m_x+=1
+                    obstaculo.rect.y = obstaculo.originalPosition[1]
+                    obstaculo.rect.x = 22*m_x
+                elif obstaculo.tipo=="piedra"and c_x<10:
+                    p_x+=1
+                    obstaculo.rect.y = obstaculo.originalPosition[1]
+                    obstaculo.rect.x = 22*p_x
+                elif obstaculo.tipo=="concreto"and c_x<10:
+                    c_x+=1
+                    obstaculo.rect.y = obstaculo.originalPosition[1]
+                    obstaculo.rect.x = 22*c_x
+
+
+    def check_collision(block, group):
+        for other_block in group:
+            if block != other_block and block.rect.colliderect(other_block.rect):
+                return True
+        return False
+    obstaculodrag=None
+    offset_x, offset_y = 0, 0
+    dragging=False
+    agregarBloquesEstante(10,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
+    agregarBloquesEstante(10,150,screen_height//2-50,textura_piedraElem1,textura_piedra,obstaculoPiedra,"piedra")
+    agregarBloquesEstante(10,150,screen_height//2-150,textura_concretoElem1,textura_concreto,obstaculoConcreto,"concreto")
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 3:
-                    mouse_x, mouse_y = event.pos
-                    if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    for obstaculo in obstaculos:
+                        if obstaculo.rect.collidepoint(event.pos):
+                            obstaculo.start_dragg()
+                            
+                            obstaculodrag = obstaculo
+                            
+                            dragging=True
+                            break
+                            
+            if event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    
+                    if obstaculodrag:
+                        dragging=False
+                        if not obstaculodrag.is_active:
+                            obstaculodrag.activate()
+                            obstaculodrag.stop_dragg()
+                            obstaculodrag.changeImg(event.pos)
+                        mouse_x, mouse_y = event.pos
+                        #Verificar que no se coloque el bloque en el area enemiga
+                        if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
+    
+                            if check_collision(obstaculodrag, obstaculos):
+                                obstaculodrag.imgBack()
+                                obstaculodrag.deactivate()
+                                obstaculodrag.changeImg(event.pos)
+                                obstaculodrag.rect.x=obstaculodrag.originalPosition[0]
+                                
+                                
+                                
+                                #obstaculodrag.addFilter(screen,event.pos)
+                                #obstaculos.add(obstaculodrag)
+                                    #obstaculodrag.imgBack()
+                                print('colision')
+                            obstaculodrag = None
+                        # Clear the dragging flag
 
-                        # Verificar si el nuevo obstáculo colisiona con otros obstáculos existentes
-                        colision = any(obstaculo.rect.colliderect(pygame.Rect(mouse_x - 32, mouse_y - 32, obstaculo_img.get_width(), obstaculo_img.get_height())) for obstaculo in obstaculos)
-                        if not colision:
-                            nuevo_obstaculo = Obstaculo(mouse_x - 32, mouse_y - 32)
-                            obstaculos.add(nuevo_obstaculo)
-              
-                if event.button == 1:  # Botón izquierdo del ratón
+
+            if event.type == pygame.MOUSEMOTION:
+                if obstaculodrag:  # Check the dragging flag
+                    obstaculodrag.rect.move_ip(event.rel)
+
+            elif event.type == pygame.KEYDOWN:
+                print(f'presionando tecla´{event.key}')
+                if event.key == pygame.K_LSHIFT:  # Verifica si se presionó la tecla Shift derecha
+                    if obstaculodrag:
+                        obstaculodrag.rotate(45) 
+
+                if event.key == pygame.K_j:  # Se presiona la letra 'j'
                     print(1)
                     tip_x, tip_y = mirilla.get_tip_position()
                     angle_rad = mirilla.angle
                     proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad)
-            
                     proyectiles.add(proyectil)
+        
+        obstaculos_activos.empty()
+        for obstaculo in obstaculos:
+            if obstaculo.is_active:
+                obstaculos_activos.add(obstaculo)
 
-        colisiones = pygame.sprite.groupcollide(obstaculos, proyectiles, True, True)
-
+        
+        agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
+        colisiones = pygame.sprite.groupcollide(obstaculos_activos, proyectiles, True, True)
+       # agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
         # Dibujar el atacante en la pantalla
         screen.blit(fondo, (0, 0))
         obstaculos.draw(screen)
@@ -313,6 +509,7 @@ def game():
         
         frame_counter += 1
         if frame_counter >= animation_speed:
+            
             frame_counter = 0  # Reiniciar el contador
             current_frame = (current_frame + 1) % 100
 
