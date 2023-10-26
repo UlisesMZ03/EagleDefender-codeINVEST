@@ -121,6 +121,7 @@ def game():
             self.filter=False
             self.is_active = False
             self.tipo=tipo
+            self.sound=pygame.mixer.Sound('sounds/explosion.mp3')
             
         def activate(self):
             # Logic to activate/placement of the object
@@ -508,6 +509,9 @@ def game():
         
         agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
         colisiones = pygame.sprite.groupcollide(obstaculos_activos, proyectiles, True, True)
+        if colisiones:
+            pygame.mixer.Sound('sounds/explosion.mp3').play()
+
        # agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
         # Dibujar el atacante en la pantalla
         
