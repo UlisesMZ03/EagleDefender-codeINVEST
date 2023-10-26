@@ -672,4 +672,3 @@ def registration_screen():
 
 if __name__ == "__main__":
     registration_screen()
-
