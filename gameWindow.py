@@ -1,7 +1,7 @@
 import pygame
 import math
-def game():
-    
+def game(usuarios_at):
+    print(f'usuarios_at {usuarios_at}')
     pygame.init()
     pygame.mixer.init()
     # Obtener información sobre la pantalla del sistema

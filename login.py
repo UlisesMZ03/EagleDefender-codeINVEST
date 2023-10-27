@@ -254,7 +254,7 @@ def login():
             # Reemplaza 'otra_ventana' con el nombre real de tu script
                 usuarios_autenticados.append(username)
                 if len(usuarios_autenticados)==2:
-                    gameWindow.game() 
+                    gameWindow.game(usuarios_autenticados) 
                     pygame.quit()
                     sys.exit()
         else:
