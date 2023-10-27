@@ -50,6 +50,16 @@ def play_song2(song):
         print("Reproduciendo la canción:", song)
 
 
+        track_info = sp.track(track_uri)
+        duration_ms = track_info["duration_ms"]
+
+        time.sleep((duration_ms / 1000) - 0.5)
+
+        # Imprime el mensaje de que la canción está a punto de terminar
+        print("Termina el juego")
+
+        # Detén la reproducción
+        sp.pause_playback()
 
 # Ejemplo de cómo llamar a la función play_song
-#play_song("GO TELLL IT TO THE MOUNTAIN")
+#play_song("GO TELLL IT TO THE MOUNTAIN") ejemploooooo 
