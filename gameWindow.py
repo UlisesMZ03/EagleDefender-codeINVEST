@@ -2,6 +2,13 @@ import pygame
 import math
 from objectbasedata import Musica
 from objectbasedata  import Usuario
+import webbrowser as web
+import pyautogui
+from time import sleep
+#import win32gui
+
+
+
 def game(lista):
     print("lista",lista)
     pygame.init()
@@ -108,9 +115,26 @@ def game(lista):
     def music(username):
         userName_encript=Usuario.encripta(username[0])
         username1=Usuario.getID(userName_encript)
+      
         musica_user1=Musica.getMusic(username1)
-        print(f'musica {musica_user1}')
-        
+        musica_user1=musica_user1[0][0]
+        web.open(musica_user1)
+        sleep(5)
+        pyautogui.press('enter')
+
+    
+
+    """def hide_spotify_window():
+        # Encuentra la ventana de Spotify por su título
+        window = win32gui.FindWindow(None, "Spotify")
+
+        # Si se encuentra la ventana, ocúltala
+        if window:
+            win32gui.ShowWindow(window, 0)  # 0 significa SW_HIDE (ocultar)
+
+        # Llama a la función para ocultar la ventana de Spotify
+        hide_spotify_window()"""
+
 
     class Obstaculo(pygame.sprite.Sprite):
         def __init__(self, x,y,img,obst_img, tipo):

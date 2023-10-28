@@ -631,30 +631,55 @@ def registration_screen():
                     if scroll_offset > 0:
                         scroll_offset -= 1
                 elif event.key == pygame.K_DOWN:
-                    print('abajo')
                     if scroll_offset < len(set_music) - song_display_limit:
                         scroll_offset += 1
-                    
+
+
+            
+      
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 # Verifica si el botón "Agregar" fue presionado
                 if add_music_button.top_rect.collidepoint(event.pos):
-                    for i in range(len(set_music)): 
-                        if i < len(set_music):
-                            if len(favorite_song)<3:
-                                if set_music[i] in favorite_song:
-                                    print('ya has agregado la cancion anteriormente')
-                                    mostrar_mensaje_error("Canciones Favoritas", ' ya has agregado la canción anteriormente ' + set_music[i]['name_song']+ ' de ' + set_music[i]['name_artist'] + 'a canciones favoritas' , PCBUTTON, SCBUTTON)
-                                    break
-                                else:
-                                    favorite_song.append(set_music[i])
-                                    print(f"Se agregó la canción {set_music[i]['name_artist']} a favoritas") 
-                                    mostrar_mensaje_error("Canciones Favoritas", ' Has agregado la cancion ' + set_music[i]['name_song']+ ' de ' + set_music[i]['name_artist'] + 'a canciones favoritas' , PCBUTTON, SCBUTTON)
-                                    break
-                            else:   
-                                mostrar_mensaje_error("Cantidad maxima de canciones alcanzada", 'Solo puedes agregar 3 Canciones', PCBUTTON, SCBUTTON)
-                                print("solo puedes agregar 3 canciones")
-                                print(f'canciones favoritas{favorite_song}')
+                    if i < len(set_music):
+                        if len(favorite_song)<3:
+                            if set_music[i] in favorite_song:
+                                print('ya has agregado la cancion anteriormente')
+                                mostrar_mensaje_error("Canciones Favoritas", ' ya has agregado la canción anteriormente ' + set_music[i]['name_song']+ ' de ' + set_music[i]['name_artist'] + 'a canciones favoritas' , PCBUTTON, SCBUTTON)
                                 break
+                            else:
+                                favorite_song.append(set_music[i])
+                                print(f"Se agregó la canción {set_music[i]['name_artist']} a favoritas") 
+                                mostrar_mensaje_error("Canciones Favoritas", ' Has agregado la cancion ' + set_music[i]['name_song']+ ' de ' + set_music[i]['name_artist'] + 'a canciones favoritas' , PCBUTTON, SCBUTTON)
+                                break
+                        else:
+                           
+                            mostrar_mensaje_error("Cantidad maxima de canciones alcanzada", 'Solo puedes agregar 3 Canciones', PCBUTTON, SCBUTTON)
+                            print("solo puedes agregar 3 canciones")
+                            print(f'canciones favoritas{favorite_song}')
+                            break
+
+
+                """
+                if add_music_button.top_rect.collidepoint(event.pos):
+                    for i in range(len(set_music)): 
+                        
+                        if len(favorite_song)<3:
+                            if set_music[i] in favorite_song:
+                                print('ya has agregado la cancion anteriormente')
+                                mostrar_mensaje_error("Canciones Favoritas", ' ya has agregado la canción anteriormente ' + set_music[i]['name_song']+ ' de ' + set_music[i]['name_artist'] + 'a canciones favoritas' , PCBUTTON, SCBUTTON)
+                                break
+                            else:
+                                favorite_song.append(set_music[i])
+                                print(f"Se agregó la canción {set_music[i]['name_artist']} a favoritas") 
+                                mostrar_mensaje_error("Canciones Favoritas", ' Has agregado la cancion ' + set_music[i]['name_song']+ ' de ' + set_music[i]['name_artist'] + 'a canciones favoritas' , PCBUTTON, SCBUTTON)
+                                break
+                        else:   
+                            mostrar_mensaje_error("Cantidad maxima de canciones alcanzada", 'Solo puedes agregar 3 Canciones', PCBUTTON, SCBUTTON)
+                            print("solo puedes agregar 3 canciones")
+                            print(f'canciones favoritas{favorite_song}')
+                            break
+                                """
+                        
 
                         
                                
