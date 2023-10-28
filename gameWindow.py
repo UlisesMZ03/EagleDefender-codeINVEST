@@ -1,7 +1,9 @@
 import pygame
 import math
-def game():
-    
+from objectbasedata import Musica
+from objectbasedata  import Usuario
+def game(lista):
+    print("lista",lista)
     pygame.init()
     pygame.mixer.init()
     # Obtener información sobre la pantalla del sistema
@@ -103,6 +105,13 @@ def game():
 
     obstaculo_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
     proyectile_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
+    def music(username):
+        userName_encript=Usuario.encripta(username[0])
+        username1=Usuario.getID(userName_encript)
+        musica_user1=Musica.getMusic(username1)
+        print(f'musica {musica_user1}')
+        
+
     class Obstaculo(pygame.sprite.Sprite):
         def __init__(self, x,y,img,obst_img, tipo):
             super().__init__()
@@ -431,6 +440,7 @@ def game():
     agregarBloquesEstante(10,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
     agregarBloquesEstante(10,150,screen_height//2-50,textura_piedraElem1,textura_piedra,obstaculoPiedra,"piedra")
     agregarBloquesEstante(10,150,screen_height//2-150,textura_concretoElem1,textura_concreto,obstaculoConcreto,"concreto")
+    music(lista)
     while running:
         screen.blit(fondo, (0, 0))
         for event in pygame.event.get():

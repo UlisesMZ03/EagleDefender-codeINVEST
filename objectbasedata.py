@@ -27,7 +27,7 @@ class Usuario:
 
         return last_id + 1 if last_id else 1
 
-    def _encrypt_data(self, data):
+    def _encrypt_data(self,data):
         if data == int:
             hashed_data = hashlib.sha256(data.encode()).hexdigest()
             data_int = int(hashed_data, 16) % public_key[0]
@@ -39,12 +39,12 @@ class Usuario:
             encrypted_data = pow(data_int, public_key[1], public_key[0])
         return encrypted_data
   
-
-    def getID(self, email):
-        conn = sqlite3.connect(self.db_path)
+    @staticmethod
+    def getID(username):
+        conn = sqlite3.connect(Usuario.db_path)
         cursor = conn.cursor()
-        self.email = self._encrypt_data(email)
-        cursor.execute("SELECT id FROM usuarios WHERE email=?", (self.email,))
+       
+        cursor.execute("SELECT id FROM usuarios WHERE username=?", (username,))
         
         # Obtén el resultado de la consulta
         result = cursor.fetchone()
@@ -58,7 +58,19 @@ class Usuario:
         else:
             # Retorna un valor indicando que no se encontró el email en la base de datos
             return None
+    @staticmethod
+    def encripta(data):
+        if data == int:
+            hashed_data = hashlib.sha256(data.encode()).hexdigest()
+            data_int = int(hashed_data, 16) % public_key[0]
+            encrypted_data = pow(data_int, public_key[1], public_key[0])
+        else:
 
+            hashed_data = hashlib.sha256(data.encode()).hexdigest()
+            data_int = int(hashed_data, 16) % public_key[0]
+            encrypted_data = pow(data_int, public_key[1], public_key[0])
+        return encrypted_data
+        
 
     @staticmethod
     def check_credentials(username, password):
@@ -136,6 +148,15 @@ class Musica():
       
         self.con.commit()
         self.con.close()
+    @staticmethod
+    def getMusic(id):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('select url from usuarios inner join musica on usuarios.id=musica.id_user where usuarios.id=?',(id,))
+        result = cursor.fetchall()
+        conn.close()
+        return result
+        
 
 
 

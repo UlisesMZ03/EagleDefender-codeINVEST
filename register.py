@@ -400,7 +400,8 @@ def register():
             print("user to save", validacion)
           
             if validacion==1 and songs !=[]:
-                id_user=user.getID(email)
+                username=user._encrypt_data(username)
+                id_user=Usuario.getID(username)
                 print("entro al for")
                 for i in songs:
                     musica_user=Musica(id_user,i["name_song"],i['name_artist'],i['url'])
