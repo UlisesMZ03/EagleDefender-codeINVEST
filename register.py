@@ -2,7 +2,7 @@ import pygame
 import pygame_gui
 import pygame.camera
 import re
-from usuarios import Usuario
+#from usuarios import Usuario
 import serial
 import os
 import threading
@@ -13,9 +13,13 @@ from pygame.locals import *
 import pyautogui
 import shutil
 from chooseMusic import list_music
+from baseDatos import database
+from objectbasedata import Usuario
+from objectbasedata import Musica
 
 pygame.init()
 pygame.camera.init()
+database()
 WIDTH, HEIGHT = 1280, 720
 
 win = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -387,14 +391,23 @@ def register():
 
     confirm_password = confirm_password_input.get_text()
     global UID_device
-
+    
     if username != "" and password == confirm_password and validate_email(email) and validate_password(password) and validate_username(username) and validate_age(age):
             
         if UID_device == None:
-            user = Usuario(name,username,age,email,password,"",songs)
-            user.save_to_db()
+            user = Usuario(name,username,age,email,password,"")
+            validacion=user.save_to_db()
+            print("user to save", validacion)
+          
+            if validacion==1 and songs !=[]:
+                id_user=user.getID(email)
+                print("entro al for")
+                for i in songs:
+                    musica_user=Musica(id_user,i["name_song"],i['name_artist'],i['url'])
+                    musica_user.save_data()
+                
         else:
-            user = Usuario(name,username,age,email,password,UID_device,favorite_song)
+            user = Usuario(name,username,age,email,password,UID_device)
             user.save_to_db()
      
     elif password != confirm_password:

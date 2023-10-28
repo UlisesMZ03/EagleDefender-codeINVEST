@@ -1,25 +1,9 @@
 import sqlite3
 import hashlib
-
 # Llave pública proporcionada
 public_key = (19303, 13595)
-
-#creacion de la base de datos 
-db_path = "usuarios.db"
-con=sqlite3.connect(db_path)
-cursor=con.cursor()
-cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, username TEXT, age INTEGER, email TEXT, password TEXT, uid TEXT)''')
-cursor.execute('''CREATE TABLE IF NOT EXISTS musica (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, username TEXT, age INTEGER, email TEXT, password TEXT, uid TEXT)''')
-#guarda los cambios en la base de datos
-con.commit()
-con.close()
-
-
-
 class Usuario:
-    db_path = "usuarios.db"
-
-
+    db_path = "prueba.db"
     def __init__(self, name, username, age, email, password, uid):
         self.name = self._encrypt_data(name)
         self.username = self._encrypt_data(username)
@@ -35,11 +19,6 @@ class Usuario:
     def _get_next_id(self):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-
-        # Crea la tabla si no existe
-        cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, username TEXT, age INTEGER, email TEXT, password TEXT, uid TEXT)''')
-        
-        conn.commit()
 
         # Obtiene el último ID asignado, o 0 si no hay usuarios en la base de datos
         cursor.execute('''SELECT MAX(id) FROM usuarios''')
@@ -59,6 +38,27 @@ class Usuario:
             data_int = int(hashed_data, 16) % public_key[0]
             encrypted_data = pow(data_int, public_key[1], public_key[0])
         return encrypted_data
+  
+
+    def getID(self, email):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        self.email = self._encrypt_data(email)
+        cursor.execute("SELECT id FROM usuarios WHERE email=?", (self.email,))
+        
+        # Obtén el resultado de la consulta
+        result = cursor.fetchone()
+        
+        conn.close()
+        
+        # Verifica si se encontró un resultado
+        if result is not None:
+            # result es una tupla, por lo que puedes acceder al ID como result[0]
+            return result[0]
+        else:
+            # Retorna un valor indicando que no se encontró el email en la base de datos
+            return None
+
 
     @staticmethod
     def check_credentials(username, password):
@@ -80,7 +80,6 @@ class Usuario:
     def save_to_db(self):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-
         # Verifica si ya existe un usuario con el mismo username
         cursor.execute('''SELECT * FROM usuarios WHERE username = ?''', (str(self.username),))
         existing_username = cursor.fetchone()
@@ -93,8 +92,10 @@ class Usuario:
 
         if existing_username:
             print("No se pudo crear el usuario. El username ya está en uso.")
+            return -1
         elif existing_email:
             print("No se pudo crear el usuario. El email ya está en uso.")
+            return -1
         elif existing_uid and self.uid!=16188:
             print(self.uid)
         else:
@@ -103,25 +104,39 @@ class Usuario:
                            (self.id, str(self.name), str(self.username), self.age, str(self.email), str(self.password), str(self.uid)))
             conn.commit()
             print("Usuario creado con éxito.")
+            return 1
+            
             
 
         conn.close()
 class Musica():
-    db_path = "usuarios.db"
-    def __init__(self,id,id_usuario,name,artista,url):
+    db_path = "prueba.db"
+    def __init__(self,id_usuario,name,artista,url):
         self.name=name
         self.artista=artista
         self.url=url
-        self.id=id
-        self.id_usuario
+        self.id_usuario=id_usuario
+        self.id=self._get_next_id()
+    def _get_next_id(self):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        # Obtiene el último ID asignado, o 0 si no hay usuarios en la base de datos
+        cursor.execute('''SELECT MAX(id) FROM musica''')
+        last_id = cursor.fetchone()[0]
+        conn.close()
+
+        return last_id + 1 if last_id else 1
     def save_data(self):
-        con=sqlite3
+        self.con=sqlite3.connect(self.db_path)
+        self.cursor=self.con.cursor()
+        #guardando datos en la base de datos
+        
+        self.cursor.execute('INSERT INTO musica VALUES (?, ?, ?, ?,?)', (self.id,self.id_usuario, self.name, self.artista, self.url))
+      
+        self.con.commit()
+        self.con.close()
 
 
 
-class Textura():
-    def __init__(self,id_textura,id_user,name):
-        self.name=name
-        self.id_textura=id_textura
-        self.id_user=id_user
-        self.name=name
+
