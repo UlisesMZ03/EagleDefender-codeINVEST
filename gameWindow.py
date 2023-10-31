@@ -5,7 +5,11 @@ from objectbasedata  import Usuario
 import webbrowser as web
 import pyautogui
 from time import sleep
-#import win32gui
+import random
+import win32gui
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+
 
 
 
@@ -113,18 +117,27 @@ def game(lista):
     obstaculo_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
     proyectile_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
     def music(username):
-        userName_encript=Usuario.encripta(username[0])
+        userName_encript=Usuario.encripta(username)
         username1=Usuario.getID(userName_encript)
       
-        musica_user1=Musica.getMusic(username1)
-        musica_user1=musica_user1[0][0]
-        web.open(musica_user1)
+        musica_user=Musica.getMusic(username1)
+        print(musica_user)
+        size=len(musica_user)
+        n=random.randint(0,size-1)
+        musica_user=musica_user[n][0]
+        web.open(musica_user)
         sleep(5)
         pyautogui.press('enter')
 
+        #sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id='c726452535ea4b89aad8cde620dca644',
+                                                          #client_secret='1ddc0458700e4cf7889c4fd725839417'))
+        #sp.start_playback(uris=[musica_user])
+
+      
+
     
 
-    """def hide_spotify_window():
+    def hide_spotify_window():
         # Encuentra la ventana de Spotify por su título
         window = win32gui.FindWindow(None, "Spotify")
 
@@ -133,7 +146,7 @@ def game(lista):
             win32gui.ShowWindow(window, 0)  # 0 significa SW_HIDE (ocultar)
 
         # Llama a la función para ocultar la ventana de Spotify
-        hide_spotify_window()"""
+        hide_spotify_window()
 
 
     class Obstaculo(pygame.sprite.Sprite):
@@ -464,7 +477,8 @@ def game(lista):
     agregarBloquesEstante(10,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
     agregarBloquesEstante(10,150,screen_height//2-50,textura_piedraElem1,textura_piedra,obstaculoPiedra,"piedra")
     agregarBloquesEstante(10,150,screen_height//2-150,textura_concretoElem1,textura_concreto,obstaculoConcreto,"concreto")
-    music(lista)
+    music(lista[0])
+    
     while running:
         screen.blit(fondo, (0, 0))
         for event in pygame.event.get():
@@ -494,7 +508,7 @@ def game(lista):
                         mouse_x, mouse_y = event.pos
                         #Verificar que no se coloque el bloque en el area enemiga
                         if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
-                            obstaculodrag.image=obstaculodrag.obs_img
+                            #obstaculodrag.image=obstaculodrag.obs_img
                             if check_collision(obstaculodrag, obstaculos):
                                 obstaculodrag.imgBack()
                                 obstaculodrag.deactivate()
@@ -503,9 +517,7 @@ def game(lista):
                                 
                                 
                                 
-                                #obstaculodrag.addFilter(screen,event.pos)
-                                #obstaculos.add(obstaculodrag)
-                                    #obstaculodrag.imgBack()
+                               
                                 print('colision')
                             obstaculodrag = None
                         else:

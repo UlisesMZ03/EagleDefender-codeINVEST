@@ -382,6 +382,7 @@ def mostrar_mensaje_error(title, mensaje, color, color2):
 
 # Función para el botón de registro
 def register():
+    global favorite_song
     name = name_input.text
     email = email_input.text
     age = age_input.text
@@ -405,7 +406,9 @@ def register():
                 print("entro al for")
                 for i in songs:
                     musica_user=Musica(id_user,i["name_song"],i['name_artist'],i['url'])
-                    musica_user.save_data()
+                    musica_validacion= musica_user.save_data()
+                    if musica_validacion:
+                        favorite_song=[]
                 
         else:
             user = Usuario(name,username,age,email,password,UID_device)

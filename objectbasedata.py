@@ -148,6 +148,7 @@ class Musica():
       
         self.con.commit()
         self.con.close()
+        return True
     @staticmethod
     def getMusic(id):
         conn=sqlite3.connect(Usuario.db_path)
