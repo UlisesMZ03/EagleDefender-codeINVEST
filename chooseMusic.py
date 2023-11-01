@@ -12,20 +12,20 @@ def list_music(song):
     #CLIENT_SECRET=os.getenv('CLIENTSECRET')
    
     #CLIENT_ID=os.getenv("CLIENTID")
-    CLIENT_SECRET="9e8a5157ce564105a39eb95fdf2330ca"
-    CLIENT_ID="7f5a881f950c4eeca17b098bd9e62b2c"
+    CLIENT_SECRET="0db3c2314d794ef28b594b4d24b07fe9"
+    CLIENT_ID="8051e3ec08d240639f7cad6370e88a67"
 
     List_song=[]
 
     sp=Spotify(client_credentials_manager=SpotifyClientCredentials(CLIENT_ID,CLIENT_SECRET))
 
     result=sp.search(song)
+    print(result)
     for i in range(0,len(result['tracks']['items'])):
         dato=result['tracks']['items'][i]
         List_song=[{'name_artist':dato['artists'][0]['name'], 'name_song':song , 'url': dato['uri']}] + List_song
     return List_song
-
-
+#list_music("te amo")
 
 
 

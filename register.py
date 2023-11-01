@@ -597,7 +597,7 @@ def registration_screen():
     song_display_limit = 1  # Número de canciones visibles a la vez
     font = pygame.font.Font(None, 30)
     text_color = (255, 255, 255)
-    surfaceMusic=pygame.Surface((230,50))
+    surfaceMusic=pygame.Surface((240,50))
     add_music_button = Button('Agregar',100,40,(WIDTH/7+380,HEIGHT/14.4*9+60),5,SCBUTTON)
     set_music=[]
 
@@ -660,32 +660,7 @@ def registration_screen():
                             print("solo puedes agregar 3 canciones")
                             print(f'canciones favoritas{favorite_song}')
                             break
-
-
-                """
-                if add_music_button.top_rect.collidepoint(event.pos):
-                    for i in range(len(set_music)): 
-                        
-                        if len(favorite_song)<3:
-                            if set_music[i] in favorite_song:
-                                print('ya has agregado la cancion anteriormente')
-                                mostrar_mensaje_error("Canciones Favoritas", ' ya has agregado la canción anteriormente ' + set_music[i]['name_song']+ ' de ' + set_music[i]['name_artist'] + 'a canciones favoritas' , PCBUTTON, SCBUTTON)
-                                break
-                            else:
-                                favorite_song.append(set_music[i])
-                                print(f"Se agregó la canción {set_music[i]['name_artist']} a favoritas") 
-                                mostrar_mensaje_error("Canciones Favoritas", ' Has agregado la cancion ' + set_music[i]['name_song']+ ' de ' + set_music[i]['name_artist'] + 'a canciones favoritas' , PCBUTTON, SCBUTTON)
-                                break
-                        else:   
-                            mostrar_mensaje_error("Cantidad maxima de canciones alcanzada", 'Solo puedes agregar 3 Canciones', PCBUTTON, SCBUTTON)
-                            print("solo puedes agregar 3 canciones")
-                            print(f'canciones favoritas{favorite_song}')
-                            break
-                                """
-                        
-
-                        
-                               
+                   
 
 
             if event.type == pygame.USEREVENT:
@@ -768,7 +743,7 @@ def registration_screen():
         y = 20  # Posición vertical inicial para la primera canción a mostrar
         # Dibuja las canciones en la pantalla
         for i in range(scroll_offset, min(scroll_offset + song_display_limit, len(set_music))):
-            text = font.render(" Artista: " + set_music[i]['name_artist'], True, text_color)
+            text = font.render("Artista: " + set_music[i]['name_artist'], True, text_color)
             surfaceMusic.blit(text, (20, y))
             add_music_button.draw(PCBUTTON,TCBUTTOM)
         y += 50  # Espaciado entre canciones
@@ -806,6 +781,7 @@ def registration_screen():
         take_foto_button.draw(PCBUTTON,TCBUTTOM)
         search_music_button.draw(PCBUTTON,TCBUTTOM)
         music_input.draw(win)
+        add_music_button.draw(PCBUTTON,TCBUTTOM)
         win.blit(surfaceMusic, (WIDTH/7+50,HEIGHT/14.4*9+40))
 
 
