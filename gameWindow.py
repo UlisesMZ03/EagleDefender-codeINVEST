@@ -1,9 +1,22 @@
 import pygame
 import math
+from objectbasedata import Musica
+from objectbasedata  import Usuario
+import webbrowser as web
+import pyautogui
+from time import sleep
+import random
+import win32gui
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
 
-def game():
-    
+
+
+
+def game(lista):
+    print("lista",lista)
     pygame.init()
+    pygame.mixer.init()
     # Obtener información sobre la pantalla del sistema
     screen_info = pygame.display.Info()
 
@@ -102,7 +115,40 @@ def game():
     obstaculoConcreto = pygame.transform.smoothscale(obstaculoConcreto, nuevo_tamano).convert_alpha()
 
     obstaculo_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
-    proyectile_img = pygame.image.load('/home/ulisesmz/Escritorio/pro.png')
+    proyectile_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
+    def music(username):
+        userName_encript=Usuario.encripta(username)
+        username1=Usuario.getID(userName_encript)
+      
+        musica_user=Musica.getMusic(username1)
+        print(musica_user)
+        size=len(musica_user)
+        n=random.randint(0,size-1)
+        musica_user=musica_user[n][0]
+        web.open(musica_user)
+        sleep(5)
+        pyautogui.press('enter')
+
+        #sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id='c726452535ea4b89aad8cde620dca644',
+                                                          #client_secret='1ddc0458700e4cf7889c4fd725839417'))
+        #sp.start_playback(uris=[musica_user])
+
+      
+
+    
+
+    def hide_spotify_window():
+        # Encuentra la ventana de Spotify por su título
+        window = win32gui.FindWindow(None, "Spotify")
+
+        # Si se encuentra la ventana, ocúltala
+        if window:
+            win32gui.ShowWindow(window, 0)  # 0 significa SW_HIDE (ocultar)
+
+        # Llama a la función para ocultar la ventana de Spotify
+        hide_spotify_window()
+
+
     class Obstaculo(pygame.sprite.Sprite):
         def __init__(self, x,y,img,obst_img, tipo):
             super().__init__()
@@ -118,10 +164,11 @@ def game():
             self.is_rotate=False
             self.dragging_offset = (0, 0)
             self.originalPosition=(x,y)
-            self.filter=pygame.Surface(self.image.get_size(), pygame.SRCALPHA)
-            self.filter.fill((255, 0, 0, 128))
+            self.filter=False
             self.is_active = False
             self.tipo=tipo
+            self.sound=pygame.mixer.Sound('sounds/explosion.mp3')
+            
         def activate(self):
             # Logic to activate/placement of the object
             # You can customize this logic based on your requirements
@@ -131,11 +178,14 @@ def game():
             print("desactivado")
             # Logic to deactivate/unplace the object
             self.is_active = False
-        def addFilter(self,screen,pos):
-            self.filter=pygame.Surface(self.image.get_size(), pygame.SRCALPHA)
-            self.filter.fill((255, 0, 0, 128))
-            screen.blit(self.image,pos)
-            screen.blit(self.filter,pos, special_flags=pygame.BLEND_RGBA_ADD)
+        def addFilter(self,image):
+            if self.filter:
+                self.red_filtered = image.copy()
+                self.red_filtered.fill((255, 0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+                self.image=self.red_filtered
+
+        def filter_active(self):
+            self.filter=True
 
         def imgBack(self):
             self.image = self.imgBefore
@@ -304,6 +354,9 @@ def game():
             self.direction_x = math.cos(math.radians(angulo))
             self.direction_y = -math.sin(math.radians(angulo))
 
+            self.sound=pygame.mixer.Sound('sounds/disparo.mp3')
+            #pygame.mixer.music.load('sounds/login.mp3')
+
         def load_frames(self):
             # Dividir el spritesheet en imágenes individuales y añadirlas a la lista de frames
             # Asumiendo que el spritesheet contiene 5 imágenes en una fila
@@ -313,6 +366,7 @@ def game():
                 frame = self.spritesheet.subsurface((i * frame_width, 0, frame_width, frame_height))
                 self.frames.append(frame)
         contador=0
+
         def update(self):
             self.contador+=1
             # Cambiar la imagen del proyectil en cada fotograma para crear la animación
@@ -419,10 +473,14 @@ def game():
     obstaculodrag=None
     offset_x, offset_y = 0, 0
     dragging=False
+    ROJO_TRANSPARENTE = (255, 0, 0, 128)
     agregarBloquesEstante(10,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
     agregarBloquesEstante(10,150,screen_height//2-50,textura_piedraElem1,textura_piedra,obstaculoPiedra,"piedra")
     agregarBloquesEstante(10,150,screen_height//2-150,textura_concretoElem1,textura_concreto,obstaculoConcreto,"concreto")
+    music(lista[0])
+    
     while running:
+        screen.blit(fondo, (0, 0))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -450,7 +508,7 @@ def game():
                         mouse_x, mouse_y = event.pos
                         #Verificar que no se coloque el bloque en el area enemiga
                         if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
-    
+                            #obstaculodrag.image=obstaculodrag.obs_img
                             if check_collision(obstaculodrag, obstaculos):
                                 obstaculodrag.imgBack()
                                 obstaculodrag.deactivate()
@@ -459,16 +517,19 @@ def game():
                                 
                                 
                                 
-                                #obstaculodrag.addFilter(screen,event.pos)
-                                #obstaculos.add(obstaculodrag)
-                                    #obstaculodrag.imgBack()
+                               
                                 print('colision')
                             obstaculodrag = None
+                        else:
+                            #obstaculodrag.image.fill(ROJO_TRANSPARENTE)
+                            obstaculodrag.filter_active()
+                            obstaculodrag.addFilter(obstaculodrag.image)
                         # Clear the dragging flag
 
 
             if event.type == pygame.MOUSEMOTION:
                 if obstaculodrag:  # Check the dragging flag
+                        
                     obstaculodrag.rect.move_ip(event.rel)
 
             elif event.type == pygame.KEYDOWN:
@@ -482,19 +543,24 @@ def game():
                     tip_x, tip_y = mirilla.get_tip_position()
                     angle_rad = mirilla.angle
                     proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad)
+                    proyectil.sound.play()
                     proyectiles.add(proyectil)
         
         obstaculos_activos.empty()
         for obstaculo in obstaculos:
             if obstaculo.is_active:
                 obstaculos_activos.add(obstaculo)
+                
 
         
         agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
         colisiones = pygame.sprite.groupcollide(obstaculos_activos, proyectiles, True, True)
+        if colisiones:
+            pygame.mixer.Sound('sounds/explosion.mp3').play()
+
        # agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
         # Dibujar el atacante en la pantalla
-        screen.blit(fondo, (0, 0))
+        
         obstaculos.draw(screen)
         atacante.update()
         # Actualizar el águila

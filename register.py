@@ -2,7 +2,7 @@ import pygame
 import pygame_gui
 import pygame.camera
 import re
-from usuarios import Usuario
+#from usuarios import Usuario
 import serial
 import os
 import threading
@@ -12,9 +12,14 @@ from tkinter import filedialog
 from pygame.locals import *
 import pyautogui
 import shutil
+from chooseMusic import list_music
+from baseDatos import database
+from objectbasedata import Usuario
+from objectbasedata import Musica
 
 pygame.init()
 pygame.camera.init()
+database()
 WIDTH, HEIGHT = 1280, 720
 
 win = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -377,20 +382,34 @@ def mostrar_mensaje_error(title, mensaje, color, color2):
 
 # Función para el botón de registro
 def register():
+    global favorite_song
     name = name_input.text
     email = email_input.text
     age = age_input.text
     username = username_input.text
     password = password_input.get_text()
+    songs=favorite_song
 
     confirm_password = confirm_password_input.get_text()
     global UID_device
-
+    
     if username != "" and password == confirm_password and validate_email(email) and validate_password(password) and validate_username(username) and validate_age(age):
             
         if UID_device == None:
             user = Usuario(name,username,age,email,password,"")
-            user.save_to_db()
+            validacion=user.save_to_db()
+            print("user to save", validacion)
+          
+            if validacion==1 and songs !=[]:
+                username=user._encrypt_data(username)
+                id_user=Usuario.getID(username)
+                print("entro al for")
+                for i in songs:
+                    musica_user=Musica(id_user,i["name_song"],i['name_artist'],i['url'])
+                    musica_validacion= musica_user.save_data()
+                    if musica_validacion:
+                        favorite_song=[]
+                
         else:
             user = Usuario(name,username,age,email,password,UID_device)
             user.save_to_db()
@@ -537,7 +556,7 @@ def receive_data_from_uart():
          mostrar_mensaje_error('Conexión establecida', "El ID asignado es:" + UID_device, PCBUTTON, SCBUTTON)
 
     else:
-        mostrar_mensaje_error('Error de conexion', "No se ha podido establecer conexion\n            Intentalo nuevamente", PCBUTTON, SCBUTTON)
+        mostrar_mensaje_error('Error de conexion', "No se ha podido establecer conexion\n Intentalo nuevamente", PCBUTTON, SCBUTTON)
     uart_thread.join()  # Esperar a que el hilo termine
     
 
@@ -551,30 +570,50 @@ age_input = TextInputBox(WIDTH/7, HEIGHT/14.4*5, WIDTH/7*2, 40,PCBUTTON,SCBUTTON
 username_input = TextInputBox(WIDTH/7, HEIGHT/14.4*6, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Username")
 password_input = TextInputBox(WIDTH/7, HEIGHT/14.4*7, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
 confirm_password_input = TextInputBox(WIDTH/7, HEIGHT/14.4*8, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,"Confirm Password",is_password=True)
+music_input = TextInputBox(WIDTH/7, HEIGHT/14.4*9, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,"write the song")
 
 
 
 
-
-register_button = Button('Register',WIDTH/7,40,(WIDTH/7*3,HEIGHT/14.4*11.3),5,SCBUTTON)
-add_device_button = Button('Add Device',WIDTH/7*2,40,(WIDTH/7,HEIGHT/14.4*9),5,SCBUTTON)
+register_button = Button('Register',WIDTH/7,40,(WIDTH/7*3,HEIGHT/14.4*11.3+50),5,SCBUTTON)
+add_device_button = Button('Add Device',WIDTH/7*2,40,(WIDTH/7,HEIGHT/14.4*11),5,SCBUTTON)
 take_foto_button = Button(u'\u25c9',50,40,(WIDTH/7*6-50,HEIGHT/14.4*3+10),5,SCBUTTON)
 select_image_button = Button(u'\u2191',50,40,(WIDTH/7*6-50,HEIGHT/14.4*4+5),5,SCBUTTON)
 reset_button = Button(u'\u2716',50,40,(WIDTH/7*6-50,HEIGHT/14.4*6+5),5,SCBUTTON)
+search_music_button = Button('Search',200,40,(WIDTH/7+380,HEIGHT/14.4*9+5),5,SCBUTTON)
 
+
+       
+
+favorite_song=[]
 def registration_screen():
     global selected_image_surface
     global camera_on
     global initial_image_surface
+    global background_image
+    global favorite_song 
+  
+    scroll_offset = 0  # Desplazamiento de la lista de canciones
+    song_display_limit = 1  # Número de canciones visibles a la vez
+    font = pygame.font.Font(None, 30)
+    text_color = (255, 255, 255)
+    surfaceMusic=pygame.Surface((230,50))
+    add_music_button = Button('Agregar',100,40,(WIDTH/7+380,HEIGHT/14.4*9+60),5,SCBUTTON)
+    set_music=[]
+
+   
     running = True
     selected_image_surface = initial_image_surface  # Establecer la imagen inicial
     profile_surface.blit(selected_image_surface, (0, 0))
     while running:
+        win.fill(BACKGROUND)
+        win.blit(background_image, (0, 0))
         time_delta = pygame.time.Clock().tick(60)/1000.0
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+                sys.exit()
 
 
             
@@ -585,8 +624,69 @@ def registration_screen():
             password_input.handle_event(event,PCBUTTON,SCBUTTON)
             confirm_password_input.handle_event(event,PCBUTTON,SCBUTTON)
             name_input.handle_event(event,PCBUTTON,SCBUTTON)
+            music_input.handle_event(event,PCBUTTON,SCBUTTON)
             manager.process_events(event)
                         # Manejar eventos de pygame_gui
+           
+            #eventos de la musica
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    if scroll_offset > 0:
+                        scroll_offset -= 1
+                elif event.key == pygame.K_DOWN:
+                    if scroll_offset < len(set_music) - song_display_limit:
+                        scroll_offset += 1
+
+
+            
+      
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                # Verifica si el botón "Agregar" fue presionado
+                if add_music_button.top_rect.collidepoint(event.pos):
+                    if i < len(set_music):
+                        if len(favorite_song)<3:
+                            if set_music[i] in favorite_song:
+                                print('ya has agregado la cancion anteriormente')
+                                mostrar_mensaje_error("Canciones Favoritas", ' ya has agregado la canción anteriormente ' + set_music[i]['name_song']+ ' de ' + set_music[i]['name_artist'] + 'a canciones favoritas' , PCBUTTON, SCBUTTON)
+                                break
+                            else:
+                                favorite_song.append(set_music[i])
+                                print(f"Se agregó la canción {set_music[i]['name_artist']} a favoritas") 
+                                mostrar_mensaje_error("Canciones Favoritas", ' Has agregado la cancion ' + set_music[i]['name_song']+ ' de ' + set_music[i]['name_artist'] + 'a canciones favoritas' , PCBUTTON, SCBUTTON)
+                                break
+                        else:
+                           
+                            mostrar_mensaje_error("Cantidad maxima de canciones alcanzada", 'Solo puedes agregar 3 Canciones', PCBUTTON, SCBUTTON)
+                            print("solo puedes agregar 3 canciones")
+                            print(f'canciones favoritas{favorite_song}')
+                            break
+
+
+                """
+                if add_music_button.top_rect.collidepoint(event.pos):
+                    for i in range(len(set_music)): 
+                        
+                        if len(favorite_song)<3:
+                            if set_music[i] in favorite_song:
+                                print('ya has agregado la cancion anteriormente')
+                                mostrar_mensaje_error("Canciones Favoritas", ' ya has agregado la canción anteriormente ' + set_music[i]['name_song']+ ' de ' + set_music[i]['name_artist'] + 'a canciones favoritas' , PCBUTTON, SCBUTTON)
+                                break
+                            else:
+                                favorite_song.append(set_music[i])
+                                print(f"Se agregó la canción {set_music[i]['name_artist']} a favoritas") 
+                                mostrar_mensaje_error("Canciones Favoritas", ' Has agregado la cancion ' + set_music[i]['name_song']+ ' de ' + set_music[i]['name_artist'] + 'a canciones favoritas' , PCBUTTON, SCBUTTON)
+                                break
+                        else:   
+                            mostrar_mensaje_error("Cantidad maxima de canciones alcanzada", 'Solo puedes agregar 3 Canciones', PCBUTTON, SCBUTTON)
+                            print("solo puedes agregar 3 canciones")
+                            print(f'canciones favoritas{favorite_song}')
+                            break
+                                """
+                        
+
+                        
+                               
+
 
             if event.type == pygame.USEREVENT:
                         if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
@@ -649,15 +749,30 @@ def registration_screen():
                         camera.start()
                         selected_image_surface = initial_image_surface  # Restablecer la imagen al valor inicial
 
-                        
-                        camera.stop()  # Detener la cámara si está encendida
-                        camera_on = False 
-                    else:
 
-                        selected_image_surface = initial_image_surface
+                    
+                elif search_music_button.top_rect.collidepoint(mouse_pos):
+                    try:
+                        set_music=list_music(music_input.get_text())
+                       
+                    except:
+                       mostrar_mensaje_error("Canciones Favoritas", 'Escribe la canción para poder mostrarte los resultados' , PCBUTTON, SCBUTTON)
+    
+                else:
+
+                    selected_image_surface = initial_image_surface
 
 
+        surfaceMusic.fill((BACKGROUND ))  # Limpia la pantalla
 
+        y = 20  # Posición vertical inicial para la primera canción a mostrar
+        # Dibuja las canciones en la pantalla
+        for i in range(scroll_offset, min(scroll_offset + song_display_limit, len(set_music))):
+            text = font.render(" Artista: " + set_music[i]['name_artist'], True, text_color)
+            surfaceMusic.blit(text, (20, y))
+            add_music_button.draw(PCBUTTON,TCBUTTOM)
+        y += 50  # Espaciado entre canciones
+        #win.blit(surfaceMusic, (WIDTH/7,HEIGHT/14.4*10))
         
         email_input.update()
         age_input.update()
@@ -665,12 +780,12 @@ def registration_screen():
         password_input.update()
         confirm_password_input.update()
         name_input.update()
+        music_input.update()
 
-        win.fill(BACKGROUND)
+       
 
-        global background_image
-        
-        win.blit(background_image, (0, 0))
+     
+       
 
          # Ajusta las coordenadas y dimensiones según sea necesario
         crear_rectangulo_redondeado(hex_to_rgb(TCBUTTOM),WIDTH/7-10, HEIGHT/14.4*3-10, WIDTH/7*5+20, HEIGHT/14.4*8,15,alpha=200 )  # Ajusta las coordenadas y dimensiones según sea necesario
@@ -689,6 +804,9 @@ def registration_screen():
         reset_button.draw(PCBUTTON,TCBUTTOM)
         select_image_button.draw(PCBUTTON,TCBUTTOM)
         take_foto_button.draw(PCBUTTON,TCBUTTOM)
+        search_music_button.draw(PCBUTTON,TCBUTTOM)
+        music_input.draw(win)
+        win.blit(surfaceMusic, (WIDTH/7+50,HEIGHT/14.4*9+40))
 
 
 
