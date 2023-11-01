@@ -9,6 +9,8 @@ import random
 import win32gui
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+import spotipy.util as util
+
 
 
 
@@ -125,13 +127,19 @@ def game(lista):
         size=len(musica_user)
         n=random.randint(0,size-1)
         musica_user=musica_user[n][0]
-        web.open(musica_user)
-        sleep(5)
-        pyautogui.press('enter')
-
+        #web.open(musica_user)
+        #sleep(5)
+        #pyautogui.press('enter')
+        SPOTIPY_CLIENT_ID = "7f5a881f950c4eeca17b098bd9e62b2c"
+        SPOTIPY_CLIENT_SECRET = "9e8a5157ce564105a39eb95fdf2330ca"
+        SPOTIPY_REDIRECT_URI = "http://localhost:8888/callback"
+        username = "eemmanuel698"
+        scope = "user-library-read user-modify-playback-state"  
+        token = util.prompt_for_user_token(username, scope, SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI)
+        sp = spotipy.Spotify(auth=token)
         #sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id='c726452535ea4b89aad8cde620dca644',
                                                           #client_secret='1ddc0458700e4cf7889c4fd725839417'))
-        #sp.start_playback(uris=[musica_user])
+        sp.start_playback(uris=[musica_user])
 
       
 

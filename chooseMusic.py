@@ -25,7 +25,7 @@ def list_music(song):
         dato=result['tracks']['items'][i]
         List_song=[{'name_artist':dato['artists'][0]['name'], 'name_song':song , 'url': dato['uri']}] + List_song
     return List_song
-#list_music("te amo")
+
 
 
 
