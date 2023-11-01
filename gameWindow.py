@@ -6,10 +6,11 @@ import webbrowser as web
 import pyautogui
 from time import sleep
 import random
-import win32gui
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+import webbrowser
 
 
 
@@ -116,37 +117,30 @@ def game(lista):
 
     obstaculo_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
     proyectile_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
+    # Inicializa el cliente de Spotipy
+    SPOTIPY_CLIENT_SECRET="0db3c2314d794ef28b594b4d24b07fe9"
+    SPOTIPY_CLIENT_ID="8051e3ec08d240639f7cad6370e88a67"
+    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET))
+
+    def get_spotify_track_url(track_id):
+        track_info = sp.track(track_id)
+        track_url = track_info['external_urls']['spotify']
+        return track_url
+
     def music(username):
-        userName_encript=Usuario.encripta(username)
-        username1=Usuario.getID(userName_encript)
-      
-        musica_user=Musica.getMusic(username1)
+        userName_encript = Usuario.encripta(username)
+        username1 = Usuario.getID(userName_encript)
+        
+        musica_user = Musica.getMusic(username1)
         print(musica_user)
-        size=len(musica_user)
-        n=random.randint(0,size-1)
-        musica_user=musica_user[n][0]
-        web.open(musica_user)
-        sleep(5)
-        pyautogui.press('enter')
-
-        #sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id='c726452535ea4b89aad8cde620dca644',
-                                                          #client_secret='1ddc0458700e4cf7889c4fd725839417'))
-        #sp.start_playback(uris=[musica_user])
-
-      
+        size = len(musica_user)
+        n = random.randint(0, size - 1)
+        track_id = musica_user[n][0]  # Asegúrate de obtener el ID de la pista de la lista de música
+        track_url = get_spotify_track_url(track_id)
+        webbrowser.open(track_url)
+        
 
     
-
-    def hide_spotify_window():
-        # Encuentra la ventana de Spotify por su título
-        window = win32gui.FindWindow(None, "Spotify")
-
-        # Si se encuentra la ventana, ocúltala
-        if window:
-            win32gui.ShowWindow(window, 0)  # 0 significa SW_HIDE (ocultar)
-
-        # Llama a la función para ocultar la ventana de Spotify
-        hide_spotify_window()
 
 
     class Obstaculo(pygame.sprite.Sprite):

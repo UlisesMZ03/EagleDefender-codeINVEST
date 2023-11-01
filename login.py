@@ -24,10 +24,13 @@ pygame.mixer.init()
 pygame.init()
 pygame.mixer.music.load('sounds/login.mp3')
 pygame.mixer.music.play(-1)  # El argumento -1 hace que la canción se reproduzca en un bucle infinito
+screen_info = pygame.display.Info()
 
-WIDTH, HEIGHT = 1280, 720
+# Configuración de la pantalla
+WIDTH, HEIGHT = screen_info.current_w, screen_info.current_h
 
-win = pygame.display.set_mode((WIDTH, HEIGHT))
+
+win = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
 pygame.display.set_caption("Eagle Defender")
 
 # Inicializar la cámara
@@ -39,10 +42,13 @@ FONT = pygame.font.Font(None, 30)
 FONT_2 = pygame.font.Font(None, 25)
 # En el área de inicialización del código
 TITLE_FONT = pygame.font.Font(None, 64)  # Tamaño de la fuente para el título "Login"
+FONT = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
+TITLE_FONT = pygame.font.Font(None,60)
+FONT_SEC = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
 # Dentro de la función login_screen() antes del bucle principal
 
 background_image = pygame.image.load("images/bg2.jpg").convert()
-
+background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
 
 
 selected_theme = None
@@ -154,12 +160,13 @@ class Button:
 			self.bottom_color = color2
             
 special_symbols = ['!', '@', '#', '$', '%', '&', '*', '+', '-', '=', '_', '?', '<', '>', '.', ',', ':', ';']
-
 class TextInputBox:
     def __init__(self, x, y, width, height, color, color2, placeholder="", is_password=False):
         self.rect = pygame.Rect(x, y, width, height)
         self.color = color
         self.text = ""
+        self.height=height
+        self.width=width
         self.placeholder = placeholder
         self.active = False
         self.cursor_pos = 0  # Posición del cursor en el texto
@@ -172,8 +179,9 @@ class TextInputBox:
                 self.active = True
                 # Calcular la posición del cursor en función de la posición del clic
                 click_x = event.pos[0] - (self.rect.x + 5)
+                
                 self.cursor_pos = len(self.text)
-                txt_surface = FONT.render(self.text, True, self.color)
+                txt_surface = FONT_SEC.render(self.text, True, self.color)
                 for i in range(len(self.text)):
                     if txt_surface.get_width() > click_x:
                         self.cursor_pos = i
@@ -185,12 +193,16 @@ class TextInputBox:
         if event.type == pygame.KEYDOWN:
             if self.active:
                 
-                if event.key == pygame.K_BACKSPACE and self.cursor_pos > 0:
+                if event.key == pygame.K_BACKSPACE and self.cursor_pos > 0 and not self.is_password:
                     self.real_text = self.real_text[:self.cursor_pos - 1] + self.real_text[self.cursor_pos:]
                     self.cursor_pos -= 1
                     
                     self.text = self.real_text
-                    
+                elif event.key == pygame.K_BACKSPACE and self.cursor_pos > 0 and self.is_password:
+                    self.real_text = self.real_text[:self.cursor_pos - 1] + self.real_text[self.cursor_pos:]
+                    self.cursor_pos -= 1
+                    self.text = u'\u25C6' * len(self.real_text)
+
                 elif event.key == pygame.K_DELETE and self.cursor_pos < len(self.text):
                     self.text = self.text[:self.cursor_pos] + self.text[self.cursor_pos + 1:]
                 elif event.key == pygame.K_LEFT and self.cursor_pos > 0:
@@ -199,40 +211,73 @@ class TextInputBox:
                     self.cursor_pos += 1
                 elif event.key == pygame.K_RETURN:
                     self.active = False
-                elif event.unicode.isalpha() or event.unicode.isdigit() or event.unicode in special_symbols:  # Permitir solo letras y números
+                elif self.is_password==True and (event.unicode.isalpha() or event.unicode.isdigit() or event.unicode in special_symbols):  # Permitir solo letras y números
                     # Mostrar el rombo si es una contraseña
-                    char = '*' if self.is_password else event.unicode
+                    char = u'\u25C6' if self.is_password else event.unicode
                     self.text = self.text[:self.cursor_pos] + char + self.text[self.cursor_pos:]
                     self.real_text = self.real_text[:self.cursor_pos] + event.unicode + self.real_text[self.cursor_pos:]
-
                     self.cursor_pos += 1
-    def get_text(self):
-       
-        return self.real_text
-    def set_text(self, new_text):
-      
-        self.real_text = new_text
-        self.text = new_text
-        self.cursor_pos = len(new_text)
+                elif not self.is_password and (event.unicode.isalpha() or event.unicode.isdigit() or event.unicode.isspace() or event.key == pygame.K_TAB or event.unicode in special_symbols):
+                    if event.key == pygame.K_TAB:
+                        # Ignorar la tecla Tab
+                        pass
+                    else:
+                        char = event.unicode
+                        self.text = self.text[:self.cursor_pos] + char + self.text[self.cursor_pos:]
+                        self.real_text = self.real_text[:self.cursor_pos] + char + self.real_text[self.cursor_pos:]
+                        self.cursor_pos += 1
 
-    def update(self,min_width):
-        txt_surface = FONT.render(self.text, True, self.color)
+
+
+    def get_text(self):
+        """
+        Obtiene el texto real del TextInputBox, incluso si is_password es True.
+        """
+        return self.real_text
+    def update(self):
+        txt_surface = FONT_SEC.render(self.text, True, self.color)
         # Establece el ancho mínimo del campo de texto
-        
+        min_width = self.width
         self.rect.w = max(min_width, txt_surface.get_width() + 10)
     def draw(self, surface):
         pygame.draw.rect(surface, self.color, self.rect, 2)
-        if self.is_password:
-            masked_text = '*' * len(self.real_text)
-            txt_surface = FONT.render(masked_text if masked_text else self.placeholder, True, self.color)
-        else:
-            txt_surface = FONT.render(self.real_text if self.real_text else self.placeholder, True, self.color)
+        
+        txt_surface = FONT_SEC.render(self.text if self.text else self.placeholder, True, self.color)
         surface.blit(txt_surface, (self.rect.x + 5, self.rect.y + 5))
         if self.active and self.text:  # Mostrar el cursor solo si el cuadro de texto está activo y tiene texto
-            cursor_x = self.rect.x + 5 + FONT.render(self.text[:self.cursor_pos], True, self.color).get_width()
+            cursor_x = self.rect.x + 5 + FONT_SEC.render(self.text[:self.cursor_pos], True, self.color).get_width()
             pygame.draw.line(surface, self.color, (cursor_x, self.rect.y + 5),
                             (cursor_x, self.rect.y + 5 + txt_surface.get_height()), 2)
+            
+            
+            
+            
 
+
+
+
+
+def loading_screen():
+    loading_font = pygame.font.Font(None, 36)
+    loading_text = loading_font.render("Loading...", True, (255, 255, 255))
+    text_rect = loading_text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+        win.fill(BACKGROUND)
+        win.blit(background_image, (0, 0))
+        win.blit(loading_text, text_rect.topleft)
+        pygame.display.flip()
+        
+        # Add loading logic here (loading resources, initializing game objects, etc.)
+        # Once loading is complete, break out of the loop to proceed to the game window
+        
+        pygame.time.delay(1000)  # Simulate loading time (remove this line in your actual implementation)
+        break
 
 
 usuarios_autenticados= []
@@ -255,7 +300,10 @@ def login():
             # Reemplaza 'otra_ventana' con el nombre real de tu script
                 usuarios_autenticados.append(username)
                 if len(usuarios_autenticados)==2:
+                    pygame.mixer.music.pause()
+                    loading_screen() 
                     gameWindow.game(usuarios_autenticados) 
+
                     pygame.quit()
                     sys.exit()
         else:
@@ -279,7 +327,6 @@ def login():
 
 
 
-PANTALLA = pygame.display.set_mode((WIDTH, HEIGHT))
 
 # Función para mostrar una ventana emergente con un mensaje de error
 def mostrar_mensaje_error(title, mensaje, color, color2):
@@ -398,16 +445,16 @@ def receive_data_from_uart():
 
 #CREDENCIALES LOGIN
 
-username_input = TextInputBox((WIDTH//60)*7, 250, (WIDTH//60)*10, 40,PCBUTTON,SCBUTTON, "Username")
-password_input = TextInputBox((WIDTH//60)*7, 300, 200, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
+username_input = TextInputBox((WIDTH//60)*7, HEIGHT//60*20, (WIDTH//60)*16, 40,PCBUTTON,SCBUTTON, "Username")
+password_input = TextInputBox((WIDTH//60)*7, HEIGHT//60*20+50, (WIDTH//60)*16, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
 
 olvido_texto = "¿Olvidó su contraseña?"
 olvido_surface = FONT_2.render(olvido_texto, True, PCBUTTON)  # Color del texto clicqueable
 olvido_rect = olvido_surface.get_rect(center=(WIDTH // 2, 400))  # Centra el texto en la pantalla
 
 
-login_button = Button('Log in',300,40,((WIDTH//60)*8,360),5,SCBUTTON)
-register_button = Button('Register ',300,40,((WIDTH//60)*8,450),5,SCBUTTON)
+login_button = Button('Log in',(WIDTH/60)*16,40,((WIDTH//60)*7,HEIGHT//60*20+150),5,SCBUTTON)
+register_button = Button('Register ',(WIDTH/60)*16,40,((WIDTH//60)*7,HEIGHT//60*20+200),5,SCBUTTON)
 
 
 
@@ -470,10 +517,10 @@ def login_screen():
         crear_rectangulo_redondeado(hex_to_rgb(TCBUTTOM),WIDTH/60*35, HEIGHT-(HEIGHT//4*3), (WIDTH//60)*20, HEIGHT-(HEIGHT//4*2),15,alpha=200 )
         crear_rectangulo_redondeado(hex_to_rgb(BACKGROUND),(WIDTH//60*25), 7, ((WIDTH//60)*11), (80),15,alpha=95)
         crear_rectangulo_redondeado(hex_to_rgb(BACKGROUND),-15, 0, (WIDTH+30), (HEIGHT),15,alpha=95)
-   
+
         
-        username_input.update((WIDTH/60)*16)
-        password_input.update((WIDTH/60)*16)
+        username_input.update()
+        password_input.update()
 
         
         username_input.draw(win)
@@ -495,7 +542,7 @@ def login_screen():
         win.blit(or_surface,or_rect)
         
         olvido_surface = FONT_2.render(olvido_texto, True, PCBUTTON)  # Renderiza el texto nuevamente si cambia
-        olvido_rect = olvido_surface.get_rect(center=(WIDTH//60*15,420))  # Actualiza las dimensiones del rectángulo según el texto
+        olvido_rect = olvido_surface.get_rect(center=(WIDTH//60*15,HEIGHT//60*20+100))  # Actualiza las dimensiones del rectángulo según el texto
         win.blit(olvido_surface, olvido_rect.topleft) 
 
         

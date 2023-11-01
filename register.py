@@ -20,9 +20,13 @@ from objectbasedata import Musica
 pygame.init()
 pygame.camera.init()
 database()
-WIDTH, HEIGHT = 1280, 720
+screen_info = pygame.display.Info()
 
-win = pygame.display.set_mode((WIDTH, HEIGHT))
+# Configuración de la pantalla
+WIDTH, HEIGHT = screen_info.current_w, screen_info.current_h
+
+
+win = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
 pygame.display.set_caption("Eagle Defender")
 
 # Inicializar la cámara
@@ -76,7 +80,7 @@ FONT = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
 TITLE_FONT = pygame.font.Font(None,60)
 FONT_SEC = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
 background_image = pygame.image.load("images/bg2.jpg").convert()
-
+background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
 
 selected_theme = None
 
@@ -344,7 +348,6 @@ def validate_username(username):
 def validate_age(age):
     return age.isdigit()
 
-PANTALLA = pygame.display.set_mode((WIDTH, HEIGHT))
 
 # Función para mostrar una ventana emergente con un mensaje de error
 def mostrar_mensaje_error(title, mensaje, color, color2):
