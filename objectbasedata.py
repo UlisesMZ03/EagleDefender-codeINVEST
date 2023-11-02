@@ -88,6 +88,87 @@ class Usuario:
             return True
         else:
             return False
+    @staticmethod
+    def getName(id):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('select name from usuarios where id=?',(id,))
+        result = cursor.fetchall()
+        conn.close()
+        return result
+    @staticmethod
+    def getAge(id):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('select age from usuarios where id=?',(id,))
+        result = cursor.fetchall()
+        conn.close()
+        return result
+    @staticmethod
+    def getUsername(id):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('select username from usuarios where id=?',(id,))
+        result = cursor.fetchall()
+        conn.close()
+        return result
+    @staticmethod
+    def getEmail(id):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('select email from usuarios where usuarios.id=?',(id,))
+        result = cursor.fetchall()
+        conn.close()
+        return result
+    @staticmethod
+    def getPassword(id):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('select password from usuarios where usuarios.id=?',(id,))
+        result = cursor.fetchall()
+        conn.close()
+        return result
+    def updateEmail(id,newValue):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('upadate usuarios set email=? where usuarios.id=?',(newValue,id))
+        conn.commit()
+        conn.close()
+        return True
+    def updateName(id,newValue):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('upadate usuarios set email=? where usuarios.id=?',(newValue,id))
+        conn.commit()
+        conn.close()
+        return True
+    def updateUsername(id,newValue):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('upadate usuarios set username=? where usuarios.id=?',(newValue,id))
+        conn.commit()
+        conn.close()
+        return True
+    def updatePassword(id,newValue):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('upadate usuarios set password=? where usuarios.id=?',(newValue,id))
+        conn.commit()
+        conn.close()
+        return True
+    def updateEge(id,newValue):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('upadate usuarios set ege=? where usuarios.id=?',(newValue,id))
+        conn.commit()
+        conn.close()
+        return True
+ 
+    
+    
+    
+    
+    
 
     def save_to_db(self):
         conn = sqlite3.connect(self.db_path)
@@ -154,6 +235,14 @@ class Musica():
         conn=sqlite3.connect(Usuario.db_path)
         cursor=conn.cursor()
         cursor.execute('select url from usuarios inner join musica on usuarios.id=musica.id_user where usuarios.id=?',(id,))
+        result = cursor.fetchall()
+        conn.close()
+        return result
+    @staticmethod
+    def NameArtist(id):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('select musica.name, artista from usuarios inner join musica on usuarios.id=musica.id_user where usuarios.id=?',(id,))
         result = cursor.fetchall()
         conn.close()
         return result
