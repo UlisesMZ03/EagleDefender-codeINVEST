@@ -14,7 +14,7 @@ import webbrowser
 
 
 
-def game():
+def game(lista):
     pygame.init()
     pygame.mixer.init()
     # Obtener información sobre la pantalla del sistema
@@ -364,13 +364,13 @@ def game():
             self.tipo = tipo  # Almacena el tipo de proyectil (agua, fuego, polvora)
             if self.tipo == "agua":
                 self.spritesheet = pygame.image.load("images/game/powers/water.png")
-                self.sound = pygame.mixer.Sound('sounds/disparo.mp3')
+                self.sound = pygame.mixer.Sound('sounds/water.mp3')
             elif self.tipo == "fuego":
                 self.spritesheet = pygame.image.load("images/game/powers/fire.png")
-                self.sound = pygame.mixer.Sound('sounds/disparo.mp3')
+                self.sound = pygame.mixer.Sound('sounds/fireball.mp3')
             elif self.tipo == "polvora":
                 self.spritesheet = pygame.image.load("images/game/powers/powder.png")
-                self.sound = pygame.mixer.Sound('sounds/disparo.mp3')
+                self.sound = pygame.mixer.Sound('sounds/firework.mp3')
 
 
             self.current_frame = 0  # Inicializar el índice del fotograma actual
@@ -390,7 +390,6 @@ def game():
             self.direction_x = math.cos(math.radians(angulo))
             self.direction_y = -math.sin(math.radians(angulo))
 
-            self.sound=pygame.mixer.Sound('sounds/disparo.mp3')
             #pygame.mixer.music.load('sounds/login.mp3')
 
         def load_frames(self):
