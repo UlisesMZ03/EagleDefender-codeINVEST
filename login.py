@@ -39,11 +39,12 @@ manager = pygame_gui.UIManager((WIDTH, HEIGHT))
 
 UID_device = None
 FONT = pygame.font.Font(None, 30)
+    
 FONT_2 = pygame.font.Font(None, 25)
 # En el área de inicialización del código
-TITLE_FONT = pygame.font.Font(None, 64)  # Tamaño de la fuente para el título "Login"
+TITLE_FONT =pygame.font.Font("font/KarmaFuture.ttf", 64)  # Tamaño de la fuente para el título "Login"
 FONT = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
-TITLE_FONT = pygame.font.Font(None,60)
+FONT_OR = pygame.font.Font("font/KarmaFuture.ttf", 20)
 FONT_SEC = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
 # Dentro de la función login_screen() antes del bucle principal
 
@@ -62,7 +63,7 @@ TCBUTTOM = '#006350'
 login_surface = TITLE_FONT.render("Login", True, PCBUTTON)  # Color blanco (#FFFFFF)
 login_rect = login_surface.get_rect(center=(WIDTH // 2, 50))  # Ajusta las coordenadas según la posición que desees
 
-or_surface = FONT.render("or", True, SCBUTTON)  # Color blanco (#FFFFFF)
+or_surface = FONT_OR.render("or", True, SCBUTTON)  # Color blanco (#FFFFFF)
 or_rect = or_surface.get_rect(center=(WIDTH // 2, HEIGHT//2))  # Ajusta las coordenadas según la posición que desees
 
 temas = ['Dark Green', 'Dark Red', 'Tema 3']
@@ -538,7 +539,7 @@ def login_screen():
         login_surface = TITLE_FONT.render(login_text, True, PCBUTTON)
         win.blit(login_surface, login_rect)
 
-        or_surface = FONT.render("or", True, SCBUTTON)  # Color blanco (#FFFFFF)
+        or_surface = FONT_OR.render("or", True, SCBUTTON)  # Color blanco (#FFFFFF)
         win.blit(or_surface,or_rect)
         
         olvido_surface = FONT_2.render(olvido_texto, True, PCBUTTON)  # Renderiza el texto nuevamente si cambia
