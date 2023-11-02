@@ -14,16 +14,16 @@ import webbrowser
 
 
 
-def game(lista):
-    print("lista",lista)
+def game():
     pygame.init()
     pygame.mixer.init()
     # Obtener información sobre la pantalla del sistema
     screen_info = pygame.display.Info()
 
+    font = pygame.font.Font("font/KarmaFuture.ttf", 36)
     # Configuración de la pantalla
     screen_width, screen_height = screen_info.current_w, screen_info.current_h
-    
+
     screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 
     pygame.display.set_caption("Animación de Sprites")
@@ -32,7 +32,9 @@ def game(lista):
     layer = pygame.image.load("images/game/backgrounds/front_layer4.png").convert_alpha()
     layer = pygame.transform.scale(layer, (screen_width, screen_height))
     # Cargar el spritesheet con fondo rosa
-
+    # Cargar la imagen powers.png
+    powers_image = pygame.image.load("images/game/powers/power_inventory.png")
+    powers_image = pygame.transform.scale(powers_image, (screen_width/8.5, screen_height/3.5))
 
     # Configuración de las filas del spritesheet para cada dirección de movimiento
     DOWN,UP, LEFT, RIGHT, DOWNLEFT, DOWNRIGHT, UPLEFT, UPRIGHT,VICTORY = 0, 1, 2, 3, 4, 5, 6, 7, 8
@@ -218,7 +220,6 @@ def game(lista):
                 self.rect.center=pos
             
                 obstaculos.add(self) 
-
     class Defensor(pygame.sprite.Sprite):
         def __init__(self, x, y):
             super().__init__()
@@ -232,10 +233,12 @@ def game(lista):
             self.rect = self.image.get_rect()
             self.rect.x = x
             self.rect.y = y
+            
+            self.vida = 3  # Inicializa la vida del defensor
 
         def get_current_sprite(self):
             sprite_rect = pygame.Rect(
-                self.current_frame%4 * self.sprite_width,
+                self.current_frame % 4 * self.sprite_width,
                 0,  # Ya que todas las imágenes están en la misma fila
                 self.sprite_width,
                 self.sprite_height
@@ -243,13 +246,17 @@ def game(lista):
             sprite_original = self.spritesheet.subsurface(sprite_rect)
             return pygame.transform.scale(sprite_original, (int(nuevo_ancho_aguila), int(nuevo_alto_aguila)))
 
-        def update(self):
-            self.animation_speed+=1
-            if self.animation_speed==10:
+        def recibir_dano(self, dano):
+            print(self.vida)
+            self.vida -= dano
 
+
+        def update(self):
+            self.animation_speed += 1
+            if self.animation_speed == 10:
                 self.current_frame += 1
                 self.image = self.get_current_sprite()
-                self.animation_speed=0
+                self.animation_speed = 0
 
     class Atacante(pygame.sprite.Sprite):
         def __init__(self, x, y):
@@ -265,6 +272,30 @@ def game(lista):
             self.rect = self.image.get_rect()
             self.rect.x = x
             self.rect.y = y
+            self.bolas_fuego = 5  # Número inicial de bolas de fuego disponibles
+            self.bolas_agua = 3  # Número inicial de bolas de agua disponibles
+            self.bolas_polvora = 10  # Número inicial de bolas de pólvora disponibles
+
+        def lanzar_bola_fuego(self):
+            if self.bolas_fuego > 0:
+                # Lógica para lanzar una bola de fuego
+                self.bolas_fuego -= 1
+
+        def lanzar_bola_agua(self):
+            if self.bolas_agua > 0:
+                # Lógica para lanzar una bola de agua
+                self.bolas_agua -= 1
+
+        def lanzar_bola_polvora(self):
+            if self.bolas_polvora > 0:
+                # Lógica para lanzar una bola de pólvora
+                self.bolas_polvora -= 1
+
+        def recoger_bolas(self, bolas_fuego=0, bolas_agua=0, bolas_polvora=0):
+            # Método para que el personaje recoja más bolas durante el juego
+            self.bolas_fuego += bolas_fuego
+            self.bolas_agua += bolas_agua
+            self.bolas_polvora += bolas_polvora
 
         def get_current_sprite(self):
             sprite_rect = pygame.Rect(
@@ -280,39 +311,39 @@ def game(lista):
             
             keys = pygame.key.get_pressed()
 
-            if keys[pygame.K_w] and keys[pygame.K_d]:
+            if keys[pygame.K_w] and keys[pygame.K_d] and not eagle_defeat:
                 self.rect.y -= self.sprite_speed
                 self.rect.x += self.sprite_speed
                 self.current_direction = UPRIGHT
                 self.sprite_index+=1
-            elif keys[pygame.K_w] and keys[pygame.K_a]:
+            elif keys[pygame.K_w] and keys[pygame.K_a] and not eagle_defeat:
                 self.rect.y -= self.sprite_speed
                 self.rect.x -= self.sprite_speed
                 self.current_direction = UPLEFT
                 self.sprite_index+=1
-            elif keys[pygame.K_s] and keys[pygame.K_d]:
+            elif keys[pygame.K_s] and keys[pygame.K_d] and not eagle_defeat:
                 self.rect.y += self.sprite_speed
                 self.rect.x += self.sprite_speed
                 self.current_direction = DOWNRIGHT
                 self.sprite_index+=1
-            elif keys[pygame.K_s] and keys[pygame.K_a]:
+            elif keys[pygame.K_s] and keys[pygame.K_a] and not eagle_defeat:
                 self.rect.y += self.sprite_speed
                 self.rect.x -= self.sprite_speed
                 self.current_direction = DOWNLEFT
                 self.sprite_index+=1
-            elif keys[pygame.K_w]:
+            elif keys[pygame.K_w] and not eagle_defeat:
                 self.rect.y -= self.sprite_speed
                 self.current_direction = UP
                 self.sprite_index+=1
-            elif keys[pygame.K_s]:
+            elif keys[pygame.K_s] and not eagle_defeat:
                 self.rect.y += self.sprite_speed
                 self.current_direction = DOWN
                 self.sprite_index+=1
-            elif keys[pygame.K_a]:
+            elif keys[pygame.K_a] and not eagle_defeat:
                 self.rect.x -= self.sprite_speed
                 self.current_direction = LEFT
                 self.sprite_index+=1
-            elif keys[pygame.K_d]:
+            elif keys[pygame.K_d] and not eagle_defeat:
                 self.rect.x += self.sprite_speed
                 self.current_direction = RIGHT
                 self.sprite_index+=1
@@ -326,11 +357,22 @@ def game(lista):
             # Actualizar el sprite actual
             self.image = self.get_current_sprite()
 
-    
+        
     class Proyectil(pygame.sprite.Sprite):
-        def __init__(self, x, y, velocidad, angulo):
+        def __init__(self, x, y, velocidad, angulo, tipo):
             super().__init__()
-            self.spritesheet = pygame.image.load("images/game/powers/fire.png")  # Cargar el spritesheet
+            self.tipo = tipo  # Almacena el tipo de proyectil (agua, fuego, polvora)
+            if self.tipo == "agua":
+                self.spritesheet = pygame.image.load("images/game/powers/water.png")
+                self.sound = pygame.mixer.Sound('sounds/disparo.mp3')
+            elif self.tipo == "fuego":
+                self.spritesheet = pygame.image.load("images/game/powers/fire.png")
+                self.sound = pygame.mixer.Sound('sounds/disparo.mp3')
+            elif self.tipo == "polvora":
+                self.spritesheet = pygame.image.load("images/game/powers/powder.png")
+                self.sound = pygame.mixer.Sound('sounds/disparo.mp3')
+
+
             self.current_frame = 0  # Inicializar el índice del fotograma actual
             self.frames = []  # Lista para almacenar las imágenes individuales del spritesheet
             self.load_frames()  # Cargar las imágenes del spritesheet en la lista de frames
@@ -420,12 +462,16 @@ def game(lista):
                 self.rect = self.image.get_rect(center=self.rect.center)
     
     obstaculos = pygame.sprite.Group()
-    
+    # Definir el color del círculo (en RGB)
+    circle_color = (255, 0, 0)
+
+    # Suponiendo que tienes una variable llamada cantidad_circulos
+    cantidad_circulos = 7 
 
 
     # Nuevas dimensiones del sprite
     atacante = Atacante(screen_width // 2, screen_height // 2)
-    defensor = Defensor(screen_width // 8 - 42, screen_height // 2 - 37)
+    
     proyectiles = pygame.sprite.Group()
     todos_los_sprites = pygame.sprite.Group()  
     obstaculos_activos = pygame.sprite.Group()
@@ -471,15 +517,18 @@ def game(lista):
     agregarBloquesEstante(10,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
     agregarBloquesEstante(10,150,screen_height//2-50,textura_piedraElem1,textura_piedra,obstaculoPiedra,"piedra")
     agregarBloquesEstante(10,150,screen_height//2-150,textura_concretoElem1,textura_concreto,obstaculoConcreto,"concreto")
-    music(lista[0])
-    
+
+    eagle_defeat = False
+    defensor_done=False
+    obs_done=False
     while running:
         screen.blit(fondo, (0, 0))
+       
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN and not eagle_defeat and defensor_done:
                 if event.button == 1:
                     for obstaculo in obstaculos:
                         if obstaculo.rect.collidepoint(event.pos):
@@ -490,7 +539,14 @@ def game(lista):
                             dragging=True
                             break
                             
-            if event.type == pygame.MOUSEBUTTONUP:
+            if event.type == pygame.MOUSEBUTTONDOWN and not eagle_defeat and not defensor_done:
+                if event.button == 1:
+                    mouse_x, mouse_y = event.pos
+                    if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
+                        defensor = Defensor(mouse_x- 42, mouse_y- 37)
+                        defensor_done=True
+                    
+            if event.type == pygame.MOUSEBUTTONUP and not eagle_defeat:
                 if event.button == 1:
                     
                     if obstaculodrag:
@@ -521,52 +577,107 @@ def game(lista):
                         # Clear the dragging flag
 
 
-            if event.type == pygame.MOUSEMOTION:
+            if event.type == pygame.MOUSEMOTION and not eagle_defeat:
                 if obstaculodrag:  # Check the dragging flag
                         
                     obstaculodrag.rect.move_ip(event.rel)
 
-            elif event.type == pygame.KEYDOWN:
-                print(f'presionando tecla´{event.key}')
+            elif event.type == pygame.KEYDOWN and not eagle_defeat:
+       
                 if event.key == pygame.K_LSHIFT:  # Verifica si se presionó la tecla Shift derecha
                     if obstaculodrag:
                         obstaculodrag.rotate(45) 
 
-                if event.key == pygame.K_j:  # Se presiona la letra 'j'
-                    print(1)
-                    tip_x, tip_y = mirilla.get_tip_position()
-                    angle_rad = mirilla.angle
-                    proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad)
-                    proyectil.sound.play()
-                    proyectiles.add(proyectil)
+                if event.key == pygame.K_j and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
+                    if atacante.bolas_fuego>0:
+                        tip_x, tip_y = mirilla.get_tip_position()
+                        angle_rad = mirilla.angle
+                        proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "fuego")
+                        proyectil.sound.play()
+                        proyectiles.add(proyectil)
+                        atacante.lanzar_bola_fuego()
+                if event.key == pygame.K_k and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
+                    if atacante.bolas_agua>0:
+                        tip_x, tip_y = mirilla.get_tip_position()
+                        angle_rad = mirilla.angle
+                        proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "agua")
+                        proyectil.sound.play()
+                        proyectiles.add(proyectil)
+                        atacante.lanzar_bola_agua()
+                if event.key == pygame.K_l and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
+                    if atacante.bolas_polvora>0:
+                        tip_x, tip_y = mirilla.get_tip_position()
+                        angle_rad = mirilla.angle
+                        proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "polvora")
+                        proyectil.sound.play()
+                        proyectiles.add(proyectil)
+                        atacante.lanzar_bola_polvora()
         
         obstaculos_activos.empty()
         for obstaculo in obstaculos:
             if obstaculo.is_active:
                 obstaculos_activos.add(obstaculo)
                 
-
+        if len(obstaculos_activos)>=5:
+                obs_done=True
         
         agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
         colisiones = pygame.sprite.groupcollide(obstaculos_activos, proyectiles, True, True)
+        if defensor_done:
+            colisiones_defensor = pygame.sprite.spritecollide(defensor, proyectiles, True)
+            if colisiones_defensor:
+                if proyectil.tipo=="agua":
+
+                    defensor.recibir_dano(1)
+                elif proyectil.tipo=="fuego":
+                    defensor.recibir_dano(2)
+                elif proyectil.tipo=="polvora":
+                    defensor.recibir_dano(4)
+
+                if defensor.vida<=0:
+                    eagle_defeat=True
+
         if colisiones:
             pygame.mixer.Sound('sounds/explosion.mp3').play()
+            # Verificar la vida del defensor
 
        # agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
         # Dibujar el atacante en la pantalla
+        screen.blit(flagsprite1[current_frame%len(flagsprite1)], (screen_width // 8*7 - 32, screen_height //8*2 - screen_height//10))
         
-        obstaculos.draw(screen)
+        screen.blit(atacante.image, atacante.rect)
         atacante.update()
         # Actualizar el águila
-        defensor.update()
-        screen.blit(defensor.image, defensor.rect)
-        screen.blit(atacante.image, atacante.rect)
-        # Dibujar los proyectiles
-        proyectiles.update()
-        proyectiles.draw(screen)
-        mirilla.update()
+        if eagle_defeat:
+            texto = font.render("El atacante ha ganado", True, (255, 255, 255))
+            screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
+     
+        if defensor_done:
+            obstaculos.draw(screen)
+            
+            defensor.update()
+            screen.blit(defensor.image, defensor.rect)
+            
+                # Dibujar los proyectiles
+            proyectiles.update()
+            proyectiles.draw(screen)
+            
+        else:
+            
+            
+            texto = font.render("Coloca el águila en un punto estrategico", True, (255, 255, 255))
+            screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
 
-        
+        if obs_done:
+            mirilla.update()
+            todos_los_sprites.update()
+            todos_los_sprites.draw(screen)
+        elif defensor_done:
+            
+            
+            texto = font.render("Coloca los obstaculos iniciales", True, (255, 255, 255))
+            screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
+
         frame_counter += 1
         if frame_counter >= animation_speed:
             
@@ -576,15 +687,35 @@ def game(lista):
         screen.blit(flagsprite2[current_frame%len(flagsprite2)], (screen_width // 8 - 32, screen_height //8*2 - screen_height//10))
 
         screen.blit(flagsprite2[current_frame%len(flagsprite2)], (screen_width // 8 - 32, screen_height //8*7 - screen_height//10))
-        screen.blit(flagsprite1[current_frame%len(flagsprite1)], (screen_width // 8*7 - 32, screen_height //8*2 - screen_height//10))
         
         screen.blit(flagsprite1[current_frame%len(flagsprite1)], (screen_width // 8*7 - 32, screen_height //8*7 - screen_height//10))
         
 
-        screen.blit(campfiresprite[current_frame%len(campfiresprite)], (screen_width // 22*21 - 32, screen_height // 8*3))
+
+        screen.blit(campfiresprite[current_frame%len(campfiresprite)], (screen_width // 22*21 - 32, screen_height // 8*2))
+        screen.blit(campfiresprite[current_frame%len(campfiresprite)], (screen_width // 22*1.5 - 32, screen_height // 8*5.5))
         screen.blit(layer, (0, 45))
-        todos_los_sprites.update()
-        todos_los_sprites.draw(screen)
+        screen.blit(powers_image, (screen_width - screen_width/8.5, screen_height // 2 - (screen_height/3.5)/3))
+
+            # Dibujar los círculos en el lado derecho de la pantalla
+        radio = 7  # Radio de los círculos
+        espacio_entre_circulos = 7  # Espacio entre los círculos
+        inicio_x = screen_width - screen_width/14
+
+        for i in range(atacante.bolas_fuego):
+            x = inicio_x + i * (2 * radio + espacio_entre_circulos)
+            y = screen_height // 2 - (screen_height/20)/4 +radio# Ajustar según tus necesidades
+            pygame.draw.circle(screen, circle_color, (x, y), radio)
+
+        for i in range(atacante.bolas_agua):
+            x = inicio_x + i * (2 * radio + espacio_entre_circulos)
+            y = screen_height // 1.8 - (screen_height/20)/5+radio# Ajustar según tus necesidades
+            pygame.draw.circle(screen, circle_color, (x, y), radio)
+        for i in range(atacante.bolas_polvora):
+            x = inicio_x + i * (2 * radio + espacio_entre_circulos)
+            y = screen_height // 1.63 - (screen_height/20)/5+radio# Ajustar según tus necesidades
+            pygame.draw.circle(screen, circle_color, (x, y), radio)
+        
         pygame.display.flip()
         clock.tick(75)
         # Crear un nuevo obstáculo si todos los obstáculos han sido destruidos
