@@ -2,6 +2,7 @@ import pygame
 import pygame_gui
 import pygame.camera
 import re
+import login
 #from usuarios import Usuario
 import serial
 import os
@@ -386,6 +387,7 @@ def mostrar_mensaje_error(title, mensaje, color, color2):
 # Función para el botón de registro
 def register():
     global favorite_song
+    global selected_image_surface
     name = name_input.text
     email = email_input.text
     age = age_input.text
@@ -396,14 +398,21 @@ def register():
     confirm_password = confirm_password_input.get_text()
     global UID_device
     
-    if username != "" and password == confirm_password and validate_email(email) and validate_password(password) and validate_username(username) and validate_age(age):
-            
+    if username != "" and password == confirm_password and validate_email(email) and validate_password(password) and validate_username(username) and validate_age(age) and selected_image_surface:
+        
         if UID_device == None:
             user = Usuario(name,username,age,email,password,"")
             validacion=user.save_to_db()
             print("user to save", validacion)
-          
-            if validacion==1 and songs !=[]:
+            if validacion==1:
+                mostrar_mensaje_error('Username Already in Use', 'This username is already taken. Please choose another one.',PCBUTTON,SCBUTTON)
+                
+            elif validacion==2:
+                mostrar_mensaje_error('Username Already in Use', 'This username is already taken. Please choose another one.',PCBUTTON,SCBUTTON)
+            elif validacion==3:
+                mostrar_mensaje_error('Device Not Added', 'You haven\'t added the device yet. Please add the device to your account before proceeding.',PCBUTTON,SCBUTTON)
+
+            elif validacion!=1 and validacion!=2 and validacion!=3 and songs !=[]:
                 username=user._encrypt_data(username)
                 id_user=Usuario.getID(username)
                 print("entro al for")
@@ -412,10 +421,27 @@ def register():
                     musica_validacion= musica_user.save_data()
                     if musica_validacion:
                         favorite_song=[]
-                
+            
         else:
             user = Usuario(name,username,age,email,password,UID_device)
-            user.save_to_db()
+            validacion=user.save_to_db()
+            if validacion==1:
+                mostrar_mensaje_error('Username Already in Use', 'This username is already taken. Please choose another one.',PCBUTTON,SCBUTTON)
+                
+            elif validacion==2:
+                mostrar_mensaje_error('Username Already in Use', 'This username is already taken. Please choose another one.',PCBUTTON,SCBUTTON)
+            elif validacion==3:
+                mostrar_mensaje_error('Device Already Linked', 'This device is already linked to another account. Please use a different device or contact support for assistance.',PCBUTTON,SCBUTTON)
+            
+            else:
+
+
+                
+                user.save_to_db()
+                login.login_screen() 
+
+                pygame.quit()
+                sys.exit()
      
     elif password != confirm_password:
         mostrar_mensaje_error('Password Mismatch','Password and confirm password do not match',PCBUTTON,SCBUTTON)
@@ -432,7 +458,10 @@ def register():
         mostrar_mensaje_error('Invalid Username','Username cannot contain spaces.',PCBUTTON,SCBUTTON)
 
     elif not validate_age(age):
-        mostrar_mensaje_error('Invalid Age','Age must be a number',PCBUTTON,SCBUTTON)
+        mostrar_mensaje_error('Invalid Profile Picture','You must upload or take a profile picture', PCBUTTON, SCBUTTON)
+
+    elif not selected_image_surface:
+        mostrar_mensaje_error('','Age must be a number',PCBUTTON,SCBUTTON)
     elif UID_device==None:
          
         mostrar_mensaje_error('Add Device.',' You havent added the device or there has been an error. \nPlease try again',PCBUTTON,SCBUTTON)

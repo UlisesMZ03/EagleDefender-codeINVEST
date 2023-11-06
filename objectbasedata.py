@@ -16,7 +16,8 @@ class Usuario:
         self.password = self._encrypt_data(password)
         self.uid = uid
         self.id = self._get_next_id()
-    def _encrypt_data(self,message):
+    @staticmethod
+    def _encrypt_data(message):
         n, e = public_key
         encrypted_message = [pow(ord(char), e, n) for char in message]
         return encrypted_message
@@ -44,10 +45,10 @@ class Usuario:
     def getID(username):
         conn = sqlite3.connect(Usuario.db_path)
         cursor = conn.cursor()
-       
-        cursor.execute("SELECT id FROM usuarios WHERE username=?", (username,))
+        encrypt_username = Usuario._encrypt_data(username)
+        cursor.execute("SELECT id FROM usuarios WHERE username=?", (encrypt_username,))
         
-        # Obtén el resultado de la consulta
+        # Obtén el resultado de la consultausername
         result = cursor.fetchone()
         
         conn.close()
@@ -75,8 +76,8 @@ class Usuario:
 
     @staticmethod
     def check_credentials(username, password):
-        encrypted_username = Usuario._encrypt_data(Usuario,username)
-        encrypted_password = Usuario._encrypt_data(Usuario,password)
+        encrypted_username = Usuario._encrypt_data(username)
+        encrypted_password = Usuario._encrypt_data(password)
 
         conn = sqlite3.connect(Usuario.db_path)
         cursor = conn.cursor()
@@ -145,23 +146,20 @@ class Usuario:
         existing_uid = cursor.fetchone()
 
         if existing_username:
-            print("No se pudo crear el usuario. El username ya está en uso.")
-            return -1
+            return 1
         elif existing_email:
-            print("No se pudo crear el usuario. El email ya está en uso.")
-            return -1
-        elif existing_uid and self.uid!=16188:
-            print(self.uid)
+            return 2
+        elif existing_uid or self.uid=="":
+            return 3
         else:
+            
             # Inserta el usuario en la base de datos
             cursor.execute('''INSERT INTO usuarios (id, name, username, age, email, password, uid) VALUES (?, ?, ?, ?, ?, ?, ?)''',
                            (self.id, str(self.name), str(self.username), self.age, str(self.email), str(self.password), str(self.uid)))
             conn.commit()
             print("Usuario creado con éxito.")
-            return 1
             
-            
-
+        
         conn.close()
 class Musica():
     db_path = "prueba.db"
