@@ -398,7 +398,7 @@ def register():
     confirm_password = confirm_password_input.get_text()
     global UID_device
     
-    if username != "" and password == confirm_password and validate_email(email) and validate_password(password) and validate_username(username) and validate_age(age) and selected_image_surface:
+    if username != "" and password == confirm_password and validate_email(email) and validate_password(password) and validate_username(username) and validate_age(age) and selected_image_surface!=initial_image_surface:
         
         if UID_device == None:
             user = Usuario(name,username,age,email,password,"")
@@ -450,7 +450,8 @@ def register():
         mostrar_mensaje_error('Invalid Email','Please enter a valid email address',PCBUTTON,SCBUTTON)
     elif not validate_password(password):
         mostrar_mensaje_error('Invalid Password','Password must be at least 8 characters long with at least one uppercase letter and one special symbol',PCBUTTON,SCBUTTON)
-       
+    elif selected_image_surface==initial_image_surface:
+        mostrar_mensaje_error('Registration Failed', 'You must add a profile picture', PCBUTTON, SCBUTTON)
 
     elif validate_username(username)==1:
         mostrar_mensaje_error('Invalid Username','Username contains prohibited words',PCBUTTON,SCBUTTON)
@@ -468,9 +469,7 @@ def register():
     elif not verificar_formato(UID_device):
         mostrar_mensaje_error('Device error.',' You havent added the device or there has been an error. \nPlease try again',PCBUTTON,SCBUTTON)
         
-    else:
-
-        mostrar_mensaje_error('Register Failed','Invalid Username and password',PCBUTTON,SCBUTTON)
+    
 
 
 server_socket = None
@@ -763,7 +762,7 @@ def registration_screen():
                         set_music=list_music(music_input.get_text())
                        
                     except:
-                       mostrar_mensaje_error("Canciones Favoritas", 'Escribe la canción para poder mostrarte los resultados' , PCBUTTON, SCBUTTON)
+                        mostrar_mensaje_error("Canciones Favoritas", 'Escribe la canción para poder mostrarte los resultados' , PCBUTTON, SCBUTTON)
     
                 else:
 
