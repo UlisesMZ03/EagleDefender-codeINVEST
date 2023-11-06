@@ -3,6 +3,8 @@ import pygame_gui
 from TextInputBox import TextInputBox
 import sys
 from objectbasedata import Usuario, Musica
+from Button import Button
+import validate
 def editScreen():
     pygame.init()
     screen_info = pygame.display.Info()
@@ -34,7 +36,7 @@ def editScreen():
     
     def  countMusic(username):
         data_encript= Usuario.encripta(username)
-        id=Usuario.getID(data_encript)
+        id=Usuario.getID(str(data_encript))
         lista_song=Musica.getMusic(id)
         nameArtis=Musica.NameArtist(id)
         list_input_song=[]
@@ -71,30 +73,55 @@ def editScreen():
     age_rect = age_surface.get_rect(center=(WIDTH/3-80, HEIGHT/14.4*6+20))  # Ajusta las coordenadas según la posición que desees
     password_rect = password_surface.get_rect(center=(WIDTH/3-80, HEIGHT/14.4*7+20))  # Ajusta las coordenadas según la posición que desees
     confirmPassword_rect = confirmPassword_surface.get_rect(center=(WIDTH/3-80, HEIGHT/14.4*8+20))  # Ajusta las coordenadas según la posición que desees
-    song1_rect = song1_surface.get_rect(center=(WIDTH/3-80, HEIGHT/14.4*9+20))  # Ajusta las coordenadas según la posición que desees
-    song2_rect = song2_surface.get_rect(center=(WIDTH/3-80, HEIGHT/14.4*10+20))  # Ajusta las coordenadas según la posición que desees
-    song3_rect = song3_surface.get_rect(center=(WIDTH/3-80, HEIGHT/14.4*11+20))  # Ajusta las coordenadas según la posición que desees
-  
-   
+    song1_rect = song1_surface.get_rect(center=(WIDTH/3-80, HEIGHT/14.4*9+15))  # Ajusta las coordenadas según la posición que desees
+    song2_rect = song2_surface.get_rect(center=(WIDTH/3-80, HEIGHT/14.4*10+15))  # Ajusta las coordenadas según la posición que desees
+    song3_rect = song3_surface.get_rect(center=(WIDTH/3-80, HEIGHT/14.4*11+15))  # Ajusta las coordenadas según la posición que desees
+    private_key = (43931, 32869)
+    public_key = (43931, 12637)
+    def decrypt(encrypted_message):
+        n, d = private_key
+        decrypted_message = ''.join([chr(pow(char, d, n)) for char in encrypted_message])
+        return decrypted_message
+
    
     song_input=countMusic('daniel17')
     print(f'llamada a la base de datos {song_input}')
-    email_input = TextInputBox(WIDTH/3, HEIGHT/14.4*3, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Email")
-    name_input = TextInputBox(WIDTH/3, HEIGHT/14.4*4, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Name")
-    age_input = TextInputBox(WIDTH/3, HEIGHT/14.4*5, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Age")
-    username_input = TextInputBox(WIDTH/3, HEIGHT/14.4*6, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Username")
-    password_input = TextInputBox(WIDTH/3, HEIGHT/14.4*7, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
+    data_encript= Usuario.encripta("daniel17")
+    id=Usuario.getID(str(data_encript))
+    email=Usuario.getEmail(id)
+    email=email[0][0]
+    email = eval(email)
+    email=Usuario.decrypt_data(email)
+    name=Usuario.getName(id)
+    name=eval(name[0][0])
+    name=Usuario.decrypt_data(name)
+    age=Usuario.getAge(id)
+    age=age[0][0]
+    username=Usuario.getUsername(id)
+    username=eval(username[0][0])
+    username=Usuario.decrypt_data(username)
+
+
+    
+    email_input = TextInputBox(WIDTH/3, HEIGHT/14.4*3, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, f"{email}")
+    name_input = TextInputBox(WIDTH/3, HEIGHT/14.4*4, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, f"Name {name}")
+    age_input = TextInputBox(WIDTH/3, HEIGHT/14.4*5, WIDTH/7*2, 40,PCBUTTON,SCBUTTON,f"Age{age}")
+    username_input = TextInputBox(WIDTH/3, HEIGHT/14.4*6, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, f"Username {username}")
+    password_input = TextInputBox(WIDTH/3, HEIGHT/14.4*7, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, f"Password",is_password=True)
     confirm_password_input = TextInputBox(WIDTH/3, HEIGHT/14.4*8, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,"Confirm Password",is_password=True)
     song1_input=TextInputBox(WIDTH/3, HEIGHT/14.4*9+20, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,f'song:{song_input[0]}')
     song2_input=TextInputBox(WIDTH/3, HEIGHT/14.4*10+20, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,f'song:{song_input[1]}')
     song3_input=TextInputBox(WIDTH/3, HEIGHT/14.4*11+20, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,f'song:{song_input[2]}')
-    
+    Edit_button = Button('Edit info',WIDTH/7,40,(WIDTH/3*3,HEIGHT/14.4*11.3+50),5,SCBUTTON)
     
 
     
 
     font = pygame.font.Font(None, 30)
    
+
+    def update():
+        pass
    
     while running:
         win.fill(BACKGROUND)
@@ -149,6 +176,7 @@ def editScreen():
         song1_input.draw(win)
         song2_input.draw(win)
         song3_input.draw(win)
+        Edit_button.draw(PCBUTTON,TCBUTTOM,win)
        
             
 

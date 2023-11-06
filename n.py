@@ -1,8 +1,8 @@
 import sqlite3
 import hashlib
 # Llave pública proporcionada
-public_key = (43931, 12637)
-private_key = (43931,32869)
+public_key = (43931, 32869)
+private_key = (43931, 12637)
 
 class Usuario:
     db_path = "database.db"
@@ -29,14 +29,18 @@ class Usuario:
 
         return last_id + 1 if last_id else 1
 
-    def _encrypt_data(self,message):
-        n, e = public_key
-        encrypted_message = [pow(ord(char), e, n) for char in message]
-        return encrypted_message
-    def decrypt_data(encrypted_message):
-        n, d = private_key
-        decrypted_message = ''.join([chr(pow(char, d, n)) for char in encrypted_message])
-        return decrypted_message
+    def _encrypt_data(self,data):
+        if data == int:
+            hashed_data = hashlib.sha256(data.encode()).hexdigest()
+            data_int = int(hashed_data, 16) % public_key[0]
+            encrypted_data = pow(data_int, public_key[1], public_key[0])
+        else:
+
+            hashed_data = hashlib.sha256(data.encode()).hexdigest()
+            data_int = int(hashed_data, 16) % public_key[0]
+            encrypted_data = pow(data_int, public_key[1], public_key[0])
+        return encrypted_data
+  
     @staticmethod
     def getID(username):
         conn = sqlite3.connect(Usuario.db_path)
@@ -58,9 +62,27 @@ class Usuario:
             return None
     @staticmethod
     def encripta(data):
-        n, e = public_key
-        encrypted_message = [pow(ord(char), e, n) for char in data]
-        return encrypted_message
+        if data == int:
+            hashed_data = hashlib.sha256(data.encode()).hexdigest()
+            data_int = int(hashed_data, 16) % public_key[0]
+            encrypted_data = pow(data_int, public_key[1], public_key[0])
+        else:
+
+            hashed_data = hashlib.sha256(data.encode()).hexdigest()
+            data_int = int(hashed_data, 16) % public_key[0]
+            encrypted_data = pow(data_int, public_key[1], public_key[0])
+        return encrypted_data
+    def unencript(data):#RSA
+        if data == int:
+            hashed_data = hashlib.sha256(data.encode()).hexdigest()
+            data_int = int(hashed_data, 16) % public_key[0]
+            encrypted_data = pow(data_int, public_key[1], public_key[0])
+        else:
+
+            hashed_data = hashlib.sha256(data.encode()).hexdigest()
+            data_int = int(hashed_data, 16) % public_key[0]
+            encrypted_data = pow(data_int, public_key[1], public_key[0])
+        return encrypted_data
         
         
 

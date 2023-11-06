@@ -1,4 +1,8 @@
 import pygame
+FONT = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
+TITLE_FONT = pygame.font.Font(None,60)
+FONT_SEC = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
+special_symbols = ['!', '@', '#', '$', '%', '&', '*', '+', '-', '=', '_', '?', '<', '>', '.', ',', ':', ';']
 class Button:
     def __init__(self,text,width,height,pos,elevation,color):
         self.pressed = False
@@ -24,7 +28,7 @@ class Button:
 
 
 
-    def draw(self,color,color2):
+    def draw(self,color,color2,win):
 
 		# elevation logic 
         

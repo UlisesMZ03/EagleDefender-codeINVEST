@@ -397,21 +397,24 @@ def register():
     global UID_device
     
     if username != "" and password == confirm_password and validate_email(email) and validate_password(password) and validate_username(username) and validate_age(age):
-            
+        
         if UID_device == None:
+            
+            print(f'username {username}  name {name} email {email} age {age}')
             user = Usuario(name,username,age,email,password,"")
             validacion=user.save_to_db()
             print("user to save", validacion)
           
             if validacion==1 and songs !=[]:
                 username=user._encrypt_data(username)
-                id_user=Usuario.getID(username)
+                id_user=Usuario.getID(str(username))
                 print("entro al for")
                 for i in songs:
                     musica_user=Musica(id_user,i["name_song"],i['name_artist'],i['url'])
                     musica_validacion= musica_user.save_data()
                     if musica_validacion:
                         favorite_song=[]
+                        break
                 
         else:
             user = Usuario(name,username,age,email,password,UID_device)

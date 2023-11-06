@@ -10,7 +10,10 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+import spotipy.util as util
 import webbrowser
+import win32gui
+
 
 
 
@@ -100,7 +103,7 @@ def game(Lista):
     textura_madera=pygame.transform.smoothscale(textura_madera,tamano_textrura)
     textura_maderaElem1=pygame.transform.smoothscale(textura_madera,tam_primerElemento)
 
-    textura_piedra=pygame.image.load('images/game/texturaPiedra.jpeg')
+    textura_piedra=pygame.image.load('images/game/texturaMadera.png')
     textura_piedra=pygame.transform.smoothscale(textura_piedra,tamano_textrura)
     textura_piedraElem1=pygame.transform.smoothscale(textura_piedra,tam_primerElemento)
 
@@ -130,21 +133,31 @@ def game(Lista):
         return track_url
 
     def music(username):
-        userName_encript = Usuario.encripta(username)
-        username1 = Usuario.getID(userName_encript)
+       # userName_encript = Usuario.encripta(username)
+        #username1 = Usuario.getID(userName_encript)
         
-        musica_user = Musica.getMusic(username1)
-        print(musica_user)
-        size = len(musica_user)
-        n = random.randint(0, size - 1)
-        track_id = musica_user[n][0]  # Asegúrate de obtener el ID de la pista de la lista de música
-        track_url = get_spotify_track_url(track_id)
-        webbrowser.open(track_url)
+       # musica_user = Musica.getMusic(username1)
+        #print(musica_user)
+       # size = len(musica_user)
+       # n = random.randint(0, size - 1)
+       # track_id = musica_user[n][0]  # Asegúrate de obtener el ID de la pista de la lista de música
+        #track_url = get_spotify_track_url(track_id)
+        ###track_id='spotify:track:2nHh7scNhJmTdVqEFPJFbj'
+        #webbrowser.open(track_id)
+        ##sleep(5)
+        #pyautogui.press('enter')
+        pass
         
+    def hide_spotify_window():
+        # Encuentra la ventana de Spotify por su título
+        window = win32gui.FindWindow(None, "Spotify")
 
-    
+        # Si se encuentra la ventana, ocúltala
+        if window:
+            win32gui.ShowWindow(window, 0)  # 0 significa SW_HIDE (ocultar)
 
-
+        # Llama a la función para ocultar la ventana de Spotify
+        hide_spotify_window()
     class Obstaculo(pygame.sprite.Sprite):
         def __init__(self, x,y,img,obst_img, tipo):
             super().__init__()
@@ -187,6 +200,7 @@ def game(Lista):
             self.image = self.imgBefore
 
         def rotate(self,angle_change):
+            
             self.angle += angle_change
             if self.angle >= 360:
                 self.angle -= 360
@@ -197,8 +211,6 @@ def game(Lista):
             self.image = pygame.transform.rotate(self.image, self.angle)
             # Actualizar el rectángulo con la nueva imagen
             self.rect = self.image.get_rect(center=self.rect.center)  
-
-
         def start_dragg(self):
             self.dragging=True
         
@@ -520,6 +532,7 @@ def game(Lista):
     eagle_defeat = False
     defensor_done=False
     obs_done=False
+    music(Lista[0])
     while running:
         screen.blit(fondo, (0, 0))
        
@@ -553,15 +566,15 @@ def game(Lista):
                         if not obstaculodrag.is_active:
                             obstaculodrag.activate()
                             obstaculodrag.stop_dragg()
-                            obstaculodrag.changeImg(event.pos)
+                            #obstaculodrag.changeImg(event.pos)
                         mouse_x, mouse_y = event.pos
                         #Verificar que no se coloque el bloque en el area enemiga
                         if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
                             #obstaculodrag.image=obstaculodrag.obs_img
                             if check_collision(obstaculodrag, obstaculos):
-                                obstaculodrag.imgBack()
+                                #obstaculodrag.imgBack()
                                 obstaculodrag.deactivate()
-                                obstaculodrag.changeImg(event.pos)
+                                #obstaculodrag.changeImg(event.pos)
                                 obstaculodrag.rect.x=obstaculodrag.originalPosition[0]
                                 
                                 
@@ -571,9 +584,10 @@ def game(Lista):
                             obstaculodrag = None
                         else:
                             #obstaculodrag.image.fill(ROJO_TRANSPARENTE)
-                            obstaculodrag.filter_active()
-                            obstaculodrag.addFilter(obstaculodrag.image)
+                            #obstaculodrag.filter_active()
+                            #obstaculodrag.addFilter(obstaculodrag.image)
                         # Clear the dragging flag
+                            pass
 
 
             if event.type == pygame.MOUSEMOTION and not eagle_defeat:
@@ -585,6 +599,7 @@ def game(Lista):
        
                 if event.key == pygame.K_LSHIFT:  # Verifica si se presionó la tecla Shift derecha
                     if obstaculodrag:
+                        print(obstaculodrag.rect)
                         obstaculodrag.rotate(45) 
 
                 if event.key == pygame.K_j and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
@@ -727,5 +742,5 @@ def game(Lista):
     pygame.quit()
 
 if __name__ == "__main__":
-    game()
+    game(["jose","pepe"])
 
