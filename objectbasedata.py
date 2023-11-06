@@ -1,7 +1,9 @@
 import sqlite3
 import hashlib
 # Llave pública proporcionada
-public_key = (19303, 13595)
+public_key = (43931, 12637)
+private_key = (43931,32869)
+
 class Usuario:
     db_path = "prueba.db"
     def __init__(self, name, username, age, email, password, uid):
@@ -12,9 +14,20 @@ class Usuario:
         self.email = self._encrypt_data(email)
         # Encripta la contraseña al crear una instancia de Usuario
         self.password = self._encrypt_data(password)
-        self.uid = self._encrypt_data(uid)
+        self.uid = uid
         self.id = self._get_next_id()
-       
+    def _encrypt_data(self,message):
+        n, e = public_key
+        encrypted_message = [pow(ord(char), e, n) for char in message]
+        return encrypted_message
+    @staticmethod
+    def _decrypt_data(encrypted_message):
+        n, d = private_key
+        cleaned_message = encrypted_message.replace("[", "").replace("]", "").replace("'", "")
+        decrypted_message = ''.join([chr(pow(int(char), d, n)) for char in cleaned_message.split(',')])
+        return decrypted_message
+
+
 
     def _get_next_id(self):
         conn = sqlite3.connect(self.db_path)
@@ -27,18 +40,6 @@ class Usuario:
 
         return last_id + 1 if last_id else 1
 
-    def _encrypt_data(self,data):
-        if data == int:
-            hashed_data = hashlib.sha256(data.encode()).hexdigest()
-            data_int = int(hashed_data, 16) % public_key[0]
-            encrypted_data = pow(data_int, public_key[1], public_key[0])
-        else:
-
-            hashed_data = hashlib.sha256(data.encode()).hexdigest()
-            data_int = int(hashed_data, 16) % public_key[0]
-            encrypted_data = pow(data_int, public_key[1], public_key[0])
-        return encrypted_data
-  
     @staticmethod
     def getID(username):
         conn = sqlite3.connect(Usuario.db_path)
@@ -89,6 +90,47 @@ class Usuario:
         else:
             return False
 
+    @staticmethod
+    def get_user_by_uid(uid):
+        user_id = Usuario.get_user_id_by_uid(uid)  # Obtiene el ID del usuario por su UID
+
+        if user_id is not None:
+            conn = sqlite3.connect(Usuario.db_path)
+            cursor = conn.cursor()
+
+            # Realiza una consulta para obtener los datos del usuario con el ID obtenido
+            cursor.execute('''SELECT * FROM usuarios WHERE id = ?''', (user_id,))
+            user_data = cursor.fetchone()
+            conn.close()
+
+            if user_data is not None:
+                print(user_data)
+                # Desencripta los datos antes de devolverlos
+                decrypted_user_data = {
+                    'id': user_data[0],
+                    'name': Usuario._decrypt_data(user_data[1]),
+                    'username': Usuario._decrypt_data(user_data[2]),
+                    'age': user_data[3],
+                    'email': Usuario._decrypt_data(user_data[4]),
+                    'password': Usuario._decrypt_data(user_data[5]),
+                    'uid': user_data[6]
+                }
+                return decrypted_user_data
+        return None  # Si no se encuent
+    @staticmethod
+    def get_user_id_by_uid(uid):
+        conn = sqlite3.connect(Usuario.db_path)
+        cursor = conn.cursor()
+
+        cursor.execute('''SELECT id FROM usuarios WHERE uid = ?''', (str(uid),))
+        user_id = cursor.fetchone()
+
+        conn.close()
+        
+        if user_id is not None:
+            return (user_id[0])  # Devuelve el ID del usuario
+        else:
+            return None  # Si no se encuentra ningún usuario con el UID dado, devuelve None
     def save_to_db(self):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()

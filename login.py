@@ -289,7 +289,7 @@ def login():
     
     # Abre el archivo JSON y carga los datos en una lista de diccionarios
     
-    if Usuario.check_credentials(username,password):
+    if Usuario.check_credentials(username,password) or id_device>=0:
         if len(usuarios_autenticados)>0:
             if username==usuarios_autenticados[0]:
                 mostrar_mensaje_error("Error", "username logueado, {}!".format(username),PCBUTTON,SCBUTTON)
@@ -438,6 +438,9 @@ def receive_data_from_uart():
     
     if UID_device is not None:
          mostrar_mensaje_error('Conexión establecida', "El ID asignado es:" + UID_device, PCBUTTON, SCBUTTON)
+         print(Usuario.get_user_by_uid(UID_device))
+         global id_device
+         id_device = Usuario.get_user_id_by_uid(UID_device)
     mostrar_mensaje_error('Error de conexion', "No se ha podido establecer conexion\n             Intentalo nuevamente", PCBUTTON, SCBUTTON)
     uart_thread.join()  # Esperar a que el hilo termine
     
