@@ -149,7 +149,7 @@ class Usuario:
             return 1
         elif existing_email:
             return 2
-        elif existing_uid or self.uid=="":
+        elif existing_uid and self.uid!="":
             return 3
         else:
             
