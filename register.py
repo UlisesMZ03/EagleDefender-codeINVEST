@@ -620,8 +620,8 @@ add_device_button = Button('Add Device (optional)',WIDTH/7*2,40,(WIDTH/7,HEIGHT/
 take_foto_button = Button(u'\u25c9',50,40,(WIDTH/7*6-50,HEIGHT/14.4*3+10),5,SCBUTTON)
 select_image_button = Button(u'\u2191',50,40,(WIDTH/7*6-50,HEIGHT/14.4*4+5),5,SCBUTTON)
 reset_button = Button(u'\u2716',50,40,(WIDTH/7*6-50,HEIGHT/14.4*6+5),5,SCBUTTON)
-search_music_button = Button("Search",WIDTH/15,40,(WIDTH/7*2.071+WIDTH/15,HEIGHT/14.4*9+5),5,SCBUTTON)
-add_music_button = Button('Add',WIDTH/17,40,(WIDTH/7*2.071+WIDTH/17,HEIGHT/14.4*10),5,SCBUTTON)
+search_music_button = Button("Search",(WIDTH/7*2)/3,40,(WIDTH/7+((WIDTH/7*2)/3)*2,HEIGHT/14.4*9+5),5,SCBUTTON)
+add_music_button = Button('Add',(WIDTH/7*2)/3,40,(WIDTH/7+((WIDTH/7*2)/3)*2,HEIGHT/14.4*10),5,SCBUTTON)
 
        
 
