@@ -405,10 +405,7 @@ def register():
     if username != "" and password == confirm_password and validate_email(email) and validate_password(password) and validate_username(username) and validate_age(age) and selected_image_surface!=initial_image_surface:
         
         if UID_device == None:
-            new_img_path = 'profile_photos/'+str(id_user)+'.png'
-            if temp_file_path!=new_img_path:
 
-                shutil.copy(temp_file_path, new_img_path)
             user = Usuario(name,username,age,email,password,"")
             validacion=user.save_to_db()
             if validacion==1:
@@ -441,10 +438,7 @@ def register():
             
             else:
 
-                new_img_path = 'profile_photos/'+str(id_user)+'.png'
-                if temp_file_path!=new_img_path:
-
-                    shutil.copy(temp_file_path, new_img_path)
+            
                 user.save_to_db()
                 login.login_screen() 
 
