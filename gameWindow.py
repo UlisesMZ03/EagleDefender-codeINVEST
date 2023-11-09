@@ -809,5 +809,5 @@ def game(lista):
     pygame.quit()
 
 if __name__ == "__main__":
-    game(['andres17','daniel17'])
+    game()
 
