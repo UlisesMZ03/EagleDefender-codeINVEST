@@ -28,8 +28,11 @@ class Usuario:
         decrypted_message = ''.join([chr(pow(int(char), d, n)) for char in cleaned_message.split(',')])
         return decrypted_message
 
-
-
+    @staticmethod
+    def decrypt(encrypted_message):
+        n, d = private_key
+        decrypted_message = ''.join([chr(pow(char, d, n)) for char in encrypted_message])
+        return decrypted_message
     def _get_next_id(self):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -46,7 +49,7 @@ class Usuario:
         conn = sqlite3.connect(Usuario.db_path)
         cursor = conn.cursor()
         encrypt_username = Usuario._encrypt_data(username)
-        cursor.execute("SELECT id FROM usuarios WHERE username=?", (encrypt_username,))
+        cursor.execute("SELECT id FROM usuarios WHERE username=?", (str(encrypt_username),))
         
         # Obtén el resultado de la consultausername
         result = cursor.fetchone()
@@ -161,6 +164,92 @@ class Usuario:
             
         
         conn.close()
+
+    @staticmethod
+    def getName(id):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('select name from usuarios where id=?',(id,))
+        result = cursor.fetchall() 
+        result=eval(result[0][0])
+        result=Usuario.decrypt(result)
+        conn.close()
+        return result
+    @staticmethod
+    def getAge(id):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('select age from usuarios where id=?',(id,))
+        result = cursor.fetchall()
+        result=result[0][0]
+        conn.close()
+        return result
+    @staticmethod
+    def getUsername(id):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('select username from usuarios where id=?',(id,))
+        result = cursor.fetchall()
+        result=eval(result[0][0])
+        result=Usuario.decrypt(result)
+        conn.close()
+        return result
+    @staticmethod
+    def getEmail(id):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('select email from usuarios where usuarios.id=?',(id,))
+        result = cursor.fetchall()
+        result=eval(result[0][0])
+        result=Usuario.decrypt(result)
+        conn.close()
+        return result
+    @staticmethod
+    def getPassword(id):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('select password from usuarios where usuarios.id=?',(id,))
+        result = cursor.fetchall()
+        result=eval(result[0][0])
+        result=Usuario.decrypt(result)
+        conn.close()
+        return result
+    def updateEmail(id,newValue):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('upadate usuarios set email=? where usuarios.id=?',(newValue,id))
+        conn.commit()
+        conn.close()
+        return True
+    def updateName(id,newValue):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('upadate usuarios set email=? where usuarios.id=?',(newValue,id))
+        conn.commit()
+        conn.close()
+        return True
+    def updateUsername(id,newValue):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('upadate usuarios set username=? where usuarios.id=?',(newValue,id))
+        conn.commit()
+        conn.close()
+        return True
+    def updatePassword(id,newValue):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('upadate usuarios set password=? where usuarios.id=?',(newValue,id))
+        conn.commit()
+        conn.close()
+        return True
+    def updateEge(id,newValue):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('upadate usuarios set ege=? where usuarios.id=?',(newValue,id))
+        conn.commit()
+        conn.close()
+        return True
+ 
 class Musica():
     db_path = "prueba.db"
     def __init__(self,id_usuario,name,artista,url):
@@ -194,6 +283,14 @@ class Musica():
         conn=sqlite3.connect(Usuario.db_path)
         cursor=conn.cursor()
         cursor.execute('select url from usuarios inner join musica on usuarios.id=musica.id_user where usuarios.id=?',(id,))
+        result = cursor.fetchall()
+        conn.close()
+        return result
+    @staticmethod
+    def NameArtist(id):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('select musica.name, artista from usuarios inner join musica on usuarios.id=musica.id_user where usuarios.id=?',(id,))
         result = cursor.fetchall()
         conn.close()
         return result
