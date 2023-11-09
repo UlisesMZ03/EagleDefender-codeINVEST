@@ -25,7 +25,7 @@ pygame.init()
 pygame.mixer.music.load('sounds/login.mp3')
 pygame.mixer.music.play(-1)  # El argumento -1 hace que la canción se reproduzca en un bucle infinito
 screen_info = pygame.display.Info()
-
+user_id='User_Icon'
 # Configuración de la pantalla
 WIDTH, HEIGHT = screen_info.current_w, screen_info.current_h
 
@@ -47,7 +47,7 @@ FONT = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
 FONT_OR = pygame.font.Font("font/KarmaFuture.ttf", 20)
 FONT_SEC = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
 # Dentro de la función login_screen() antes del bucle principal
-
+user_dev=None
 background_image = pygame.image.load("images/bg2.jpg").convert()
 background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
 
@@ -282,20 +282,20 @@ def loading_screen():
 
 
 usuarios_autenticados= []
-def login():
+def login(mode):
     # Obtiene los datos ingresados por el usuario
     username = username_input.text
     password = password_input.get_text()
     
     # Abre el archivo JSON y carga los datos en una lista de diccionarios
     
-    if Usuario.check_credentials(username,password):
+    if Usuario.check_credentials(username,password) and mode==1:
         if len(usuarios_autenticados)>0:
             if username==usuarios_autenticados[0]:
                 mostrar_mensaje_error("Error", "username logueado, {}!".format(username),PCBUTTON,SCBUTTON)
             else:
                 mostrar_mensaje_error("Login Exitoso", "¡Bienvenido, {}!".format(username),PCBUTTON,SCBUTTON)
-            
+                print(user_dev)
 
                 # Aquí puedes agregar código para redirigir a la siguiente pantalla o realizar otras acciones
             # Reemplaza 'otra_ventana' con el nombre real de tu script
@@ -314,11 +314,34 @@ def login():
             usuarios_autenticados.append(username)
         
     else:
-         
-        mostrar_mensaje_error("Error de Login", "Nombre de usuario o contraseña incorrectos",PCBUTTON,SCBUTTON)
+        if mode!=2:
+            mostrar_mensaje_error("Error de Login", "Nombre de usuario o contraseña incorrectos",PCBUTTON,SCBUTTON)
+    if user_dev!=None and mode==2:
+        if len(usuarios_autenticados)>0:
+            if user_dev['username']==usuarios_autenticados[0]:
+                mostrar_mensaje_error("Error", "username logueado, {}!".format(user_dev['username']),PCBUTTON,SCBUTTON)
+            else:
+                mostrar_mensaje_error("Login Exitoso", "¡Bienvenido, {}!".format(username),PCBUTTON,SCBUTTON)
+                print(user_dev)
 
-    
+                # Aquí puedes agregar código para redirigir a la siguiente pantalla o realizar otras acciones
+            # Reemplaza 'otra_ventana' con el nombre real de tu script
+                usuarios_autenticados.append(user_dev['username'])
+                if len(usuarios_autenticados)==2:
+                    pygame.mixer.music.pause()
+                    loading_screen() 
+                    gameWindow.game(usuarios_autenticados) 
 
+                    pygame.quit()
+                    sys.exit()
+        else:
+            
+            mostrar_mensaje_error("Login Exitoso", "¡Bienvenido, {}!".format(user_dev['username']),PCBUTTON,SCBUTTON)
+        
+            usuarios_autenticados.append(user_dev['username'])
+    else:
+        if mode!=1:
+            mostrar_mensaje_error("Error de Login", "Accede con tu dispositivo movil",PCBUTTON,SCBUTTON)
 
         
 
@@ -438,7 +461,12 @@ def receive_data_from_uart():
     
     if UID_device is not None:
          mostrar_mensaje_error('Conexión establecida', "El ID asignado es:" + UID_device, PCBUTTON, SCBUTTON)
-    mostrar_mensaje_error('Error de conexion', "No se ha podido establecer conexion\n             Intentalo nuevamente", PCBUTTON, SCBUTTON)
+         global user_dev
+         user_dev = Usuario.get_user_by_uid(UID_device)
+         global user_id
+         user_id = user_dev['id']
+    else:
+        mostrar_mensaje_error('Error de conexion', "No se ha podido establecer conexion\n             Intentalo nuevamente", PCBUTTON, SCBUTTON)
     uart_thread.join()  # Esperar a que el hilo termine
     
     
@@ -455,6 +483,7 @@ olvido_rect = olvido_surface.get_rect(center=(WIDTH // 2, 400))  # Centra el tex
 
 
 login_button = Button('Log in',(WIDTH/60)*16,40,((WIDTH//60)*7,HEIGHT//60*20+150),5,SCBUTTON)
+login_devbutton = Button('Log in',(WIDTH/60)*16,40,((WIDTH/60)*37,HEIGHT//60*20+250),5,SCBUTTON)
 register_button = Button('Register ',(WIDTH/60)*16,40,((WIDTH//60)*7,HEIGHT//60*20+200),5,SCBUTTON)
 
 
@@ -464,7 +493,7 @@ register_button = Button('Register ',(WIDTH/60)*16,40,((WIDTH//60)*7,HEIGHT//60*
 
 mute_button = Button('Mute', 100, 40, (20, 20), 5, SCBUTTON)
 
-log_device_button = Button('Phone Login ',(WIDTH/60)*16,40,(((WIDTH/60)*37),450),5,SCBUTTON)
+log_device_button = Button('Phone Login ',(WIDTH/60)*16,40,(((WIDTH/60)*37),HEIGHT//60*20+200),5,SCBUTTON)
 
 def login_screen():
     running = True
@@ -492,7 +521,9 @@ def login_screen():
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
                 if login_button.top_rect.collidepoint(mouse_pos):
-                    login()
+                    login(1)
+                elif login_devbutton.top_rect.collidepoint(mouse_pos):
+                    login(2)
                 elif log_device_button.top_rect.collidepoint(mouse_pos):
                      receive_data_from_uart()
                 elif olvido_rect.collidepoint(mouse_pos):
@@ -527,6 +558,7 @@ def login_screen():
         username_input.draw(win)
         password_input.draw(win)
         login_button.draw(PCBUTTON,SCBUTTON)
+        login_devbutton.draw(PCBUTTON,SCBUTTON)
         register_button.draw(PCBUTTON,SCBUTTON)
         log_device_button.draw(PCBUTTON,SCBUTTON)
         mute_button.draw(PCBUTTON,SCBUTTON)
@@ -545,6 +577,29 @@ def login_screen():
         olvido_surface = FONT_2.render(olvido_texto, True, PCBUTTON)  # Renderiza el texto nuevamente si cambia
         olvido_rect = olvido_surface.get_rect(center=(WIDTH//60*15,HEIGHT//60*20+100))  # Actualiza las dimensiones del rectángulo según el texto
         win.blit(olvido_surface, olvido_rect.topleft) 
+        # Suponiendo que tengas el ID del usuario almacenado en una variable llamada 'user_id'
+          # Reemplaza esto con el ID del usuario que deseas mostrar
+
+        # Construir la ruta de la imagen usando el ID del usuario
+        image_path = f"profile_photos/{user_id}.png"
+
+        try:
+            # Cargar la imagen
+            original_image = pygame.image.load(image_path)
+
+            # Redimensionar la imagen a 100x100 píxeles
+            resized_image = pygame.transform.scale(original_image, (200, 200))
+
+            # Calcular la posición para mostrar la imagen a la derecha de la pantalla
+            image_x = (WIDTH/60)*42  # 50 píxeles de margen desde el borde derecho, considerando la nueva anchura de 100 píxeles
+            image_y = HEIGHT//60*7+200  # Centrar verticalmente en la pantalla
+
+            # Dibujar la imagen redimensionada en la pantalla
+            win.blit(resized_image, (image_x, image_y))
+
+        except pygame.error:
+            # Si hay un error al cargar la imagen, puedes mostrar una imagen de error o manejarlo de otra manera
+            print("Error al cargar o redimensionar la imagen:", image_path)
 
         
         pygame.display.flip()

@@ -2,6 +2,7 @@ import pygame
 import pygame_gui
 import pygame.camera
 import re
+import login
 #from usuarios import Usuario
 import serial
 import os
@@ -24,6 +25,8 @@ screen_info = pygame.display.Info()
 
 # Configuración de la pantalla
 WIDTH, HEIGHT = screen_info.current_w, screen_info.current_h
+
+
 
 
 win = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
@@ -330,6 +333,7 @@ def validate_email(email):
     return re.match(email_regex, email)
 
 def validate_password(password):
+    
     password_regex = r'^(?=.*[A-Z])(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\-]).{8,}$'
     return re.match(password_regex, password)
 
@@ -385,7 +389,9 @@ def mostrar_mensaje_error(title, mensaje, color, color2):
 
 # Función para el botón de registro
 def register():
+    id_user = Usuario._get_next_id(Usuario)
     global favorite_song
+    global selected_image_surface
     name = name_input.text
     email = email_input.text
     age = age_input.text
@@ -396,26 +402,48 @@ def register():
     confirm_password = confirm_password_input.get_text()
     global UID_device
     
-    if username != "" and password == confirm_password and validate_email(email) and validate_password(password) and validate_username(username) and validate_age(age):
-            
+    if username != "" and password == confirm_password and validate_email(email) and validate_password(password) and validate_username(username) and validate_age(age) and selected_image_surface!=initial_image_surface:
+        
         if UID_device == None:
+
             user = Usuario(name,username,age,email,password,"")
             validacion=user.save_to_db()
-            print("user to save", validacion)
-          
-            if validacion==1 and songs !=[]:
-                username=user._encrypt_data(username)
-                id_user=Usuario.getID(username)
+            if validacion==1:
+                mostrar_mensaje_error('Username Already in Use', 'This username is already taken. Please choose another one.',PCBUTTON,SCBUTTON)
+                
+            elif validacion==2:
+                mostrar_mensaje_error('Username Already in Use', 'This username is already taken. Please choose another one.',PCBUTTON,SCBUTTON)
+            
+            elif validacion!=1 and validacion!=2 and songs !=[]:
+                user.save_to_db()
+               
+             
                 print("entro al for")
                 for i in songs:
                     musica_user=Musica(id_user,i["name_song"],i['name_artist'],i['url'])
                     musica_validacion= musica_user.save_data()
                     if musica_validacion:
                         favorite_song=[]
-                
+            
         else:
             user = Usuario(name,username,age,email,password,UID_device)
-            user.save_to_db()
+            validacion=user.save_to_db()
+            if validacion==1:
+                mostrar_mensaje_error('Email Already in Use', 'This email is already taken. Please choose another one.',PCBUTTON,SCBUTTON)
+                
+            elif validacion==2:
+                mostrar_mensaje_error('Username Already in Use', 'This username is already taken. Please choose another one.',PCBUTTON,SCBUTTON)
+            elif validacion==3:
+                mostrar_mensaje_error('Device Already Linked', 'This device is already linked to another account. Please use a different device or contact support for assistance.',PCBUTTON,SCBUTTON)
+            
+            else:
+
+            
+                user.save_to_db()
+                login.login_screen() 
+
+                pygame.quit()
+                sys.exit()
      
     elif password != confirm_password:
         mostrar_mensaje_error('Password Mismatch','Password and confirm password do not match',PCBUTTON,SCBUTTON)
@@ -424,7 +452,8 @@ def register():
         mostrar_mensaje_error('Invalid Email','Please enter a valid email address',PCBUTTON,SCBUTTON)
     elif not validate_password(password):
         mostrar_mensaje_error('Invalid Password','Password must be at least 8 characters long with at least one uppercase letter and one special symbol',PCBUTTON,SCBUTTON)
-       
+    elif selected_image_surface==initial_image_surface:
+        mostrar_mensaje_error('Registration Failed', 'You must add a profile picture', PCBUTTON, SCBUTTON)
 
     elif validate_username(username)==1:
         mostrar_mensaje_error('Invalid Username','Username contains prohibited words',PCBUTTON,SCBUTTON)
@@ -432,16 +461,17 @@ def register():
         mostrar_mensaje_error('Invalid Username','Username cannot contain spaces.',PCBUTTON,SCBUTTON)
 
     elif not validate_age(age):
-        mostrar_mensaje_error('Invalid Age','Age must be a number',PCBUTTON,SCBUTTON)
+        mostrar_mensaje_error('Invalid Profile Picture','You must upload or take a profile picture', PCBUTTON, SCBUTTON)
+
+    elif not selected_image_surface:
+        mostrar_mensaje_error('','Age must be a number',PCBUTTON,SCBUTTON)
     elif UID_device==None:
          
         mostrar_mensaje_error('Add Device.',' You havent added the device or there has been an error. \nPlease try again',PCBUTTON,SCBUTTON)
     elif not verificar_formato(UID_device):
         mostrar_mensaje_error('Device error.',' You havent added the device or there has been an error. \nPlease try again',PCBUTTON,SCBUTTON)
         
-    else:
-
-        mostrar_mensaje_error('Register Failed','Invalid Username and password',PCBUTTON,SCBUTTON)
+    
 
 
 server_socket = None
@@ -464,14 +494,15 @@ def select_folder():
 
         name_photo = Usuario._get_next_id(Usuario)
         # Nuevo nombre para la imagen (puedes cambiar esto según tus necesidades)
+        global temp_file_path
         new_image_name = str(name_photo)+".png"
-
-
+ 
+       
         # Ruta completa de la nueva imagen
-        new_image_path = os.path.join(output_folder, new_image_name)
+        temp_file_path = os.path.join(output_folder, new_image_name)
 
         # Copia y renombra la imagen seleccionada a la carpeta "profile_photos"
-        shutil.copy(file_path, new_image_path)
+        shutil.copy(file_path, temp_file_path)
 
 
 
@@ -573,18 +604,18 @@ age_input = TextInputBox(WIDTH/7, HEIGHT/14.4*5, WIDTH/7*2, 40,PCBUTTON,SCBUTTON
 username_input = TextInputBox(WIDTH/7, HEIGHT/14.4*6, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Username")
 password_input = TextInputBox(WIDTH/7, HEIGHT/14.4*7, WIDTH/7*2, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
 confirm_password_input = TextInputBox(WIDTH/7, HEIGHT/14.4*8, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,"Confirm Password",is_password=True)
-music_input = TextInputBox(WIDTH/7, HEIGHT/14.4*9, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,"write the song")
+music_input = TextInputBox(WIDTH/7, HEIGHT/14.4*9, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,"write the song (optional)")
 
 
 
 
 register_button = Button('Register',WIDTH/7,40,(WIDTH/7*3,HEIGHT/14.4*11.3+50),5,SCBUTTON)
-add_device_button = Button('Add Device',WIDTH/7*2,40,(WIDTH/7,HEIGHT/14.4*11),5,SCBUTTON)
+add_device_button = Button('Add Device (optional)',WIDTH/7*2,40,(WIDTH/7,HEIGHT/14.4*11),5,SCBUTTON)
 take_foto_button = Button(u'\u25c9',50,40,(WIDTH/7*6-50,HEIGHT/14.4*3+10),5,SCBUTTON)
 select_image_button = Button(u'\u2191',50,40,(WIDTH/7*6-50,HEIGHT/14.4*4+5),5,SCBUTTON)
 reset_button = Button(u'\u2716',50,40,(WIDTH/7*6-50,HEIGHT/14.4*6+5),5,SCBUTTON)
-search_music_button = Button('Search',200,40,(WIDTH/7+380,HEIGHT/14.4*9+5),5,SCBUTTON)
-
+search_music_button = Button("Search",(WIDTH/7*2)/3,40,(WIDTH/7+((WIDTH/7*2)/3)*2,HEIGHT/14.4*9+5),5,SCBUTTON)
+add_music_button = Button('Add',(WIDTH/7*2)/3,40,(WIDTH/7+((WIDTH/7*2)/3)*2,HEIGHT/14.4*10),5,SCBUTTON)
 
        
 
@@ -595,13 +626,14 @@ def registration_screen():
     global initial_image_surface
     global background_image
     global favorite_song 
-  
+    global add_music_button
+    
     scroll_offset = 0  # Desplazamiento de la lista de canciones
     song_display_limit = 1  # Número de canciones visibles a la vez
     font = pygame.font.Font(None, 30)
     text_color = (255, 255, 255)
-    surfaceMusic=pygame.Surface((240,50))
-    add_music_button = Button('Agregar',100,40,(WIDTH/7+380,HEIGHT/14.4*9+60),5,SCBUTTON)
+    surfaceMusic=pygame.Surface((WIDTH/6,40))
+    
     set_music=[]
 
    
@@ -707,14 +739,19 @@ def registration_screen():
                             camera.start()
                             camera_on=True
                         else:
+                            global tipo_img
+                            tipo_img =1
                             take_foto_button.update_button('\u25c9',(50,40))
-
+                            if not os.path.exists('profile_photos'):
+                                os.makedirs('profile_photos')
                             image = camera.get_image()
+                            global camera_image
                             camera_image = pygame.transform.scale(image, (camera_preview_rect.width, camera_preview_rect.height))
                             name_photo = Usuario._get_next_id(Usuario)
-                            image_filename = os.path.join("profile_photos", str(name_photo)+".png")
-                            pygame.image.save(camera_image, image_filename)
-                            print(f"Foto guardada en: {image_filename}")
+                            global temp_file_path
+                            temp_file_path = os.path.join("profile_photos", str(name_photo)+".png")
+                            pygame.image.save(camera_image, temp_file_path)
+                            print(f"Foto guardada en: {temp_file_path}")
                             # Cambiar selected_image_surface para mostrar la última imagen capturada
                             selected_image_surface = camera_image
                             camera.stop()  # Detener la cámara después de tomar la foto
@@ -734,11 +771,9 @@ def registration_screen():
                         set_music=list_music(music_input.get_text())
                        
                     except:
-                       mostrar_mensaje_error("Canciones Favoritas", 'Escribe la canción para poder mostrarte los resultados' , PCBUTTON, SCBUTTON)
+                        mostrar_mensaje_error("Canciones Favoritas", 'Escribe la canción para poder mostrarte los resultados' , PCBUTTON, SCBUTTON)
     
-                else:
 
-                    selected_image_surface = initial_image_surface
 
 
         surfaceMusic.fill((BACKGROUND ))  # Limpia la pantalla
@@ -746,9 +781,10 @@ def registration_screen():
         y = 20  # Posición vertical inicial para la primera canción a mostrar
         # Dibuja las canciones en la pantalla
         for i in range(scroll_offset, min(scroll_offset + song_display_limit, len(set_music))):
+
             text = font.render("Artista: " + set_music[i]['name_artist'], True, text_color)
-            surfaceMusic.blit(text, (20, y))
-            add_music_button.draw(PCBUTTON,TCBUTTOM)
+            surfaceMusic.blit(text, (20, 10))
+            
         y += 50  # Espaciado entre canciones
         #win.blit(surfaceMusic, (WIDTH/7,HEIGHT/14.4*10))
         
@@ -784,9 +820,9 @@ def registration_screen():
         take_foto_button.draw(PCBUTTON,TCBUTTOM)
         search_music_button.draw(PCBUTTON,TCBUTTOM)
         music_input.draw(win)
-        add_music_button.draw(PCBUTTON,TCBUTTOM)
-        win.blit(surfaceMusic, (WIDTH/7+50,HEIGHT/14.4*9+40))
-
+        win.blit(surfaceMusic, (WIDTH/7,HEIGHT/14.4*10))
+        if len(set_music)>0:
+                add_music_button.draw(PCBUTTON,TCBUTTOM)
 
 
         if selected_image_surface:
