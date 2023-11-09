@@ -43,9 +43,9 @@ FONT = pygame.font.Font(None, 30)
 FONT_2 = pygame.font.Font(None, 25)
 # En el área de inicialización del código
 TITLE_FONT =pygame.font.Font("font/KarmaFuture.ttf", 64)  # Tamaño de la fuente para el título "Login"
-FONT = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
+FONT = pygame.font.Font("font/DejaVuSans.ttf", 20)
 FONT_OR = pygame.font.Font("font/KarmaFuture.ttf", 20)
-FONT_SEC = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
+FONT_SEC = pygame.font.Font("font/DejaVuSans.ttf", 20)
 # Dentro de la función login_screen() antes del bucle principal
 user_dev=None
 background_image = pygame.image.load("images/bg2.jpg").convert()
@@ -66,7 +66,6 @@ login_rect = login_surface.get_rect(center=(WIDTH // 2, 50))  # Ajusta las coord
 or_surface = FONT_OR.render("or", True, SCBUTTON)  # Color blanco (#FFFFFF)
 or_rect = or_surface.get_rect(center=(WIDTH // 2, HEIGHT//2))  # Ajusta las coordenadas según la posición que desees
 
-temas = ['Dark Green', 'Dark Red', 'Tema 3']
 
 def cambiar_tema(selected_theme):
     global background_image
@@ -87,12 +86,6 @@ def cambiar_tema(selected_theme):
         TCBUTTOM = '#CF1500'
     
 
-tema_dropdown = pygame_gui.elements.UIDropDownMenu(
-    options_list=temas,
-    starting_option=temas[0],
-    relative_rect=pygame.Rect((100, 100), (100, 30)),
-    manager=manager
-)
 
 muted = False
 

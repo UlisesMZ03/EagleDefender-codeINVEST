@@ -79,9 +79,10 @@ manager = pygame_gui.UIManager((WIDTH, HEIGHT))
 selected_image_surface = None
 camera_on = False
 UID_device = None
-FONT = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
-TITLE_FONT = pygame.font.Font(None,60)
-FONT_SEC = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
+
+TITLE_FONT = pygame.font.Font("font/KarmaFuture.ttf", 50)
+FONT = pygame.font.Font("font/DejaVuSans.ttf", 20)
+FONT_SEC = pygame.font.Font("font/DejaVuSans.ttf", 20)
 background_image = pygame.image.load("images/bg2.jpg").convert()
 background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
 
@@ -95,7 +96,7 @@ TCBUTTOM = '#006350'
 register_surface = TITLE_FONT.render("REGISTER", True, PCBUTTON)  # Color blanco (#FFFFFF)
 register_rect = register_surface.get_rect(center=(WIDTH // 2, 50))  # Ajusta las coordenadas según la posición que desees
 
-temas = ['Dark Green', 'Dark Red', 'Tema 3']
+
 
 def cambiar_tema(selected_theme):
 
@@ -103,35 +104,37 @@ def cambiar_tema(selected_theme):
     global BACKGROUND, PCBUTTON, SCBUTTON, TCBUTTOM
     if selected_theme == 'Dark Green':
         background_image = pygame.image.load("images/bg2.jpg").convert()
+        background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
         BACKGROUND = '#005b4d'
         PCBUTTON = '#01F0BF'
         SCBUTTON = '#00A383'
         TCBUTTOM = '#006350'
     elif selected_theme == 'Dark Red':
         background_image = pygame.image.load("images/bg.jpg").convert()
+        background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
+        
         BACKGROUND = '#140200'
         PCBUTTON = '#660A00'
         SCBUTTON = '#9C1000'
         TCBUTTOM = '#CF1500'
     
 
-tema_dropdown = pygame_gui.elements.UIDropDownMenu(
-    options_list=temas,
-    starting_option=temas[0],
-    relative_rect=pygame.Rect((100, 100), (100, 30)),
-    manager=manager
-)
-image_pp = pygame.image.load("images/User_Icon.png").convert_alpha()
-image_pp.fill(PCBUTTON, None, pygame.BLEND_MULT)
+
+image_pp = pygame.image.load("images/Icon17.png").convert_alpha()
+
 # Configurar el rectángulo para la vista previa de la cámara
 camera_preview_rect = pygame.Rect(WIDTH/7*4, HEIGHT/14.4*3, WIDTH/7*2-55, HEIGHT/14.4*4)
 
 camera_image = None  # Inicializar la imagen de la cámara fuera del bucle princUIDal
 initial_image_surface = pygame.transform.scale(image_pp, (camera_preview_rect.width, camera_preview_rect.height))
 
+# Definir un tono de gris con baja transparencia
+PROFILE_COLOR = (200, 200, 200, 50)  # R, G, B, A (A es el canal alfa)
 
-profile_surface = pygame.Surface((camera_preview_rect.width, camera_preview_rect.height))
-profile_surface.fill(SCBUTTON)
+# Crear la superficie con transparencia
+profile_surface = pygame.Surface((camera_preview_rect.width, camera_preview_rect.height), pygame.SRCALPHA)  # Establecer SRCALPHA para el canal alfa
+pygame.draw.rect(profile_surface, PROFILE_COLOR, profile_surface.get_rect())  # Dibujar un rectángulo del color SCBUTTON en la superficie
+
 
 
 def load_selected_image(image_path):
@@ -209,6 +212,48 @@ class Button:
 
             
 special_symbols = ['!', '@', '#', '$', '%', '&', '*', '+', '-', '=', '_', '?', '<', '>', '.', ',', ':', ';']
+class DropdownButton:
+    def __init__(self, text, width, height, pos, options):
+        self.text = text
+        self.width = width
+        self.height = height
+        self.pos = pos
+        self.options = options
+        self.is_open = False
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, PCBUTTON, (self.pos[0], self.pos[1], self.width, self.height))
+        pygame.draw.rect(screen, SCBUTTON, (self.pos[0], self.pos[1], self.width, self.height), 2)
+
+        font_surface = FONT.render(self.text, True, TCBUTTOM)
+        screen.blit(font_surface, (self.pos[0] + 10, self.pos[1] + 10))
+
+        if self.is_open:
+            for idx, option in enumerate(self.options):
+                option_rect = pygame.Rect(self.pos[0], self.pos[1] + (idx + 1) * self.height,
+                                         self.width, self.height)
+                pygame.draw.rect(screen, SCBUTTON, option_rect)
+                pygame.draw.rect(screen, TCBUTTOM, option_rect, 2)
+                option_surface = FONT.render(option, True, TCBUTTOM)
+                screen.blit(option_surface, (self.pos[0] + 10, self.pos[1] + (idx + 1) * self.height + 10))
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            mouse_pos = pygame.mouse.get_pos()
+            button_rect = pygame.Rect(self.pos[0], self.pos[1], self.width, self.height)
+            if button_rect.collidepoint(mouse_pos):
+                self.is_open = not self.is_open
+            elif self.is_open:
+                for idx, option in enumerate(self.options):
+                    option_rect = pygame.Rect(self.pos[0], self.pos[1] + (idx + 1) * self.height,
+                                             self.width, self.height)
+                    if option_rect.collidepoint(mouse_pos):
+                        self.text = option
+                        self.is_open = False
+                        if option=='Dark Green':
+                            cambiar_tema('Dark Green')
+                        if option=='Dark Red':
+                            cambiar_tema('Dark Red')
 
 class TextInputBox:
     def __init__(self, x, y, width, height, color, color2, placeholder="", is_password=False):
@@ -409,7 +454,7 @@ def register():
             user = Usuario(name,username,age,email,password,"")
             validacion=user.save_to_db()
             if validacion==1:
-                mostrar_mensaje_error('Username Already in Use', 'This username is already taken. Please choose another one.',PCBUTTON,SCBUTTON)
+                mostrar_mensaje_error('Email Already in Use', 'This Email is already taken. Please choose another one.',PCBUTTON,SCBUTTON)
                 
             elif validacion==2:
                 mostrar_mensaje_error('Username Already in Use', 'This username is already taken. Please choose another one.',PCBUTTON,SCBUTTON)
@@ -609,8 +654,8 @@ music_input = TextInputBox(WIDTH/7, HEIGHT/14.4*9, WIDTH/7*2, 40, PCBUTTON,SCBUT
 
 
 
-register_button = Button('Register',WIDTH/7,40,(WIDTH/7*3,HEIGHT/14.4*11.3+50),5,SCBUTTON)
-add_device_button = Button('Add Device (optional)',WIDTH/7*2,40,(WIDTH/7,HEIGHT/14.4*11),5,SCBUTTON)
+register_button = Button('Register',WIDTH/7*3,40,(WIDTH/7*2,HEIGHT/14.4*11.3+50),5,SCBUTTON)
+add_device_button = Button('Add Device (optional)',WIDTH/7*2,40,(WIDTH/7*4,HEIGHT/14.4*8),5,SCBUTTON)
 take_foto_button = Button(u'\u25c9',50,40,(WIDTH/7*6-50,HEIGHT/14.4*3+10),5,SCBUTTON)
 select_image_button = Button(u'\u2191',50,40,(WIDTH/7*6-50,HEIGHT/14.4*4+5),5,SCBUTTON)
 reset_button = Button(u'\u2716',50,40,(WIDTH/7*6-50,HEIGHT/14.4*6+5),5,SCBUTTON)
@@ -636,7 +681,8 @@ def registration_screen():
     
     set_music=[]
 
-   
+    dropdown_button = DropdownButton("Temas", WIDTH/7*2, 50, (WIDTH/7*4,HEIGHT/14.4*9), ["Dark Green", "Dark Red", "Option 3"])
+
     running = True
     selected_image_surface = initial_image_surface  # Establecer la imagen inicial
     profile_surface.blit(selected_image_surface, (0, 0))
@@ -649,6 +695,7 @@ def registration_screen():
             if event.type == pygame.QUIT:
                 running = False
                 sys.exit()
+            dropdown_button.handle_event(event)
 
 
             
@@ -698,20 +745,7 @@ def registration_screen():
                    
 
 
-            if event.type == pygame.USEREVENT:
-                        if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
-                            if event.text in temas:
-                                cambiar_tema(event.text)
-                                profile_surface.fill(SCBUTTON)
-                                image_pp.fill(PCBUTTON, None, pygame.BLEND_MULT)
-                                
-                                if selected_image_surface==initial_image_surface:
-                                    
-                                    initial_image_surface=pygame.transform.scale(image_pp, (camera_preview_rect.width, camera_preview_rect.height))
-                                    
-                                    profile_surface.blit(initial_image_surface, (0, 0))
-                                else:
-                                    profile_surface.blit(selected_image_surface, (0, 0))
+    
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
@@ -809,6 +843,7 @@ def registration_screen():
         win.blit(register_surface, register_rect)
         email_input.draw(win)
         age_input.draw(win)
+        dropdown_button.draw(win)
         username_input.draw(win)
         password_input.draw(win)
         confirm_password_input.draw(win)
