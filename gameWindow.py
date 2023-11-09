@@ -14,7 +14,7 @@ import webbrowser
 
 
 
-def game():
+def game(lista):
     pygame.init()
     pygame.mixer.init()
     # Obtener información sobre la pantalla del sistema

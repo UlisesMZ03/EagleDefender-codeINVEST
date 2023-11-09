@@ -429,7 +429,7 @@ def register():
             user = Usuario(name,username,age,email,password,UID_device)
             validacion=user.save_to_db()
             if validacion==1:
-                mostrar_mensaje_error('Username Already in Use', 'This username is already taken. Please choose another one.',PCBUTTON,SCBUTTON)
+                mostrar_mensaje_error('Email Already in Use', 'This email is already taken. Please choose another one.',PCBUTTON,SCBUTTON)
                 
             elif validacion==2:
                 mostrar_mensaje_error('Username Already in Use', 'This username is already taken. Please choose another one.',PCBUTTON,SCBUTTON)
