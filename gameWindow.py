@@ -14,7 +14,7 @@ import webbrowser
 
 
 
-def game(lista):
+def game():
     pygame.init()
     pygame.mixer.init()
     # Obtener información sobre la pantalla del sistema
@@ -143,6 +143,29 @@ def game(lista):
         
 
     
+    def calcular_puntaje_atacante(bloques_destruidos, tiempo_ataque):
+        if tiempo_ataque == 0 or bloques_destruidos==0:
+            return 0  # división por cero
+        media_armonica = 2 / ((0.5 / bloques_destruidos) + (0.5 / tiempo_ataque))
+        return media_armonica
+
+    def calcular_puntaje_defensor(tiempo_defensa, bloques_restantes):
+        if tiempo_defensa == 0 or bloques_restantes==0:
+            return 0  #división por cero
+        media_armonica = 2 / ((0.5 / tiempo_defensa) + (0.5 / bloques_restantes))
+        return media_armonica
+
+    def determinar_ganador(puntaje_atacante, puntaje_defensor):
+        if puntaje_atacante > puntaje_defensor:
+            return "Atacante"
+        elif puntaje_defensor > puntaje_atacante:
+            return "Defensor"
+        else:
+            return "Empate"
+
+    # Ejemplo de uso
+
+
 
 
     class Obstaculo(pygame.sprite.Sprite):
@@ -474,6 +497,7 @@ def game(lista):
     proyectiles = pygame.sprite.Group()
     todos_los_sprites = pygame.sprite.Group()  
     obstaculos_activos = pygame.sprite.Group()
+    obstaculos_inactivos = pygame.sprite.Group()
     mirilla = Mirilla(atacante, offset=(0, 0))
     todos_los_sprites.add(mirilla)  
     proyectil_velocidad = 5
@@ -502,7 +526,7 @@ def game(lista):
                     c_x+=1
                     obstaculo.rect.y = obstaculo.originalPosition[1]
                     obstaculo.rect.x = 22*c_x
-
+    
 
     def check_collision(block, group):
         for other_block in group:
@@ -520,6 +544,15 @@ def game(lista):
     eagle_defeat = False
     defensor_done=False
     obs_done=False
+    tiempo_ataque_atacante = 30
+    tiempo_defensa_defensor = 40
+    puntajes_user1= []
+    puntajes_user2= []
+    ronda = 1
+    obstaculos_destruidos = 0
+
+    # Definir la variable para almacenar el tiempo en segundos
+    tiempo_segundos = 0
     while running:
         screen.blit(fondo, (0, 0))
        
@@ -616,7 +649,11 @@ def game(lista):
         for obstaculo in obstaculos:
             if obstaculo.is_active:
                 obstaculos_activos.add(obstaculo)
-                
+        obstaculos_inactivos.empty()
+        for obstaculo in obstaculos:
+            if not obstaculo.is_active:
+                obstaculos_inactivos.add(obstaculo)
+        
         if len(obstaculos_activos)>=5:
                 obs_done=True
         
@@ -638,6 +675,8 @@ def game(lista):
 
         if colisiones:
             pygame.mixer.Sound('sounds/explosion.mp3').play()
+            obstaculos_destruidos += len(colisiones)
+            print(obstaculos_destruidos)
             # Verificar la vida del defensor
 
        # agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
@@ -649,8 +688,14 @@ def game(lista):
         # Actualizar el águila
         if eagle_defeat:
             texto = font.render("El atacante ha ganado", True, (255, 255, 255))
+            puntaje_atacante = calcular_puntaje_atacante(10,tiempo_segundos)
+            puntaje_defensor = calcular_puntaje_defensor(tiempo_segundos,len(obstaculos_inactivos))
             screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
-     
+        elif tiempo_segundos>tiempo_defensa_defensor:
+            puntaje_atacante = calcular_puntaje_atacante(obstaculos_destruidos,tiempo_segundos)
+            puntaje_defensor = calcular_puntaje_defensor(tiempo_segundos,len(obstaculos_inactivos))
+            texto = font.render("El defensor ha ganado"+str(puntaje_defensor)+","+str(puntaje_atacante), True, (255, 255, 255))
+            screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
         if defensor_done:
             obstaculos.draw(screen)
             
@@ -682,7 +727,13 @@ def game(lista):
             
             frame_counter = 0  # Reiniciar el contador
             current_frame = (current_frame + 1) % 100
+        # Calcular el tiempo en segundos transcurrido desde el inicio del juego
+        tiempo_segundos = pygame.time.get_ticks() // 1000
 
+        # Mostrar el tiempo en la ventana del juego
+        font = pygame.font.Font(None, 36)  # Fuente y tamaño del texto
+        texto_tiempo = font.render("Tiempo: {} seg".format(tiempo_segundos), True, (255, 255, 255))  # Crear el texto
+        screen.blit(texto_tiempo, (10, 10))  # Mostrar el texto en la ventana en la posición (10, 10)
         screen.blit(flagsprite2[current_frame%len(flagsprite2)], (screen_width // 8 - 32, screen_height //8*2 - screen_height//10))
 
         screen.blit(flagsprite2[current_frame%len(flagsprite2)], (screen_width // 8 - 32, screen_height //8*7 - screen_height//10))
