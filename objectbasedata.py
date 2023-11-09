@@ -5,7 +5,7 @@ public_key = (43931, 12637)
 private_key = (43931,32869)
 
 class Usuario:
-    db_path = "prueba.db"
+    db_path = "database.db"
     def __init__(self, name, username, age, email, password, uid):
         self.name = self._encrypt_data(name)
         self.username = self._encrypt_data(username)
@@ -251,7 +251,7 @@ class Usuario:
         return True
  
 class Musica():
-    db_path = "prueba.db"
+    db_path = "database.db"
     def __init__(self,id_usuario,name,artista,url):
         self.name=name
         self.artista=artista

@@ -3,19 +3,39 @@ import pygame_gui
 from TextInputBox import TextInputBox
 import sys
 from objectbasedata import Usuario, Musica
-#from Button import Button
+from Button import Button
 import validate
-def editScreen():
+import sys
+import os
+def editScreen(username):
     pygame.init()
     screen_info = pygame.display.Info()
 
-# Configuración de la pantalla
-    WIDTH, HEIGHT = screen_info.current_w, screen_info.current_h
-    
     BACKGROUND = '#005b4d'
     PCBUTTON = '#01F0BF'
     SCBUTTON = '#00A383'
     TCBUTTOM = '#006350'
+
+# Configuración de la pantalla
+    WIDTH, HEIGHT = screen_info.current_w, screen_info.current_h
+    # Configurar el rectángulo para la vista previa de la cámara
+    camera_preview_rect = pygame.Rect(WIDTH/7*4, HEIGHT/14.4*3, WIDTH/7*2-55, HEIGHT/14.4*4)
+
+    #camera_image = None  # Inicializar la imagen de la cámara fuera del bucle princUIDal
+    #initial_image_surface = pygame.transform.scale(image_pp, (camera_preview_rect.width, camera_preview_rect.height))
+
+
+    profile_surface = pygame.Surface((camera_preview_rect.width, camera_preview_rect.height))
+    profile_surface.fill(SCBUTTON)
+
+
+    def load_selected_image(image_path):
+        if os.path.exists(image_path):
+            image_surface = pygame.image.load(image_path).convert()
+            return pygame.transform.scale(image_surface, (camera_preview_rect.width, camera_preview_rect.height))
+        return None
+    
+    
 
     win = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
     pygame.display.set_caption("Eagle Defender")
@@ -47,6 +67,7 @@ def editScreen():
             else:
                 list_input_song.append(nameArtis[0][i])
         return list_input_song
+    
 
         """for i in range(number):
             list_title_song=TITLE_DATA.render(f"song {i}", True, PCBUTTON)  # Color blanco (#FFFFFF)
@@ -74,17 +95,13 @@ def editScreen():
     song1_rect = song1_surface.get_rect(center=(WIDTH/3-80, HEIGHT/14.4*9+15))  # Ajusta las coordenadas según la posición que desees
     song2_rect = song2_surface.get_rect(center=(WIDTH/3-80, HEIGHT/14.4*10+15))  # Ajusta las coordenadas según la posición que desees
     song3_rect = song3_surface.get_rect(center=(WIDTH/3-80, HEIGHT/14.4*11+15))  # Ajusta las coordenadas según la posición que desees
-    private_key = (43931, 32869)
-    public_key = (43931, 12637)
-    def decrypt(encrypted_message):
-        n, d = private_key
-        decrypted_message = ''.join([chr(pow(char, d, n)) for char in encrypted_message])
-        return decrypted_message
+    
+    
 
    
-    song_input=countMusic('andres17')
+    song_input=countMusic(username)
     print(f'llamada a la base de datos {song_input}')
-    id=Usuario.getID('andres17')
+    id=Usuario.getID(username)
     email=Usuario.getEmail(id)
     name=Usuario.getName(id)
     age=Usuario.getAge(id)
@@ -101,7 +118,7 @@ def editScreen():
     song1_input=TextInputBox(WIDTH/3, HEIGHT/14.4*9+20, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,f'song:{song_input[0]}')
     song2_input=TextInputBox(WIDTH/3, HEIGHT/14.4*10+20, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,f'song:{song_input[1]}')
     song3_input=TextInputBox(WIDTH/3, HEIGHT/14.4*11+20, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,f'song:{song_input[2]}')
-    #Edit_button = Button('Edit info',WIDTH/7,40,(WIDTH/3*3,HEIGHT/14.4*11.3+50),5,SCBUTTON)
+    Edit_button = Button('Edit info',400,40,(WIDTH/3,HEIGHT/7*2+450),5,SCBUTTON)
     
 
     
@@ -110,8 +127,11 @@ def editScreen():
    
 
     def update():
-        pass
-   
+        if name_input:
+            Usuario.updateName(id)
+            pass
+    selected_image_surface = load_selected_image(f'./profile_photos/{Usuario.getID(username)}.png')  # Establecer la imagen inicial
+    #profile_surface.blit(selected_image_surface, (0, 0))
     while running:
         win.fill(BACKGROUND)
         time_delta = pygame.time.Clock().tick(60)/1000.0
@@ -155,7 +175,6 @@ def editScreen():
         win.blit(song1_surface, song1_rect)
         win.blit(song2_surface, song2_rect)
         win.blit(song3_surface, song3_rect)
-        #Edit_button.draw(PCBUTTON,TCBUTTOM,win)
         email_input.draw(win)
         age_input.draw(win)
         username_input.draw(win)
@@ -165,10 +184,9 @@ def editScreen():
         song1_input.draw(win)
         song2_input.draw(win)
         song3_input.draw(win)
-        
+        Edit_button.draw(PCBUTTON,TCBUTTOM,win)
+        win.blit(selected_image_surface, (camera_preview_rect.x+200, camera_preview_rect.y)) 
        
-            
-
         # Actualizar pygame_gui
         manager.update(time_delta)
         manager.draw_ui(win)
@@ -178,4 +196,4 @@ def editScreen():
 
         
          
-editScreen()
+editScreen('andres17')

@@ -3,7 +3,7 @@ import sqlite3
 #creacion de la base de datos 
 class database():
     def __init__(self):
-        self.db_path = "prueba.db"
+        self.db_path = "database.db"
         self.con=sqlite3.connect(self.db_path)
         self.cursor=self.con.cursor()
         self.cursor.executescript(
