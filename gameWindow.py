@@ -124,6 +124,7 @@ def game(lista):
     SPOTIPY_CLIENT_ID="8051e3ec08d240639f7cad6370e88a67"
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET))
 
+    """
     def get_spotify_track_url(track_id):
         track_info = sp.track(track_id)
         track_url = track_info['external_urls']['spotify']
@@ -139,8 +140,9 @@ def game(lista):
         n = random.randint(0, size - 1)
         track_id = musica_user[n][0]  # Asegúrate de obtener el ID de la pista de la lista de música
         track_url = get_spotify_track_url(track_id)
-        webbrowser.open(track_url)
-        
+        webbrowser.open(track_url)"""
+    def music(username):
+        pass
 
     
     def calcular_puntaje_atacante(bloques_destruidos, tiempo_ataque):
