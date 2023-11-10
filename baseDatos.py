@@ -3,7 +3,7 @@ import sqlite3
 #creacion de la base de datos 
 class database():
     def __init__(self):
-        self.db_path = "prueba.db"
+        self.db_path = "database.db"
         self.con=sqlite3.connect(self.db_path)
         self.cursor=self.con.cursor()
         self.cursor.executescript(
@@ -12,6 +12,7 @@ class database():
                     id INTEGER PRIMARY KEY AUTOINCREMENT,id_user Integer, name TEXT, artista TEXT, url TEXT,
                     FOREIGN KEY (id_user) REFERENCES usuarios(id)
                     );
+                    CREATE TABLE IF NOT EXISTS puntajes(id INTEGER PRIMARY KEY AUTOINCREMENT, id_user integer, puntos integer, FOREIGN KEY(id_user) REFERENCES usuarios(id));
                 
                 '''
 

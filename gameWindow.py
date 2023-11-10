@@ -11,6 +11,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import webbrowser
+import os
 
 
 
@@ -18,7 +19,12 @@ def game(lista):
     pygame.init()
     pygame.mixer.init()
     # Obtener información sobre la pantalla del sistema
+    BACKGROUND = '#005b4d'
+    PCBUTTON = '#01F0BF'
+    SCBUTTON = '#00A383'
+    TCBUTTOM = '#006350'
     screen_info = pygame.display.Info()
+    
 
     font = pygame.font.Font("font/KarmaFuture.ttf", 36)
     # Configuración de la pantalla
@@ -33,8 +39,17 @@ def game(lista):
     layer = pygame.transform.scale(layer, (screen_width, screen_height))
     # Cargar el spritesheet con fondo rosa
     # Cargar la imagen powers.png
+    WIDTH, HEIGHT = screen_info.current_w, screen_info.current_h
     powers_image = pygame.image.load("images/game/powers/power_inventory.png")
     powers_image = pygame.transform.scale(powers_image, (screen_width/8.5, screen_height/3.5))
+    camera_preview_rect = pygame.Rect(WIDTH/7*4, HEIGHT/14.4*3, WIDTH/7*2-55, HEIGHT/14.4*4)
+
+    #camera_image = None  # Inicializar la imagen de la cámara fuera del bucle princUIDal
+    #initial_image_surface = pygame.transform.scale(image_pp, (camera_preview_rect.width, camera_preview_rect.height))
+
+
+    profile_surface = pygame.Surface((camera_preview_rect.width, camera_preview_rect.height))
+    profile_surface.fill(SCBUTTON)
 
     # Configuración de las filas del spritesheet para cada dirección de movimiento
     DOWN,UP, LEFT, RIGHT, DOWNLEFT, DOWNRIGHT, UPLEFT, UPRIGHT,VICTORY = 0, 1, 2, 3, 4, 5, 6, 7, 8
@@ -124,6 +139,7 @@ def game(lista):
     SPOTIPY_CLIENT_ID="8051e3ec08d240639f7cad6370e88a67"
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET))
 
+    """
     def get_spotify_track_url(track_id):
         track_info = sp.track(track_id)
         track_url = track_info['external_urls']['spotify']
@@ -139,8 +155,19 @@ def game(lista):
         n = random.randint(0, size - 1)
         track_id = musica_user[n][0]  # Asegúrate de obtener el ID de la pista de la lista de música
         track_url = get_spotify_track_url(track_id)
-        webbrowser.open(track_url)
+        webbrowser.open(track_url)"""
+    def music(username):
+        id=Usuario.getID(username)
+        musica_user = Musica.getMusic(id)
+        size = len(musica_user)
+        n = random.randint(0, size - 1)
         
+    def load_selected_image(image_path):
+        if os.path.exists(image_path):
+            image_surface = pygame.image.load(image_path).convert()
+            return pygame.transform.scale(image_surface, (150,150))
+        return None
+    
 
     
     def calcular_puntaje_atacante(bloques_destruidos, tiempo_ataque):
@@ -553,6 +580,9 @@ def game(lista):
 
     # Definir la variable para almacenar el tiempo en segundos
     tiempo_segundos = 0
+    selected_image_surface1 = load_selected_image(f'./profile_photos/{Usuario.getID(lista[0])}.png')  # Establecer la imagen inicial
+    selected_image_surface2 = load_selected_image(f'./profile_photos/{Usuario.getID(lista[1])}.png')  # Establecer la imagen inicial
+    #profile_surface.blit(selected_image_surface, (0, 0))
     while running:
         screen.blit(fondo, (0, 0))
        
@@ -746,7 +776,8 @@ def game(lista):
         screen.blit(campfiresprite[current_frame%len(campfiresprite)], (screen_width // 22*1.5 - 32, screen_height // 8*5.5))
         screen.blit(layer, (0, 45))
         screen.blit(powers_image, (screen_width - screen_width/8.5, screen_height // 2 - (screen_height/3.5)/3))
-
+        screen.blit(selected_image_surface1, (WIDTH//2-750, HEIGHT//2-520))
+        screen.blit(selected_image_surface2, (WIDTH//2+750, HEIGHT//2-520))
             # Dibujar los círculos en el lado derecho de la pantalla
         radio = 7  # Radio de los círculos
         espacio_entre_circulos = 7  # Espacio entre los círculos
