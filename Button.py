@@ -28,7 +28,7 @@ class Button:
     def draw(self,color,color2,win):
 
 		# elevation logic 
-        print('dibujando')
+        
         
         self.top_rect.y = self.original_y_pos - self.dynamic_elecation
         self.text_rect.center = self.top_rect.center 

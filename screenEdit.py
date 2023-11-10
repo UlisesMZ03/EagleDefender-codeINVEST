@@ -62,10 +62,10 @@ def editScreen(username):
         print(nameArtis)
         for i in range(3):
             print(i)
-            if number==i:
+            if number<i:
                 list_input_song.append('')
             else:
-                list_input_song.append(nameArtis[0][i])
+                list_input_song.append(f'{ nameArtis[i][0] } by {nameArtis[i][1]}')
         return list_input_song
     
 
@@ -196,4 +196,4 @@ def editScreen(username):
 
         
          
-editScreen('andres17')
+editScreen('daniel')
