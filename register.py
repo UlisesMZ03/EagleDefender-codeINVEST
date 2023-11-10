@@ -469,6 +469,13 @@ def register():
                     musica_validacion= musica_user.save_data()
                     if musica_validacion:
                         favorite_song=[]
+                
+                user.save_to_db()
+                
+                login.login_screen() 
+
+                pygame.quit()
+                sys.exit()
             
         else:
             user = Usuario(name,username,age,email,password,UID_device)

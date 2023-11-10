@@ -3,9 +3,9 @@ import pygame_gui
 from pygame.locals import *
 from tkinter import filedialog
 pygame.init()
-FONT = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
-TITLE_FONT = pygame.font.Font(None,60)
-FONT_SEC = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
+TITLE_FONT = pygame.font.Font("font/KarmaFuture.ttf", 50)
+FONT = pygame.font.Font("font/DejaVuSans.ttf", 20)
+FONT_SEC = pygame.font.Font("font/DejaVuSans.ttf", 20)
 special_symbols = ['!', '@', '#', '$', '%', '&', '*', '+', '-', '=', '_', '?', '<', '>', '.', ',', ':', ';']
 class TextInputBox:
     

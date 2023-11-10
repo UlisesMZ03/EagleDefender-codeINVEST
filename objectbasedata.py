@@ -327,5 +327,16 @@ class Score():
         self.con.commit()
         self.con.close()
         return True
+    @staticmethod
+    def get_top_scores():
+        conn = sqlite3.connect(Score.db_path)
+        cursor = conn.cursor()
+
+        # Obtiene los 10 mejores puntajes ordenados de mayor a menor
+        cursor.execute('''SELECT id_user, puntos FROM puntajes ORDER BY puntos DESC LIMIT 10''')
+        top_scores = cursor.fetchall()
+
+        conn.close()
+        return top_scores
     
 

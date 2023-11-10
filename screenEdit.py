@@ -44,10 +44,10 @@ def editScreen(username):
     selected_image_surface = None
     camera_on = False
     UID_device = None
-    FONT = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
+    FONT = pygame.font.Font("font/KarmaFuture.ttf", 20)
     TITLE_FONT = pygame.font.Font(None,60)
     TITLE_DATA = pygame.font.Font(None,20)
-    FONT_SEC = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)   
+    FONT_SEC =pygame.font.Font("font/KarmaFuture.ttf", 20)
     background_image = pygame.image.load("images/bg2.jpg").convert()
     background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
     register_surface = TITLE_FONT.render("REGISTER", True, PCBUTTON)  # Color blanco (#FFFFFF)
@@ -196,4 +196,4 @@ def editScreen(username):
 
         
          
-editScreen('andres17')
+editScreen('ulisesmz')

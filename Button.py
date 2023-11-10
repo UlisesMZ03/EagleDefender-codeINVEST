@@ -1,7 +1,7 @@
 import pygame
-FONT = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
-TITLE_FONT = pygame.font.Font(None,60)
-FONT_SEC = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
+TITLE_FONT = pygame.font.Font("font/KarmaFuture.ttf", 50)
+FONT = pygame.font.Font("font/DejaVuSans.ttf", 20)
+FONT_SEC = pygame.font.Font("font/DejaVuSans.ttf", 20)
 special_symbols = ['!', '@', '#', '$', '%', '&', '*', '+', '-', '=', '_', '?', '<', '>', '.', ',', ':', ';']
 class Button:
     def __init__(self,text,width,height,pos,elevation,color):
@@ -26,10 +26,6 @@ class Button:
 
     
     def draw(self,color,color2,win):
-
-		# elevation logic 
-        print('dibujando')
-        
         self.top_rect.y = self.original_y_pos - self.dynamic_elecation
         self.text_rect.center = self.top_rect.center 
 
