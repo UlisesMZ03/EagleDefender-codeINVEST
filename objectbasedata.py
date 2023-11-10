@@ -299,3 +299,33 @@ class Musica():
 
 
 
+class Score():
+    db_path = "database.db"
+    def __init__(self,id_user,puntaje) -> None:
+        self.id_user=id_user
+        self.puntaje=puntaje
+        self.id=self._get_next_id()
+
+
+    def _get_next_id(self):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        # Obtiene el último ID asignado, o 0 si no hay usuarios en la base de datos
+        cursor.execute('''SELECT MAX(id) FROM puntajes''')
+        last_id = cursor.fetchone()[0]
+        conn.close()
+
+        return last_id + 1 if last_id else 1
+    def save_data(self):
+        self.con=sqlite3.connect(self.db_path)
+        self.cursor=self.con.cursor()
+        #guardando datos en la base de datos
+        
+        self.cursor.execute('INSERT INTO puntajes VALUES (?, ?, ?)', (self.id,self.id_user, self.puntaje))
+      
+        self.con.commit()
+        self.con.close()
+        return True
+    
+
