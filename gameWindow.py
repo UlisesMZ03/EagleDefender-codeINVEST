@@ -14,7 +14,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import webbrowser
 import os
 import time
-
+import numpy as np
 
 def game(lista):
     pygame.init()
@@ -527,6 +527,20 @@ def game(lista):
             if block != other_block and block.rect.colliderect(other_block.rect):
                 return True
         return False
+    def cocinero(tempo, tonos, valencia, energia, bailabilidad, instrumentalidad, acustica, duracion):
+        if valencia > 0.7:
+            nValencia = 2
+        else:
+            nValencia = 1
+        
+        if bailabilidad > 0.7:
+            nBailabilidad = np.random.poisson(bailabilidad)
+        else:
+            nBailabilidad = np.random.exponential(bailabilidad)
+        
+        valor = (tempo + tonos + valencia * nValencia + energia + bailabilidad * nBailabilidad + (1 - instrumentalidad) + acustica) * (duracion / 1000)
+        
+        return valor
     esperando_tecla = True
     TITLE_FONT = pygame.font.Font("font/KarmaFuture.ttf", 50)
     FONT = pygame.font.Font("font/DejaVuSans.ttf", 20)
@@ -537,8 +551,14 @@ def game(lista):
     puntajes_user2= []
     end=False
     while running:
-        
+        velocidad_madera=0
+        velocidad_concreto=0
+        velocidad_piedra=0
+        velocidad_fuego =0
 
+        velocidad_agua =0
+        velocidad_polvora =0
+        velocidad = cocinero(120, 8, 0.8, 0.8, 0.1, 0.5, 0.9, 120*10)
         obstaculos = pygame.sprite.Group()
         # Definir el color del círculo (en RGB)
         circle_color = (255, 0, 0)
@@ -553,7 +573,11 @@ def game(lista):
         proyectiles = pygame.sprite.Group()
         todos_los_sprites = pygame.sprite.Group()  
         obstaculos_activos = pygame.sprite.Group()
+
         obstaculos_inactivos = pygame.sprite.Group()
+        obstaculos_madera=pygame.sprite.Group()
+        obstaculos_concreto=pygame.sprite.Group()
+        obstaculos_piedra=pygame.sprite.Group()
         mirilla = Mirilla(atacante, offset=(0, 0))
         todos_los_sprites.add(mirilla)  
         proyectil_velocidad = 5
@@ -629,13 +653,13 @@ def game(lista):
                             mouse_x, mouse_y = event.pos
                             #Verificar que no se coloque el bloque en el area enemiga
                             if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
-                                #obstaculodrag.image=obstaculodrag.obs_img
+                                obstaculodrag.image=obstaculodrag.obs_img
                                 if check_collision(obstaculodrag, obstaculos):
                                     obstaculodrag.imgBack()
                                     obstaculodrag.deactivate()
-                                    obstaculodrag.changeImg(event.pos)
+                                    #obstaculodrag.changeImg(event.pos)
                                     obstaculodrag.rect.x=obstaculodrag.originalPosition[0]
-                                    
+                                    obstaculodrag.rect.y=obstaculodrag.originalPosition[1]
                                     
                                     
                                 
@@ -688,16 +712,34 @@ def game(lista):
             for obstaculo in obstaculos:
                 if obstaculo.is_active:
                     obstaculos_activos.add(obstaculo)
+
+
+
+
+
             obstaculos_inactivos.empty()
+            obstaculos_madera.empty()
+            obstaculos_concreto.empty()
+            obstaculos_piedra.empty()
             for obstaculo in obstaculos:
                 if not obstaculo.is_active:
+                    if obstaculo.tipo=="madera":
+                        obstaculos_madera.add(obstaculo)
+                    elif obstaculo.tipo=="concreto":
+                        obstaculos_concreto.add(obstaculo)
+                    elif obstaculo.tipo=="piedra":
+                        obstaculos_piedra.add(obstaculo)
                     obstaculos_inactivos.add(obstaculo)
-            
+            print("obstaculos madera: "+str(len(obstaculos_madera)))
+            print("obstaculos concreto: "+str(len(obstaculos_concreto)))
+            print("obstaculos piedra: "+str(len(obstaculos_piedra)))
             if len(obstaculos_activos)>=5:
                     obs_done=True
-            
-            agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
+
+
+
             colisiones = pygame.sprite.groupcollide(obstaculos_activos, proyectiles, True, True)
+            
             if defensor_done:
                 colisiones_defensor = pygame.sprite.spritecollide(defensor, proyectiles, True)
                 if colisiones_defensor:
@@ -824,6 +866,53 @@ def game(lista):
                 mirilla.update()
                 todos_los_sprites.update()
                 todos_los_sprites.draw(screen)
+                velocidad_madera += (1 / (len(obstaculos_madera) * velocidad))
+          
+                velocidad_concreto +=(1 / (len(obstaculos_concreto) * velocidad))
+                velocidad_piedra += (1 / (len(obstaculos_piedra) * velocidad))
+
+    # Verificar y evitar división por cero
+                if atacante.bolas_fuego != 0:
+                    velocidad_fuego += (1 / (atacante.bolas_fuego * velocidad))
+                else:
+                    # Manejar el caso cuando bolas_fuego es igual a cero
+                    velocidad_fuego += (1 / (0.9 * velocidad))
+
+                if atacante.bolas_agua != 0:
+                    velocidad_agua += (1 / (atacante.bolas_agua * velocidad))
+                else:
+                    # Manejar el caso cuando bolas_agua es igual a cero
+                    velocidad_agua += (1 / (0.9 * velocidad))
+
+
+                if atacante.bolas_polvora != 0:
+                    velocidad_polvora += (1 / (atacante.bolas_polvora * velocidad))
+                else:
+                    # Manejar el caso cuando bolas_polvora es igual a cero
+                    velocidad_polvora  += (1 / (0.9 * velocidad))
+
+                if int(velocidad_madera)+len(obstaculos_madera)!=len(obstaculos_madera):
+                    velocidad_madera=0
+                    agregarBloquesEstante(1,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
+                if int(velocidad_concreto)+len(obstaculos_concreto)!=len(obstaculos_concreto):
+                    velocidad_concreto=0
+                
+                    agregarBloquesEstante(1,150,screen_height//2-150,textura_concretoElem1,textura_concreto,obstaculoConcreto,"concreto")
+
+                if int(velocidad_piedra)+len(obstaculos_piedra)!=len(obstaculos_piedra):
+                    velocidad_piedra=0
+                    agregarBloquesEstante(1,150,screen_height//2-50,textura_piedraElem1,textura_piedra,obstaculoPiedra,"piedra")
+
+                if int(velocidad_fuego)+atacante.bolas_fuego!=atacante.bolas_fuego:
+                    velocidad_fuego=0
+                    atacante.bolas_fuego+=1
+                if int(velocidad_agua)+atacante.bolas_agua!=atacante.bolas_agua:
+                    velocidad_agua=0
+                    atacante.bolas_agua+=1
+
+                if int(velocidad_polvora)+atacante.bolas_polvora!=atacante.bolas_polvora:
+                    velocidad_polvora=0
+                    atacante.bolas_polvora+=1
             elif defensor_done:
                 
                
@@ -896,4 +985,6 @@ def game(lista):
         
     pygame.quit()
 
+if __name__ == "__main__":
+    game(["ulisesmz","ulisesmzz"])
 
