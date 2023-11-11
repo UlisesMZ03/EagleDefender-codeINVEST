@@ -468,16 +468,16 @@ def receive_data_from_uart():
 #CREDENCIALES LOGIN
 
 username_input = TextInputBox((WIDTH//60)*7, HEIGHT//60*20, (WIDTH//60)*16, 40,PCBUTTON,SCBUTTON, "Username")
-password_input = TextInputBox((WIDTH//60)*7, HEIGHT//60*20+50, (WIDTH//60)*16, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
+password_input = TextInputBox((WIDTH//60)*7, HEIGHT//60*24, (WIDTH//60)*16, 40,PCBUTTON,SCBUTTON, "Password",is_password=True)
 
 olvido_texto = "¿Olvidó su contraseña?"
 olvido_surface = FONT_2.render(olvido_texto, True, PCBUTTON)  # Color del texto clicqueable
-olvido_rect = olvido_surface.get_rect(center=(WIDTH // 2, 400))  # Centra el texto en la pantalla
+olvido_rect = olvido_surface.get_rect(center=(WIDTH // 2, HEIGHT//60*20+160))  # Centra el texto en la pantalla
 
 
-login_button = Button('Log in',(WIDTH/60)*16,40,((WIDTH//60)*7,HEIGHT//60*20+150),5,SCBUTTON)
-login_devbutton = Button('Log in',(WIDTH/60)*16,40,((WIDTH/60)*37,HEIGHT//60*20+250),5,SCBUTTON)
-register_button = Button('Register ',(WIDTH/60)*16,40,((WIDTH//60)*7,HEIGHT//60*20+200),5,SCBUTTON)
+login_button = Button('Log in',(WIDTH/60)*16,40,((WIDTH//60)*7,HEIGHT//60*32),5,SCBUTTON)
+login_devbutton = Button('Log in',(WIDTH/60)*16,40,((WIDTH/60)*37,HEIGHT//60*36),5,SCBUTTON)
+register_button = Button('Register ',(WIDTH/60)*16,40,((WIDTH//60)*7,HEIGHT//60*36),5,SCBUTTON)
 
 
 
@@ -486,7 +486,7 @@ register_button = Button('Register ',(WIDTH/60)*16,40,((WIDTH//60)*7,HEIGHT//60*
 
 mute_button = Button('Mute', 100, 40, (20, 20), 5, SCBUTTON)
 
-log_device_button = Button('Phone Login ',(WIDTH/60)*16,40,(((WIDTH/60)*37),HEIGHT//60*20+200),5,SCBUTTON)
+log_device_button = Button('Phone Login ',(WIDTH/60)*16,40,(((WIDTH/60)*37),HEIGHT//60*32),5,SCBUTTON)
 
 def login_screen():
     running = True
@@ -568,7 +568,7 @@ def login_screen():
         win.blit(or_surface,or_rect)
         
         olvido_surface = FONT_2.render(olvido_texto, True, PCBUTTON)  # Renderiza el texto nuevamente si cambia
-        olvido_rect = olvido_surface.get_rect(center=(WIDTH//60*15,HEIGHT//60*20+100))  # Actualiza las dimensiones del rectángulo según el texto
+        olvido_rect = olvido_surface.get_rect(center=(WIDTH//60*15,HEIGHT//60*28))  # Actualiza las dimensiones del rectángulo según el texto
         win.blit(olvido_surface, olvido_rect.topleft) 
         # Suponiendo que tengas el ID del usuario almacenado en una variable llamada 'user_id'
           # Reemplaza esto con el ID del usuario que deseas mostrar

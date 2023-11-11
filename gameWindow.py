@@ -13,7 +13,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import webbrowser
 import os
-
+import time
 
 
 def game(lista):
@@ -535,6 +535,7 @@ def game(lista):
     ronda = 1
     puntajes_user1= []
     puntajes_user2= []
+    end=False
     while running:
         
 
@@ -569,8 +570,8 @@ def game(lista):
         eagle_defeat = False
         defensor_done=False
         obs_done=False
-        tiempo_ataque_atacante = 300
-        tiempo_defensa_defensor = 300
+        tiempo_ataque_atacante = 40
+        tiempo_defensa_defensor = 40
 
         
         obstaculos_destruidos = 0
@@ -581,7 +582,11 @@ def game(lista):
         selected_image_surface2 = load_selected_image(f'./profile_photos/{Usuario.getID(lista[1])}.png')  # Establecer la imagen inicial
         #profile_surface.blit(selected_image_surface, (0, 0))
         score_saved=False
+        tiempo_inicio = time.time()
         while ronda<=3:
+            tiempo_actual = time.time()
+            tiempo_transcurrido = tiempo_actual - tiempo_inicio
+            tiempo_segundos = round(tiempo_transcurrido)
             print("obstaculos"+str(len(obstaculos)))
             round_surface = TITLE_FONT.render("Login", True, PCBUTTON)  # Color blanco (#FFFFFF)
             round_rect = round_surface.get_rect(center=(WIDTH // 2, 50))  # Ajusta las coordenadas según la posición que desees
@@ -724,14 +729,21 @@ def game(lista):
                 texto = font.render("El atacante ha ganado", True, (255, 255, 255))
                 puntos_atacante= tiempo_segundos
                 if ronda==1:
-                    texto = font.render("El defensor "+str(lista[1])+" ha ganado", True, (255, 255, 255))
+                    texto = font.render("El atacante "+str(lista[1])+" ha ganado", True, (255, 255, 255))
                     puntajes_user2.append(puntos_atacante)
+                    screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
+                    
+                    
                 elif ronda==2:
-                    texto = font.render("El defensor "+str(lista[0])+" ha ganado", True, (255, 255, 255))
+                    texto = font.render("El atacante "+str(lista[0])+" ha ganado", True, (255, 255, 255))
                     puntajes_user1.append(puntos_atacante)
+                    screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
+                    
                 elif ronda==3:
-                    texto = font.render("El defensor "+str(lista[1])+" ha ganado", True, (255, 255, 255))
+                    texto = font.render("El atacante "+str(lista[1])+" ha ganado", True, (255, 255, 255))
                     puntajes_user2.append(puntos_atacante)
+                    screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
+                    
 
                 if len(puntajes_user1)>1:
                     puntuacion_media = calcular_puntaje(puntajes_user1[0],puntajes_user1[1])
@@ -739,14 +751,18 @@ def game(lista):
                     if not score_saved:
                         score.save_data()
                         score_saved=True
+                    end = True
+                    break
                 elif len(puntajes_user2)>1:
                     puntuacion_media = calcular_puntaje(puntajes_user2[0],puntajes_user2[1])
                     score = Score(lista[1],puntuacion_media)
                     if not score_saved:
                         score.save_data()
                         score_saved=True
-                screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
+                    end = True
+                    break
                 if ronda<3:
+                   
                     ronda = ronda+1
                     break
             elif tiempo_segundos>tiempo_defensa_defensor:
@@ -754,32 +770,41 @@ def game(lista):
                 if ronda==1:
                     texto = font.render("El defensor "+str(lista[0])+" ha ganado", True, (255, 255, 255))
                     puntajes_user1.append(puntos_defensor)
+                  
                 elif ronda==2:
                     texto = font.render("El defensor "+str(lista[1])+" ha ganado", True, (255, 255, 255))
                     puntajes_user2.append(puntos_defensor)
+                   
                 elif ronda==3:
                     texto = font.render("El defensor "+str(lista[0])+" ha ganado", True, (255, 255, 255))
                     puntajes_user1.append(puntos_defensor)
+                   
 
-                if len(puntajes_user1)>1:
-                    puntuacion_media = calcular_puntaje(puntajes_user1[0],puntajes_user1[1])
-                    score = Score(lista[0],puntuacion_media)
+                if len(puntajes_user1) > 1:
+                    puntuacion_media = calcular_puntaje(puntajes_user1[0], puntajes_user1[1])
+                    score = Score(lista[0], puntuacion_media)
+                    
                     if not score_saved:
                         score.save_data()
-                        score_saved=True
-                elif len(puntajes_user2)>1:
-                    puntuacion_media = calcular_puntaje(puntajes_user2[0],puntajes_user2[1])
-                    score = Score(lista[1],puntuacion_media)
+                        score_saved = True
+                    end = True
+                    
+                    break
+                elif len(puntajes_user2) > 1:
+                    puntuacion_media = calcular_puntaje(puntajes_user2[0], puntajes_user2[1])
+                    score = Score(lista[1], puntuacion_media)
                     if not score_saved:
                         score.save_data()
-                        score_saved=True
-
+                        score_saved = True
+                    end = True
+                    
+                    break
                 
                 screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
                 if ronda<3:
                     ronda = ronda+1
                     break
-            if defensor_done:
+            if defensor_done and not end:
                 obstaculos.draw(screen)
                 
                 defensor.update()
@@ -791,21 +816,27 @@ def game(lista):
                 
             else:
                 
-                
-                texto = font.render("Coloca el águila en un punto estrategico", True, (255, 255, 255))
-                screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
+                if not end:
+                    texto = font.render("Coloca el águila en un punto estrategico", True, (255, 255, 255))
+                    screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
 
-            if obs_done:
+            if obs_done and not end:
                 mirilla.update()
                 todos_los_sprites.update()
                 todos_los_sprites.draw(screen)
             elif defensor_done:
                 
-                tiempo_segundos = pygame.time.get_ticks() // 1000
-                
-                texto = font.render("Coloca los obstaculos iniciales", True, (255, 255, 255))
+               
+                if not end:
+                    texto = font.render("Coloca los obstaculos iniciales", True, (255, 255, 255))
+                    screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
+            if end:
+                if len(puntajes_user1)>1:
+                    texto = font.render("El juego ha terminado el ganador es "+str(lista[0]), True, (255, 255, 255))
+                elif len(puntajes_user2)>1:
+                    texto = font.render("El juego ha terminado el ganador es "+str(lista[1]), True, (255, 255, 255))
                 screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
-
+            
             frame_counter += 1
             if frame_counter >= animation_speed:
                 

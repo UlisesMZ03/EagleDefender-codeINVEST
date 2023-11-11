@@ -45,6 +45,7 @@ FONT_2 = pygame.font.Font(None, 25)
 # En el área de inicialización del código
 TITLE_FONT =pygame.font.Font("font/KarmaFuture.ttf", 64)  # Tamaño de la fuente para el título "Login"
 FONT =pygame.font.Font("font/DejaVuSans.ttf", 20)
+FONT_SUB_TITLE =pygame.font.Font("font/DejaVuSans-bOLD.ttf", 30)
 FONT_OR = pygame.font.Font("font/KarmaFuture.ttf", 20)
 FONT_SEC = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
 # Dentro de la función hall_of_fame_screen() antes del bucle principal
@@ -63,10 +64,12 @@ TCBUTTOM = '#006350'
 
 menu_surface = TITLE_FONT.render("Hall of Fame", True, PCBUTTON)  # Color blanco (#FFFFFF)
 menu_rect = menu_surface.get_rect(center=(WIDTH // 2, 50))  # Ajusta las coordenadas según la posición que desees
-score_surface = FONT.render("Score", True, PCBUTTON)  # Color blanco (#FFFFFF)
-user_rect = menu_surface.get_rect(center=(WIDTH // 2, 50))
-menu_surface = FONT.render("Player", True, PCBUTTON)  # Color blanco (#FFFFFF)
-score_rect = menu_surface.get_rect(center=(WIDTH // 2, 150))
+
+user_surface = FONT_SUB_TITLE.render("Player", True, PCBUTTON)  # Color blanco (#FFFFFF)
+user_rect = user_surface.get_rect(center=(WIDTH /60*23, HEIGHT/4))
+
+score_surface = FONT_SUB_TITLE.render("Score", True, PCBUTTON)  # Color blanco (#FFFFFF)
+score_rect = score_surface.get_rect(center=(WIDTH /60*38, HEIGHT/4))
 
 
 def cambiar_tema(selected_theme):
@@ -338,14 +341,23 @@ def hall_of_fame_screen():
         # Ahora `top_scores` contendrá una lista con los 10 mejores puntajes y los IDs de los usuarios correspondientes.
 
         # Calcular la posición inicial para mostrar los puntajes
-        x_pos = WIDTH // 2
-        y_pos = (HEIGHT // 20) * 6
+        x_pos_user = (WIDTH // 60) * 23
+        x_pos_score = (WIDTH // 60) * 38
+        y_pos = (HEIGHT//40)*13
 
         # Renderizar y mostrar los 10 mejores puntajes en la ventana
         for i, (id_user, puntaje) in enumerate(top_scores[:10]):  # Mostrar solo los primeros 10 puntajes
-            puntaje_text = FONT.render(f"ID Usuario: {id_user}, Puntaje: {puntaje}", True, PCBUTTON)
-            puntaje_rect = puntaje_text.get_rect(center=(x_pos, y_pos + i * 40))  # Espaciar los puntajes por 40 píxeles
-            win.blit(puntaje_text, puntaje_rect.topleft)
+            user_text = FONT.render(f"{id_user}", True, PCBUTTON)
+            puntaje_redondeado = round(puntaje, 3)
+            score_text = FONT.render(f"{puntaje_redondeado}", True, PCBUTTON)
+
+
+            user_rect2 = user_text.get_rect(center=(x_pos_user, y_pos + i * (HEIGHT//40)*2))  # Espaciar los puntajes por 40 píxeles
+            score_rect2 = score_text.get_rect(center=(x_pos_score, y_pos + i * (HEIGHT//40)*2))  # Espaciar los puntajes por 40 píxeles
+
+            win.blit(user_text, user_rect2.topleft)
+            win.blit(score_text, score_rect2.topleft)
+
 
         menu_back_button.draw(PCBUTTON,SCBUTTON)
         mute_button.draw(PCBUTTON,SCBUTTON)
@@ -356,10 +368,8 @@ def hall_of_fame_screen():
         # Dentro del bucle principal de la función hall_of_fame_screen()
         menu_surface = TITLE_FONT.render("Hall of Fame", True, PCBUTTON)
         win.blit(menu_surface, menu_rect)
-        menu_surface = TITLE_FONT.render("Hall of Fame", True, PCBUTTON)
-        win.blit(menu_surface, menu_rect)
         win.blit(score_surface, score_rect)
-   
+        win.blit(user_surface, user_rect)
      
 
         
@@ -368,6 +378,3 @@ def hall_of_fame_screen():
     pygame.quit()
     sys.exit()
 
-
-if __name__ == "__main__":
-    hall_of_fame_screen()
