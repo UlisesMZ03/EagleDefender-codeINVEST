@@ -596,8 +596,9 @@ def game(lista):
     puntajes_user1= []
     puntajes_user2= []
     end=False
+    user = 0
     while running:
-        music(lista[0])
+        music(lista[user])
         
         velocidad_madera=0
         velocidad_concreto=0
@@ -645,7 +646,7 @@ def game(lista):
         defensor_done=False
         obs_done=False
         tiempo_ataque_atacante = 40
-        tiempo_defensa_defensor = 40
+        tiempo_defensa_defensor = features[7]/1000
 
         
         obstaculos_destruidos = 0
@@ -854,7 +855,10 @@ def game(lista):
                     end = True
                     break
                 if ronda<3:
-                   
+                    if ronda==1:
+                        user=1
+                    elif ronda==2:
+                        user=2
                     ronda = ronda+1
                     break
             elif tiempo_segundos>tiempo_defensa_defensor:
@@ -894,6 +898,10 @@ def game(lista):
                 
                 screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
                 if ronda<3:
+                    if ronda==1:
+                        user=1
+                    elif ronda==2:
+                        user=2
                     ronda = ronda+1
                     break
             if defensor_done and not end:
