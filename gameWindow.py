@@ -4,6 +4,7 @@ from objectbasedata import Musica
 from objectbasedata  import Usuario
 from objectbasedata  import Score
 import webbrowser as web
+import pygetwindow as gw
 import pyautogui
 from time import sleep
 import random
@@ -135,33 +136,78 @@ def game(lista):
 
     obstaculo_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
     proyectile_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
-    # Inicializa el cliente de Spotipy
-    SPOTIPY_CLIENT_SECRET="0db3c2314d794ef28b594b4d24b07fe9"
-    SPOTIPY_CLIENT_ID="8051e3ec08d240639f7cad6370e88a67"
-    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET))
 
-    """
-    def get_spotify_track_url(track_id):
+    
+
+
+    import pyautogui
+    import psutil
+
+    def close_spotify():
+        for process in psutil.process_iter(['pid', 'name']):
+            if 'Spotify' in process.info['name']:
+                print(f"Cerrando Spotify (PID: {process.info['pid']})")
+                psutil.Process(process.info['pid']).terminate()
+    from spotipy.oauth2 import SpotifyOAuth
+    from spotipy.oauth2 import SpotifyClientCredentials
+
+    def get_track_features(track_id):
+        sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id='8051e3ec08d240639f7cad6370e88a67',
+                                                                                client_secret='0db3c2314d794ef28b594b4d24b07fe9'))
+
         track_info = sp.track(track_id)
-        track_url = track_info['external_urls']['spotify']
-        return track_url
+        features = sp.audio_features([track_id])
+
+        tempo = features[0]['tempo']
+        key = features[0]['key']
+        valence = features[0]['valence']
+        energy = features[0]['energy']
+        danceability = features[0]['danceability']
+        instrumentalness = features[0]['instrumentalness']
+        acousticness = features[0]['acousticness']
+        duration_ms = features[0]['duration_ms']
+
+        return tempo, key, valence, energy, danceability, instrumentalness, acousticness, duration_ms
 
     def music(username):
-        userName_encript = Usuario.encripta(username)
-        username1 = Usuario.getID(userName_encript)
+        # Cierra Spotify si ya está abierto
+        close_spotify()
+
+        username1 = Usuario.getID(username)
         
         musica_user = Musica.getMusic(username1)
-        print(musica_user)
-        size = len(musica_user)
-        n = random.randint(0, size - 1)
-        track_id = musica_user[n][0]  # Asegúrate de obtener el ID de la pista de la lista de música
-        track_url = get_spotify_track_url(track_id)
-        webbrowser.open(track_url)"""
-    def music(username):
-        id=Usuario.getID(username)
-        musica_user = Musica.getMusic(id)
-        size = len(musica_user)
-        n = random.randint(0, size - 1)
+        if musica_user:
+            
+            print(musica_user)
+
+            size = len(musica_user)
+            n = random.randint(0, size - 1)
+            global track_id
+            track_id = musica_user[n][0]
+
+            # Obtén las características de la pista
+            tempo, key, valence, energy, danceability, instrumentalness, acousticness, duration_ms = get_track_features(track_id)
+
+            # Imprime las características
+            print(f"Tempo: {tempo}")
+            print(f"Tono: {key}")
+            print(f"Valencia: {valence}")
+            print(f"Energía: {energy}")
+            print(f"Bailabilidad: {danceability}")
+            print(f"Instrumentalidad: {instrumentalness}")
+            print(f"Acústica: {acousticness}")
+            print(f"Duración (ms): {duration_ms}")
+            # Abre Spotify con la URL de la pista
+            webbrowser.open(track_id)
+
+            # Espera un momento para asegurarse de que la ventana de Spotify esté abierta
+            time.sleep(0.5)
+
+            # Envía comandos de teclado para minimizar la ventana de Spotify
+            pyautogui.hotkey("win", "down")  # Esto funciona en Windows para minimizar la ventana
+
+
+
         
     def load_selected_image(image_path):
         if os.path.exists(image_path):
@@ -551,6 +597,8 @@ def game(lista):
     puntajes_user2= []
     end=False
     while running:
+        music(lista[0])
+        
         velocidad_madera=0
         velocidad_concreto=0
         velocidad_piedra=0
@@ -558,7 +606,9 @@ def game(lista):
 
         velocidad_agua =0
         velocidad_polvora =0
-        velocidad = cocinero(120, 8, 0.8, 0.8, 0.1, 0.5, 0.9, 120*10)
+        features = get_track_features(track_id)
+
+        velocidad = cocinero(features[0], features[1], features[2], features[3], features[4], features[5], features[6], features[7]/100)
         obstaculos = pygame.sprite.Group()
         # Definir el color del círculo (en RGB)
         circle_color = (255, 0, 0)
@@ -866,10 +916,22 @@ def game(lista):
                 mirilla.update()
                 todos_los_sprites.update()
                 todos_los_sprites.draw(screen)
-                velocidad_madera += (1 / (len(obstaculos_madera) * velocidad))
-          
-                velocidad_concreto +=(1 / (len(obstaculos_concreto) * velocidad))
-                velocidad_piedra += (1 / (len(obstaculos_piedra) * velocidad))
+                if len(obstaculos_madera)!=0:
+                    velocidad_madera += (1 / (len(obstaculos_madera)* velocidad))
+                else:
+                    velocidad_madera += (1 / (0.9 * velocidad))
+                
+                if len(obstaculos_concreto)!=0:
+                    velocidad_concreto += (1 / (len(obstaculos_concreto) * velocidad))
+                else:
+                    velocidad_concreto += (1 / (0.9 * velocidad))
+                
+                if len(obstaculos_piedra)!=0:
+                    velocidad_piedra += (1 / (len(obstaculos_piedra) * velocidad))
+                else:
+                    velocidad_piedra += (1 / (0.9 * velocidad))
+
+
 
     # Verificar y evitar división por cero
                 if atacante.bolas_fuego != 0:
@@ -986,5 +1048,5 @@ def game(lista):
     pygame.quit()
 
 if __name__ == "__main__":
-    game(["ulisesmz","ulisesmzz"])
+    game(["ulises","ulisesmzz"])
 
