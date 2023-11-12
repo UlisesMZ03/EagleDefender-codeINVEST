@@ -5,12 +5,12 @@ import re
 import json
 from objectbasedata import Usuario
 from objectbasedata import Musica
-import halloffame
+from objectbasedata import Score
 import serial
 import os
 import threading
 import pygame
-
+import menu
 import pygame_gui
 from pygame.locals import *
 import sys
@@ -47,7 +47,7 @@ TITLE_FONT =pygame.font.Font("font/KarmaFuture.ttf", 64)  # Tamaño de la fuente
 FONT =pygame.font.Font("font/DejaVuSans.ttf", 20)
 FONT_OR = pygame.font.Font("font/KarmaFuture.ttf", 20)
 FONT_SEC = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
-# Dentro de la función menu_screen() antes del bucle principal
+# Dentro de la función hall_of_fame_screen() antes del bucle principal
 
 background_image = pygame.image.load("images/bg2.jpg").convert()
 background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
@@ -61,11 +61,13 @@ PCBUTTON = '#01F0BF'
 SCBUTTON = '#00A383'
 TCBUTTOM = '#006350'
 
-menu_surface = TITLE_FONT.render("EAGLE DEFENDER", True, PCBUTTON)  # Color blanco (#FFFFFF)
+menu_surface = TITLE_FONT.render("Hall of Fame", True, PCBUTTON)  # Color blanco (#FFFFFF)
 menu_rect = menu_surface.get_rect(center=(WIDTH // 2, 50))  # Ajusta las coordenadas según la posición que desees
+score_surface = FONT.render("Score", True, PCBUTTON)  # Color blanco (#FFFFFF)
+user_rect = menu_surface.get_rect(center=(WIDTH // 2, 50))
+menu_surface = FONT.render("Player", True, PCBUTTON)  # Color blanco (#FFFFFF)
+score_rect = menu_surface.get_rect(center=(WIDTH // 2, 150))
 
-
-temas = ['Dark Green', 'Dark Red', 'Tema 3']
 
 def cambiar_tema(selected_theme):
     global background_image
@@ -251,20 +253,14 @@ def hex_to_rgb(hex_color):
 
 
 
-local_mp_button = Button('Local Multiplayer',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,HEIGHT//60*25),5,SCBUTTON)
-local_button = Button('Local',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,HEIGHT//60*20),5,SCBUTTON)
-online_button = Button('Online',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,HEIGHT//60*30),5,SCBUTTON)
-instructions = Button('Instructions',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,HEIGHT//60*35),5,SCBUTTON)
-
-
 #############
 #PHONE LOGIN
 
 mute_button = Button('Mute', 100, 40,((WIDTH/20)*18,HEIGHT//20*18), 5, SCBUTTON)
 
-hall_of_fame_button = Button('Hall of fame',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,HEIGHT//60*40),5,SCBUTTON)
+menu_back_button = Button('BACK MENU',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,HEIGHT//60*50),5,SCBUTTON)
 
-def menu_screen():
+def hall_of_fame_screen():
     running = True
     
     while running:
@@ -280,30 +276,21 @@ def menu_screen():
             manager.process_events(event)
                         # Manejar eventos de pygame_gui
 
-            if event.type == pygame.USEREVENT:
-                        if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
-                            if event.text in temas:
-                                cambiar_tema(event.text)
+
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
-                if local_button.top_rect.collidepoint(mouse_pos):
-                    login.loading_screen()
-                    login.login_screen() 
-                    pygame.quit()
-                    
-                    sys.exit()
-                elif hall_of_fame_button.top_rect.collidepoint(mouse_pos):
-                     
-                    halloffame.hall_of_fame_screen() 
+
+                if menu_back_button.top_rect.collidepoint(mouse_pos):
+                    menu.loading_screen()
+                    menu.menu_screen() 
                     pygame.quit()
                     
                     sys.exit()
                
                 elif mute_button.top_rect.collidepoint(mouse_pos):
                      toggle_mute()
-                elif online_button.top_rect.collidepoint(mouse_pos):
-                    pass
+    
                             
 
         win.fill(BACKGROUND)
@@ -316,22 +303,62 @@ def menu_screen():
         crear_rectangulo_redondeado(hex_to_rgb(TCBUTTOM),WIDTH/60*15, (HEIGHT//10)*2, (WIDTH//60)*30,(HEIGHT//10)*7,15,alpha=200 )
         crear_rectangulo_redondeado(hex_to_rgb(BACKGROUND),(WIDTH//60*20), 7, ((WIDTH//60)*20), (80),15,alpha=95)
         crear_rectangulo_redondeado(hex_to_rgb(BACKGROUND),-15, 0, (WIDTH+30), (HEIGHT),15,alpha=95)
+        # ... (código previo) ...
 
-        
-        local_button.draw(PCBUTTON,SCBUTTON)
-        local_mp_button.draw(PCBUTTON,SCBUTTON)
-        online_button.draw(PCBUTTON,SCBUTTON)
-        hall_of_fame_button.draw(PCBUTTON,SCBUTTON)
+        # En el área de inicialización del código
+        line_positions = [(WIDTH//60)*15, (HEIGHT//20)*6, (WIDTH//60)*45, (HEIGHT//20)*6,
+                        (WIDTH//60)*15, (HEIGHT//20)*7, (WIDTH//60)*45, (HEIGHT//20)*7,
+                        (WIDTH//60)*15, (HEIGHT//20)*8, (WIDTH//60)*45, (HEIGHT//20)*8,
+                        (WIDTH//60)*15, (HEIGHT//20)*9, (WIDTH//60)*45, (HEIGHT//20)*9,
+                        (WIDTH//60)*15, (HEIGHT//20)*10, (WIDTH//60)*45, (HEIGHT//20)*10,
+                        (WIDTH//60)*15, (HEIGHT//20)*11, (WIDTH//60)*45, (HEIGHT//20)*11,
+                        (WIDTH//60)*15, (HEIGHT//20)*12, (WIDTH//60)*45, (HEIGHT//20)*12,
+                        (WIDTH//60)*15, (HEIGHT//20)*13, (WIDTH//60)*45, (HEIGHT//20)*13,
+                        (WIDTH//60)*15, (HEIGHT//20)*14, (WIDTH//60)*45, (HEIGHT//20)*14,
+                        (WIDTH//60)*15, (HEIGHT//20)*15, (WIDTH//60)*45, (HEIGHT//20)*15,
+                        (WIDTH//60)*15, (HEIGHT//20)*16, (WIDTH//60)*45, (HEIGHT//20)*16]
+
+        for i in range(0, len(line_positions), 4):
+            pygame.draw.line(win, PCBUTTON, (line_positions[i], line_positions[i+1]), (line_positions[i+2], line_positions[i+3]), 2)
+
+        # ... (resto del código) ...
+
+        # Después de crear instancias de la clase Score y guardar los puntajes en la base de datos
+
+        top_scores = Score.get_top_scores()
+
+        # Ahora `top_scores` contendrá una lista con los 10 mejores puntajes y los IDs de los usuarios correspondientes.
+        print("Top 10 Puntajes:")
+        for id_user, puntaje in top_scores:
+            print(f"ID Usuario: {id_user}, Puntaje: {puntaje}")
+
+        # Después de obtener los top_scores de la base de datos
+        top_scores = Score.get_top_scores()
+
+        # Ahora `top_scores` contendrá una lista con los 10 mejores puntajes y los IDs de los usuarios correspondientes.
+
+        # Calcular la posición inicial para mostrar los puntajes
+        x_pos = WIDTH // 2
+        y_pos = (HEIGHT // 20) * 6
+
+        # Renderizar y mostrar los 10 mejores puntajes en la ventana
+        for i, (id_user, puntaje) in enumerate(top_scores[:10]):  # Mostrar solo los primeros 10 puntajes
+            puntaje_text = FONT.render(f"ID Usuario: {id_user}, Puntaje: {puntaje}", True, PCBUTTON)
+            puntaje_rect = puntaje_text.get_rect(center=(x_pos, y_pos + i * 40))  # Espaciar los puntajes por 40 píxeles
+            win.blit(puntaje_text, puntaje_rect.topleft)
+
+        menu_back_button.draw(PCBUTTON,SCBUTTON)
         mute_button.draw(PCBUTTON,SCBUTTON)
-        instructions.draw(PCBUTTON,SCBUTTON)
+
         # Actualizar pygame_gui
         manager.update(time_delta)
         manager.draw_ui(win)
-        # Dentro del bucle principal de la función menu_screen()
-
-        menu_surface = TITLE_FONT.render("EAGLE DEFENDER", True, PCBUTTON)
+        # Dentro del bucle principal de la función hall_of_fame_screen()
+        menu_surface = TITLE_FONT.render("Hall of Fame", True, PCBUTTON)
         win.blit(menu_surface, menu_rect)
-        
+        menu_surface = TITLE_FONT.render("Hall of Fame", True, PCBUTTON)
+        win.blit(menu_surface, menu_rect)
+        win.blit(score_surface, score_rect)
    
      
 
@@ -343,4 +370,4 @@ def menu_screen():
 
 
 if __name__ == "__main__":
-    menu_screen()
+    hall_of_fame_screen()

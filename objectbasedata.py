@@ -217,35 +217,35 @@ class Usuario:
     def updateEmail(id,newValue):
         conn=sqlite3.connect(Usuario.db_path)
         cursor=conn.cursor()
-        cursor.execute('upadate usuarios set email=? where usuarios.id=?',(newValue,id))
+        cursor.execute('update usuarios set email=? where usuarios.id=?',(newValue,id))
         conn.commit()
         conn.close()
         return True
     def updateName(id,newValue):
         conn=sqlite3.connect(Usuario.db_path)
         cursor=conn.cursor()
-        cursor.execute('upadate usuarios set email=? where usuarios.id=?',(newValue,id))
+        cursor.execute('update usuarios set email=? where usuarios.id=?',(newValue,id))
         conn.commit()
         conn.close()
         return True
     def updateUsername(id,newValue):
         conn=sqlite3.connect(Usuario.db_path)
         cursor=conn.cursor()
-        cursor.execute('upadate usuarios set username=? where usuarios.id=?',(newValue,id))
+        cursor.execute('update usuarios set username=? where usuarios.id=?',(newValue,id))
         conn.commit()
         conn.close()
         return True
     def updatePassword(id,newValue):
         conn=sqlite3.connect(Usuario.db_path)
         cursor=conn.cursor()
-        cursor.execute('upadate usuarios set password=? where usuarios.id=?',(newValue,id))
+        cursor.execute('update usuarios set password=? where usuarios.id=?',(newValue,id))
         conn.commit()
         conn.close()
         return True
-    def updateEge(id,newValue):
+    def updateAge(id,newValue):
         conn=sqlite3.connect(Usuario.db_path)
         cursor=conn.cursor()
-        cursor.execute('upadate usuarios set ege=? where usuarios.id=?',(newValue,id))
+        cursor.execute('update usuarios set ege=? where usuarios.id=?',(newValue,id))
         conn.commit()
         conn.close()
         return True
@@ -327,5 +327,23 @@ class Score():
         self.con.commit()
         self.con.close()
         return True
-    
+    @staticmethod
+    def get_top_scores():
+        conn = sqlite3.connect(Score.db_path)
+        cursor = conn.cursor()
+
+        # Obtiene los 10 mejores puntajes ordenados de mayor a menor
+        cursor.execute('''SELECT id_user, puntos FROM puntajes ORDER BY puntos DESC LIMIT 10''')
+        top_scores = cursor.fetchall()
+
+        conn.close()
+        return top_scores
+    def upadateSong(id,newValue):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        cursor.execute('update usuarios set password=? where musica.id=?',(newValue,id))
+        conn.commit()
+        conn.close()
+        return True
+
 

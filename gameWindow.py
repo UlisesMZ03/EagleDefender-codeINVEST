@@ -2,6 +2,7 @@ import pygame
 import math
 from objectbasedata import Musica
 from objectbasedata  import Usuario
+from objectbasedata  import Score
 import webbrowser as web
 import pyautogui
 from time import sleep
@@ -170,27 +171,12 @@ def game(lista):
     
 
     
-    def calcular_puntaje_atacante(bloques_destruidos, tiempo_ataque):
+    def calcular_puntaje(bloques_destruidos, tiempo_ataque):
         if tiempo_ataque == 0 or bloques_destruidos==0:
             return 0  # división por cero
         media_armonica = 2 / ((0.5 / bloques_destruidos) + (0.5 / tiempo_ataque))
         return media_armonica
 
-    def calcular_puntaje_defensor(tiempo_defensa, bloques_restantes):
-        if tiempo_defensa == 0 or bloques_restantes==0:
-            return 0  #división por cero
-        media_armonica = 2 / ((0.5 / tiempo_defensa) + (0.5 / bloques_restantes))
-        return media_armonica
-
-    def determinar_ganador(puntaje_atacante, puntaje_defensor):
-        if puntaje_atacante > puntaje_defensor:
-            return "Atacante"
-        elif puntaje_defensor > puntaje_atacante:
-            return "Defensor"
-        else:
-            return "Empate"
-
-    # Ejemplo de uso
 
 
 
@@ -510,31 +496,12 @@ def game(lista):
                 self.image = pygame.transform.rotate(self.image_original, -self.angle)
                 self.rect = self.image.get_rect(center=self.rect.center)
     
-    obstaculos = pygame.sprite.Group()
-    # Definir el color del círculo (en RGB)
-    circle_color = (255, 0, 0)
-
-    # Suponiendo que tienes una variable llamada cantidad_circulos
-    cantidad_circulos = 7 
-
-
-    # Nuevas dimensiones del sprite
-    atacante = Atacante(screen_width // 2, screen_height // 2)
-    
-    proyectiles = pygame.sprite.Group()
-    todos_los_sprites = pygame.sprite.Group()  
-    obstaculos_activos = pygame.sprite.Group()
-    obstaculos_inactivos = pygame.sprite.Group()
-    mirilla = Mirilla(atacante, offset=(0, 0))
-    todos_los_sprites.add(mirilla)  
-    proyectil_velocidad = 5
-    running = True
     def agregarBloquesEstante(cant,x,y,texturaElem1,textura,bloque_img,tipo):
 
         for i in range(cant):
             obstaculos.add(Obstaculo(x-i*25,y,textura,bloque_img,tipo))
     
-       
+    
         m_x=0
         c_x=0
         p_x=0
@@ -560,254 +527,342 @@ def game(lista):
             if block != other_block and block.rect.colliderect(other_block.rect):
                 return True
         return False
-    obstaculodrag=None
-    offset_x, offset_y = 0, 0
-    dragging=False
-    ROJO_TRANSPARENTE = (255, 0, 0, 128)
-    agregarBloquesEstante(10,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
-    agregarBloquesEstante(10,150,screen_height//2-50,textura_piedraElem1,textura_piedra,obstaculoPiedra,"piedra")
-    agregarBloquesEstante(10,150,screen_height//2-150,textura_concretoElem1,textura_concreto,obstaculoConcreto,"concreto")
-
-    eagle_defeat = False
-    defensor_done=False
-    obs_done=False
-    tiempo_ataque_atacante = 30
-    tiempo_defensa_defensor = 40
+    esperando_tecla = True
+    TITLE_FONT = pygame.font.Font("font/KarmaFuture.ttf", 50)
+    FONT = pygame.font.Font("font/DejaVuSans.ttf", 20)
+    FONT_SEC = pygame.font.Font("font/DejaVuSans.ttf", 20)
+    running = True
+    ronda = 1
     puntajes_user1= []
     puntajes_user2= []
-    ronda = 1
-    obstaculos_destruidos = 0
-
-    # Definir la variable para almacenar el tiempo en segundos
-    tiempo_segundos = 0
-    selected_image_surface1 = load_selected_image(f'./profile_photos/{Usuario.getID(lista[0])}.png')  # Establecer la imagen inicial
-    selected_image_surface2 = load_selected_image(f'./profile_photos/{Usuario.getID(lista[1])}.png')  # Establecer la imagen inicial
-    #profile_surface.blit(selected_image_surface, (0, 0))
     while running:
-        screen.blit(fondo, (0, 0))
-       
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        
 
-            if event.type == pygame.MOUSEBUTTONDOWN and not eagle_defeat and defensor_done:
-                if event.button == 1:
-                    for obstaculo in obstaculos:
-                        if obstaculo.rect.collidepoint(event.pos):
-                            obstaculo.start_dragg()
-                            
-                            obstaculodrag = obstaculo
-                            
-                            dragging=True
-                            break
-                            
-            if event.type == pygame.MOUSEBUTTONDOWN and not eagle_defeat and not defensor_done:
-                if event.button == 1:
-                    mouse_x, mouse_y = event.pos
-                    if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
-                        defensor = Defensor(mouse_x- 42, mouse_y- 37)
-                        defensor_done=True
-                    
-            if event.type == pygame.MOUSEBUTTONUP and not eagle_defeat:
-                if event.button == 1:
-                    
-                    if obstaculodrag:
-                        dragging=False
-                        if not obstaculodrag.is_active:
-                            obstaculodrag.activate()
-                            obstaculodrag.stop_dragg()
-                            obstaculodrag.changeImg(event.pos)
+        obstaculos = pygame.sprite.Group()
+        # Definir el color del círculo (en RGB)
+        circle_color = (255, 0, 0)
+
+        # Suponiendo que tienes una variable llamada cantidad_circulos
+        cantidad_circulos = 7 
+
+
+        # Nuevas dimensiones del sprite
+        atacante = Atacante(screen_width // 2, screen_height // 2)
+        
+        proyectiles = pygame.sprite.Group()
+        todos_los_sprites = pygame.sprite.Group()  
+        obstaculos_activos = pygame.sprite.Group()
+        obstaculos_inactivos = pygame.sprite.Group()
+        mirilla = Mirilla(atacante, offset=(0, 0))
+        todos_los_sprites.add(mirilla)  
+        proyectil_velocidad = 5
+        
+        
+        obstaculodrag=None
+        offset_x, offset_y = 0, 0
+        dragging=False
+        ROJO_TRANSPARENTE = (255, 0, 0, 128)
+        agregarBloquesEstante(10,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
+        agregarBloquesEstante(10,150,screen_height//2-50,textura_piedraElem1,textura_piedra,obstaculoPiedra,"piedra")
+        agregarBloquesEstante(10,150,screen_height//2-150,textura_concretoElem1,textura_concreto,obstaculoConcreto,"concreto")
+
+        eagle_defeat = False
+        defensor_done=False
+        obs_done=False
+        tiempo_ataque_atacante = 300
+        tiempo_defensa_defensor = 300
+
+        
+        obstaculos_destruidos = 0
+
+        # Definir la variable para almacenar el tiempo en segundos
+        tiempo_segundos = 0
+        selected_image_surface1 = load_selected_image(f'./profile_photos/{Usuario.getID(lista[0])}.png')  # Establecer la imagen inicial
+        selected_image_surface2 = load_selected_image(f'./profile_photos/{Usuario.getID(lista[1])}.png')  # Establecer la imagen inicial
+        #profile_surface.blit(selected_image_surface, (0, 0))
+        score_saved=False
+        while ronda<=3:
+            print("obstaculos"+str(len(obstaculos)))
+            round_surface = TITLE_FONT.render("Login", True, PCBUTTON)  # Color blanco (#FFFFFF)
+            round_rect = round_surface.get_rect(center=(WIDTH // 2, 50))  # Ajusta las coordenadas según la posición que desees
+
+            print(ronda)
+            screen.blit(fondo, (0, 0))
+        
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    ronda=5
+                    running = False
+
+                if event.type == pygame.MOUSEBUTTONDOWN and not eagle_defeat and defensor_done:
+                    if event.button == 1:
+                        for obstaculo in obstaculos:
+                            if obstaculo.rect.collidepoint(event.pos):
+                                obstaculo.start_dragg()
+                                
+                                obstaculodrag = obstaculo
+                                
+                                dragging=True
+                                break
+                                
+                if event.type == pygame.MOUSEBUTTONDOWN and not eagle_defeat and not defensor_done:
+                    if event.button == 1:
                         mouse_x, mouse_y = event.pos
-                        #Verificar que no se coloque el bloque en el area enemiga
                         if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
-                            #obstaculodrag.image=obstaculodrag.obs_img
-                            if check_collision(obstaculodrag, obstaculos):
-                                obstaculodrag.imgBack()
-                                obstaculodrag.deactivate()
-                                obstaculodrag.changeImg(event.pos)
-                                obstaculodrag.rect.x=obstaculodrag.originalPosition[0]
-                                
-                                
-                                
-                               
-                                print('colision')
-                            obstaculodrag = None
-                        else:
-                            #obstaculodrag.image.fill(ROJO_TRANSPARENTE)
-                            obstaculodrag.filter_active()
-                            obstaculodrag.addFilter(obstaculodrag.image)
-                        # Clear the dragging flag
-
-
-            if event.type == pygame.MOUSEMOTION and not eagle_defeat:
-                if obstaculodrag:  # Check the dragging flag
+                            defensor = Defensor(mouse_x- 42, mouse_y- 37)
+                            defensor_done=True
                         
-                    obstaculodrag.rect.move_ip(event.rel)
+                if event.type == pygame.MOUSEBUTTONUP and not eagle_defeat:
+                    if event.button == 1:
+                        
+                        if obstaculodrag:
+                            dragging=False
+                            if not obstaculodrag.is_active:
+                                obstaculodrag.activate()
+                                obstaculodrag.stop_dragg()
+                                obstaculodrag.changeImg(event.pos)
+                            mouse_x, mouse_y = event.pos
+                            #Verificar que no se coloque el bloque en el area enemiga
+                            if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
+                                #obstaculodrag.image=obstaculodrag.obs_img
+                                if check_collision(obstaculodrag, obstaculos):
+                                    obstaculodrag.imgBack()
+                                    obstaculodrag.deactivate()
+                                    obstaculodrag.changeImg(event.pos)
+                                    obstaculodrag.rect.x=obstaculodrag.originalPosition[0]
+                                    
+                                    
+                                    
+                                
+                                    print('colision')
+                                obstaculodrag = None
+                            else:
+                                #obstaculodrag.image.fill(ROJO_TRANSPARENTE)
+                                obstaculodrag.filter_active()
+                                obstaculodrag.addFilter(obstaculodrag.image)
+                            # Clear the dragging flag
 
-            elif event.type == pygame.KEYDOWN and not eagle_defeat:
-       
-                if event.key == pygame.K_LSHIFT:  # Verifica si se presionó la tecla Shift derecha
-                    if obstaculodrag:
-                        obstaculodrag.rotate(45) 
 
-                if event.key == pygame.K_j and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
-                    if atacante.bolas_fuego>0:
-                        tip_x, tip_y = mirilla.get_tip_position()
-                        angle_rad = mirilla.angle
-                        proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "fuego")
-                        proyectil.sound.play()
-                        proyectiles.add(proyectil)
-                        atacante.lanzar_bola_fuego()
-                if event.key == pygame.K_k and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
-                    if atacante.bolas_agua>0:
-                        tip_x, tip_y = mirilla.get_tip_position()
-                        angle_rad = mirilla.angle
-                        proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "agua")
-                        proyectil.sound.play()
-                        proyectiles.add(proyectil)
-                        atacante.lanzar_bola_agua()
-                if event.key == pygame.K_l and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
-                    if atacante.bolas_polvora>0:
-                        tip_x, tip_y = mirilla.get_tip_position()
-                        angle_rad = mirilla.angle
-                        proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "polvora")
-                        proyectil.sound.play()
-                        proyectiles.add(proyectil)
-                        atacante.lanzar_bola_polvora()
+                if event.type == pygame.MOUSEMOTION and not eagle_defeat:
+                    if obstaculodrag:  # Check the dragging flag
+                            
+                        obstaculodrag.rect.move_ip(event.rel)
+
+                elif event.type == pygame.KEYDOWN and not eagle_defeat:
         
-        obstaculos_activos.empty()
-        for obstaculo in obstaculos:
-            if obstaculo.is_active:
-                obstaculos_activos.add(obstaculo)
-        obstaculos_inactivos.empty()
-        for obstaculo in obstaculos:
-            if not obstaculo.is_active:
-                obstaculos_inactivos.add(obstaculo)
+                    if event.key == pygame.K_LSHIFT:  # Verifica si se presionó la tecla Shift derecha
+                        if obstaculodrag:
+                            obstaculodrag.rotate(45) 
+
+                    if event.key == pygame.K_j and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
+                        if atacante.bolas_fuego>0:
+                            tip_x, tip_y = mirilla.get_tip_position()
+                            angle_rad = mirilla.angle
+                            proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "fuego")
+                            proyectil.sound.play()
+                            proyectiles.add(proyectil)
+                            atacante.lanzar_bola_fuego()
+                    if event.key == pygame.K_k and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
+                        if atacante.bolas_agua>0:
+                            tip_x, tip_y = mirilla.get_tip_position()
+                            angle_rad = mirilla.angle
+                            proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "agua")
+                            proyectil.sound.play()
+                            proyectiles.add(proyectil)
+                            atacante.lanzar_bola_agua()
+                    if event.key == pygame.K_l and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
+                        if atacante.bolas_polvora>0:
+                            tip_x, tip_y = mirilla.get_tip_position()
+                            angle_rad = mirilla.angle
+                            proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "polvora")
+                            proyectil.sound.play()
+                            proyectiles.add(proyectil)
+                            atacante.lanzar_bola_polvora()
+            
+            obstaculos_activos.empty()
+            for obstaculo in obstaculos:
+                if obstaculo.is_active:
+                    obstaculos_activos.add(obstaculo)
+            obstaculos_inactivos.empty()
+            for obstaculo in obstaculos:
+                if not obstaculo.is_active:
+                    obstaculos_inactivos.add(obstaculo)
+            
+            if len(obstaculos_activos)>=5:
+                    obs_done=True
+            
+            agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
+            colisiones = pygame.sprite.groupcollide(obstaculos_activos, proyectiles, True, True)
+            if defensor_done:
+                colisiones_defensor = pygame.sprite.spritecollide(defensor, proyectiles, True)
+                if colisiones_defensor:
+                    if proyectil.tipo=="agua":
+
+                        defensor.recibir_dano(1)
+                    elif proyectil.tipo=="fuego":
+                        defensor.recibir_dano(2)
+                    elif proyectil.tipo=="polvora":
+                        defensor.recibir_dano(4)
+
+                    if defensor.vida<=0:
+                        eagle_defeat=True
+
+            if colisiones:
+                pygame.mixer.Sound('sounds/explosion.mp3').play()
+                obstaculos_destruidos += len(colisiones)
+                print(obstaculos_destruidos)
+                # Verificar la vida del defensor
+
+        # agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
+            # Dibujar el atacante en la pantalla
+            screen.blit(flagsprite1[current_frame%len(flagsprite1)], (screen_width // 8*7 - 32, screen_height //8*2 - screen_height//10))
+            
+            screen.blit(atacante.image, atacante.rect)
+            atacante.update()
+            # Actualizar el águila
+            if eagle_defeat:
+                texto = font.render("El atacante ha ganado", True, (255, 255, 255))
+                puntos_atacante= tiempo_segundos
+                if ronda==1:
+                    texto = font.render("El defensor "+str(lista[1])+" ha ganado", True, (255, 255, 255))
+                    puntajes_user2.append(puntos_atacante)
+                elif ronda==2:
+                    texto = font.render("El defensor "+str(lista[0])+" ha ganado", True, (255, 255, 255))
+                    puntajes_user1.append(puntos_atacante)
+                elif ronda==3:
+                    texto = font.render("El defensor "+str(lista[1])+" ha ganado", True, (255, 255, 255))
+                    puntajes_user2.append(puntos_atacante)
+
+                if len(puntajes_user1)>1:
+                    puntuacion_media = calcular_puntaje(puntajes_user1[0],puntajes_user1[1])
+                    score = Score(lista[0],puntuacion_media)
+                    if not score_saved:
+                        score.save_data()
+                        score_saved=True
+                elif len(puntajes_user2)>1:
+                    puntuacion_media = calcular_puntaje(puntajes_user2[0],puntajes_user2[1])
+                    score = Score(lista[1],puntuacion_media)
+                    if not score_saved:
+                        score.save_data()
+                        score_saved=True
+                screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
+                if ronda<3:
+                    ronda = ronda+1
+                    break
+            elif tiempo_segundos>tiempo_defensa_defensor:
+                puntos_defensor= len(obstaculos)
+                if ronda==1:
+                    texto = font.render("El defensor "+str(lista[0])+" ha ganado", True, (255, 255, 255))
+                    puntajes_user1.append(puntos_defensor)
+                elif ronda==2:
+                    texto = font.render("El defensor "+str(lista[1])+" ha ganado", True, (255, 255, 255))
+                    puntajes_user2.append(puntos_defensor)
+                elif ronda==3:
+                    texto = font.render("El defensor "+str(lista[0])+" ha ganado", True, (255, 255, 255))
+                    puntajes_user1.append(puntos_defensor)
+
+                if len(puntajes_user1)>1:
+                    puntuacion_media = calcular_puntaje(puntajes_user1[0],puntajes_user1[1])
+                    score = Score(lista[0],puntuacion_media)
+                    if not score_saved:
+                        score.save_data()
+                        score_saved=True
+                elif len(puntajes_user2)>1:
+                    puntuacion_media = calcular_puntaje(puntajes_user2[0],puntajes_user2[1])
+                    score = Score(lista[1],puntuacion_media)
+                    if not score_saved:
+                        score.save_data()
+                        score_saved=True
+
+                
+                screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
+                if ronda<3:
+                    ronda = ronda+1
+                    break
+            if defensor_done:
+                obstaculos.draw(screen)
+                
+                defensor.update()
+                screen.blit(defensor.image, defensor.rect)
+                
+                    # Dibujar los proyectiles
+                proyectiles.update()
+                proyectiles.draw(screen)
+                
+            else:
+                
+                
+                texto = font.render("Coloca el águila en un punto estrategico", True, (255, 255, 255))
+                screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
+
+            if obs_done:
+                mirilla.update()
+                todos_los_sprites.update()
+                todos_los_sprites.draw(screen)
+            elif defensor_done:
+                
+                tiempo_segundos = pygame.time.get_ticks() // 1000
+                
+                texto = font.render("Coloca los obstaculos iniciales", True, (255, 255, 255))
+                screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
+
+            frame_counter += 1
+            if frame_counter >= animation_speed:
+                
+                frame_counter = 0  # Reiniciar el contador
+                current_frame = (current_frame + 1) % 100
+            # Calcular el tiempo en segundos transcurrido desde el inicio del juego
+            
+
+            # Mostrar el tiempo en la ventana del juego
+            font = pygame.font.Font(None, 36)  # Fuente y tamaño del texto
+            texto_tiempo = font.render("Tiempo: {} seg".format(tiempo_segundos), True, (255, 255, 255))  # Crear el texto
+            screen.blit(texto_tiempo, (10, 10))  # Mostrar el texto en la ventana en la posición (10, 10)
+            screen.blit(flagsprite2[current_frame%len(flagsprite2)], (screen_width // 8 - 32, screen_height //8*2 - screen_height//10))
+
+            screen.blit(flagsprite2[current_frame%len(flagsprite2)], (screen_width // 8 - 32, screen_height //8*7 - screen_height//10))
+            
+            screen.blit(flagsprite1[current_frame%len(flagsprite1)], (screen_width // 8*7 - 32, screen_height //8*7 - screen_height//10))
+            
+
+
+            screen.blit(campfiresprite[current_frame%len(campfiresprite)], (screen_width // 22*21 - 32, screen_height // 8*2))
+            screen.blit(campfiresprite[current_frame%len(campfiresprite)], (screen_width // 22*1.5 - 32, screen_height // 8*5.5))
+            screen.blit(layer, (0, 45))
+            screen.blit(powers_image, (screen_width - screen_width/8.5, screen_height // 2 - (screen_height/3.5)/3))
+            screen.blit(selected_image_surface1, (WIDTH//2-750, HEIGHT//2-520))
+            screen.blit(selected_image_surface2, (WIDTH//2+750, HEIGHT//2-520))
+                # Dibujar los círculos en el lado derecho de la pantalla
+            radio = 7  # Radio de los círculos
+            espacio_entre_circulos = 7  # Espacio entre los círculos
+            inicio_x = screen_width - screen_width/14
+
+            for i in range(atacante.bolas_fuego):
+                x = inicio_x + i * (2 * radio + espacio_entre_circulos)
+                y = screen_height // 2 - (screen_height/20)/4 +radio# Ajustar según tus necesidades
+                pygame.draw.circle(screen, circle_color, (x, y), radio)
+
+            for i in range(atacante.bolas_agua):
+                x = inicio_x + i * (2 * radio + espacio_entre_circulos)
+                y = screen_height // 1.8 - (screen_height/20)/5+radio# Ajustar según tus necesidades
+                pygame.draw.circle(screen, circle_color, (x, y), radio)
+            for i in range(atacante.bolas_polvora):
+                x = inicio_x + i * (2 * radio + espacio_entre_circulos)
+                y = screen_height // 1.63 - (screen_height/20)/5+radio# Ajustar según tus necesidades
+                pygame.draw.circle(screen, circle_color, (x, y), radio)
+            round_text = "Ronda " + str(ronda)
+            round_surface = TITLE_FONT.render(round_text, True, PCBUTTON)
+            screen.blit(round_surface, round_rect)
+            pygame.display.flip()
+            clock.tick(75)
+            # Crear un nuevo obstáculo si todos los obstáculos han sido destruidos
+            if not obstaculos:
+                nueva_posicion_x = pygame.display.get_surface().get_width() + obstaculo.rect.width
+                nueva_posicion_y = pygame.display.get_surface().get_height() // 2
+                obstaculo = Obstaculo(nueva_posicion_x, nueva_posicion_y)
+                obstaculos.add(obstaculo)
+
         
-        if len(obstaculos_activos)>=5:
-                obs_done=True
-        
-        agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
-        colisiones = pygame.sprite.groupcollide(obstaculos_activos, proyectiles, True, True)
-        if defensor_done:
-            colisiones_defensor = pygame.sprite.spritecollide(defensor, proyectiles, True)
-            if colisiones_defensor:
-                if proyectil.tipo=="agua":
-
-                    defensor.recibir_dano(1)
-                elif proyectil.tipo=="fuego":
-                    defensor.recibir_dano(2)
-                elif proyectil.tipo=="polvora":
-                    defensor.recibir_dano(4)
-
-                if defensor.vida<=0:
-                    eagle_defeat=True
-
-        if colisiones:
-            pygame.mixer.Sound('sounds/explosion.mp3').play()
-            obstaculos_destruidos += len(colisiones)
-            print(obstaculos_destruidos)
-            # Verificar la vida del defensor
-
-       # agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
-        # Dibujar el atacante en la pantalla
-        screen.blit(flagsprite1[current_frame%len(flagsprite1)], (screen_width // 8*7 - 32, screen_height //8*2 - screen_height//10))
-        
-        screen.blit(atacante.image, atacante.rect)
-        atacante.update()
-        # Actualizar el águila
-        if eagle_defeat:
-            texto = font.render("El atacante ha ganado", True, (255, 255, 255))
-            puntaje_atacante = calcular_puntaje_atacante(10,tiempo_segundos)
-            puntaje_defensor = calcular_puntaje_defensor(tiempo_segundos,len(obstaculos_inactivos))
-            screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
-        elif tiempo_segundos>tiempo_defensa_defensor:
-            puntaje_atacante = calcular_puntaje_atacante(obstaculos_destruidos,tiempo_segundos)
-            puntaje_defensor = calcular_puntaje_defensor(tiempo_segundos,len(obstaculos_inactivos))
-            texto = font.render("El defensor ha ganado"+str(puntaje_defensor)+","+str(puntaje_atacante), True, (255, 255, 255))
-            screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
-        if defensor_done:
-            obstaculos.draw(screen)
-            
-            defensor.update()
-            screen.blit(defensor.image, defensor.rect)
-            
-                # Dibujar los proyectiles
-            proyectiles.update()
-            proyectiles.draw(screen)
-            
-        else:
-            
-            
-            texto = font.render("Coloca el águila en un punto estrategico", True, (255, 255, 255))
-            screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
-
-        if obs_done:
-            mirilla.update()
-            todos_los_sprites.update()
-            todos_los_sprites.draw(screen)
-        elif defensor_done:
-            
-            
-            texto = font.render("Coloca los obstaculos iniciales", True, (255, 255, 255))
-            screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
-
-        frame_counter += 1
-        if frame_counter >= animation_speed:
-            
-            frame_counter = 0  # Reiniciar el contador
-            current_frame = (current_frame + 1) % 100
-        # Calcular el tiempo en segundos transcurrido desde el inicio del juego
-        tiempo_segundos = pygame.time.get_ticks() // 1000
-
-        # Mostrar el tiempo en la ventana del juego
-        font = pygame.font.Font(None, 36)  # Fuente y tamaño del texto
-        texto_tiempo = font.render("Tiempo: {} seg".format(tiempo_segundos), True, (255, 255, 255))  # Crear el texto
-        screen.blit(texto_tiempo, (10, 10))  # Mostrar el texto en la ventana en la posición (10, 10)
-        screen.blit(flagsprite2[current_frame%len(flagsprite2)], (screen_width // 8 - 32, screen_height //8*2 - screen_height//10))
-
-        screen.blit(flagsprite2[current_frame%len(flagsprite2)], (screen_width // 8 - 32, screen_height //8*7 - screen_height//10))
-        
-        screen.blit(flagsprite1[current_frame%len(flagsprite1)], (screen_width // 8*7 - 32, screen_height //8*7 - screen_height//10))
-        
-
-
-        screen.blit(campfiresprite[current_frame%len(campfiresprite)], (screen_width // 22*21 - 32, screen_height // 8*2))
-        screen.blit(campfiresprite[current_frame%len(campfiresprite)], (screen_width // 22*1.5 - 32, screen_height // 8*5.5))
-        screen.blit(layer, (0, 45))
-        screen.blit(powers_image, (screen_width - screen_width/8.5, screen_height // 2 - (screen_height/3.5)/3))
-        screen.blit(selected_image_surface1, (WIDTH//2-750, HEIGHT//2-520))
-        screen.blit(selected_image_surface2, (WIDTH//2+750, HEIGHT//2-520))
-            # Dibujar los círculos en el lado derecho de la pantalla
-        radio = 7  # Radio de los círculos
-        espacio_entre_circulos = 7  # Espacio entre los círculos
-        inicio_x = screen_width - screen_width/14
-
-        for i in range(atacante.bolas_fuego):
-            x = inicio_x + i * (2 * radio + espacio_entre_circulos)
-            y = screen_height // 2 - (screen_height/20)/4 +radio# Ajustar según tus necesidades
-            pygame.draw.circle(screen, circle_color, (x, y), radio)
-
-        for i in range(atacante.bolas_agua):
-            x = inicio_x + i * (2 * radio + espacio_entre_circulos)
-            y = screen_height // 1.8 - (screen_height/20)/5+radio# Ajustar según tus necesidades
-            pygame.draw.circle(screen, circle_color, (x, y), radio)
-        for i in range(atacante.bolas_polvora):
-            x = inicio_x + i * (2 * radio + espacio_entre_circulos)
-            y = screen_height // 1.63 - (screen_height/20)/5+radio# Ajustar según tus necesidades
-            pygame.draw.circle(screen, circle_color, (x, y), radio)
-        
-        pygame.display.flip()
-        clock.tick(75)
-        # Crear un nuevo obstáculo si todos los obstáculos han sido destruidos
-        if not obstaculos:
-            nueva_posicion_x = pygame.display.get_surface().get_width() + obstaculo.rect.width
-            nueva_posicion_y = pygame.display.get_surface().get_height() // 2
-            obstaculo = Obstaculo(nueva_posicion_x, nueva_posicion_y)
-            obstaculos.add(obstaculo)
-
     pygame.quit()
 
-if __name__ == "__main__":
-    game()
 
