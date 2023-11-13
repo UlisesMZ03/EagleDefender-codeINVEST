@@ -181,8 +181,11 @@ class Usuario:
         cursor=conn.cursor()
         cursor.execute('select age from usuarios where id=?',(id,))
         result = cursor.fetchall()
+        #result=eval(result[0][0])
+        #result=Usuario.decrypt(result)
         result=result[0][0]
         conn.close()
+
         return result
     @staticmethod
     def getUsername(id):
@@ -261,8 +264,7 @@ class Usuario:
     def updateAge(id,newValue):
         conn=sqlite3.connect(Usuario.db_path)
         cursor=conn.cursor()
-        newValue= Usuario._encrypt_data(newValue)
-        cursor.execute('update usuarios set ege=? where usuarios.id=?',(str(newValue),id))
+        cursor.execute('update usuarios set age=? where usuarios.id=?',(newValue,id))
         conn.commit()
         conn.close()
         return True
@@ -329,7 +331,13 @@ class Musica():
             return True
         except:
             return False
-        
+    def count_song_user(user_id):
+        con = sqlite3.connect(Musica.db_path)
+        cursor =con.cursor()
+        cursor.execute("SELECT COUNT(*) FROM musica WHERE id_user=?", (user_id,))
+        count = cursor.fetchone()[0]
+        con.close()
+        return count
     
 
 

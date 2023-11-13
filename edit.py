@@ -5,17 +5,17 @@ from Button import Button
 import sys
 from chooseMusic import list_music
 from showMessage import mostrar_mensaje_error
-def edit(id,screen,username,width,height,updateFunct,Titulo,mensaje):
+from objectbasedata import Musica
+def edit(id,screen,username,width,height,updateFunct,Titulo,mensaje,validateFunct,data,validateError):
     pygame.init()
     screen_info = pygame.display.Info()
-    FONTEdit = pygame.font.Font("font/DejaVuSans.ttf", 10)
+    FONTEdit = pygame.font.Font("font/DejaVuSans.ttf", 30)
     BACKGROUND = '#005b4d'
     PCBUTTON = '#01F0BF'
     SCBUTTON = '#00A383'
     TCBUTTOM = '#006350'
-    FONT = pygame.font.Font("font/DejaVuSans.ttf", 20)
+    FONT = pygame.font.Font("font/DejaVuSans.ttf", 40)
 
-    WIDTH, HEIGHT = screen_info.current_w, screen_info.current_h
     window = pygame.display.set_mode((width,height))
     pygame.display.set_caption(f"{Titulo}")
 
@@ -23,10 +23,10 @@ def edit(id,screen,username,width,height,updateFunct,Titulo,mensaje):
     iconEsc=pygame.image.load("./images/game/escIcon.png")
     iconEsc=pygame.transform.scale(iconEsc, (50,50))
     iconEscRect=iconEsc.get_rect()
-    iconEscRect.topleft=(WIDTH//2+300,HEIGHT//5-10)
+    iconEscRect.topleft=(width//2+300,height//5-10)
     
 
-    buton_email=Button('Editar',50,20,(WIDTH/3+150,HEIGHT/14.4*3+80),5,SCBUTTON,FONTEdit)
+    buton_email=Button('Editar',100,40,(width/3+400,height//2-40),5,SCBUTTON,FONTEdit)
     running = True
     while running:
         window.fill(BACKGROUND)
@@ -42,9 +42,17 @@ def edit(id,screen,username,width,height,updateFunct,Titulo,mensaje):
                 if buton_email.top_rect.collidepoint(mouse_pos):
                     newValue = input.get_text()
                     #Usuario.updateEmail(id,new_email)
-                    response=updateFunct(id,newValue)
-                    if response==-1:
-                        mostrar_mensaje_error(f"Usuario {username}",mensaje , PCBUTTON, SCBUTTON,window,width,height)
+                    if validateFunct==None:
+                        response=updateFunct(id,newValue)
+                        if response==-1:
+                            mostrar_mensaje_error(f"Usuario {username}",mensaje , PCBUTTON, SCBUTTON,window,width,height)
+                    elif not validateFunct(newValue):
+                        mostrar_mensaje_error(f'Invalid {data}',validateError,PCBUTTON,SCBUTTON,window,width,height)
+                        
+                    else:
+                        response=updateFunct(id,newValue)
+                        if response==-1:
+                            mostrar_mensaje_error(f"Usuario {username}",mensaje , PCBUTTON, SCBUTTON,window,width,height)
 
                 elif iconEscRect.collidepoint(mouse_pos):
                     running=False
@@ -123,13 +131,22 @@ def editsong(id,screen,username,width,height,updateFunct,name,artist,Titulo):
 
                 elif add_music_button.top_rect.collidepoint(event.pos):
                     music=set_music[i]
-                   
                     newName=music["name_song"]
                     
                     newArtist=music['name_artist']
                     
                     newUrl=music['url']
-                    print('resultado del update musica',updateFunct(id,newName,newArtist,newUrl,name,artist))
+                    print(newName,newArtist,newUrl)
+                    if name=="" and artist=="":
+                        print("vacio")
+                        if Musica.count_song_user(id)==3:
+                            print("ya tienes el limite en las canciones")
+                        else:
+                            newMusic=Musica(id,newName,newArtist,newUrl)
+                            newMusic.save_data()
+                        
+                    else:    
+                        print('resultado del update musica',updateFunct(id,newName,newArtist,newUrl,name,artist))
 
                 elif iconEscRect.collidepoint(mouse_pos):
                     running=False
