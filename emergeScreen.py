@@ -8,9 +8,10 @@ class screenEmer():
         self.rect=self.surface.get_rect()
         self.rect.center=(width//2,height//2)
         self.screen=screen
-    def show(self,screen):
-        self.screen.blit(self.surface,self.rect.topleft)
-        return self.screen
+    def surfaceEmer(self):
+        return self.surface
+    def show(self,x,y):
+        self.screen.blit(self.surface,(x,y))
     def hidden(self):
         self.rect.topleft=(-self.width,-self.heigth)
                

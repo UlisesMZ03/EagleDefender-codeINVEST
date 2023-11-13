@@ -20,7 +20,7 @@ def list_music(song):
     sp=Spotify(client_credentials_manager=SpotifyClientCredentials(CLIENT_ID,CLIENT_SECRET))
 
     result=sp.search(song)
-    print(result)
+    
     for i in range(0,len(result['tracks']['items'])):
         dato=result['tracks']['items'][i]
         List_song=[{'name_artist':dato['artists'][0]['name'], 'name_song':song , 'url': dato['uri']}] + List_song

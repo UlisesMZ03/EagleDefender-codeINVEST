@@ -250,11 +250,8 @@ def hex_to_rgb(hex_color):
 
 
 
-
-local_mp_button = Button('Local Multiplayer',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,HEIGHT//60*25),5,SCBUTTON)
-local_button = Button('Local',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,HEIGHT//60*20),5,SCBUTTON)
-online_button = Button('Online',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,HEIGHT//60*30),5,SCBUTTON)
-instructions = Button('Instructions',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,HEIGHT//60*35),5,SCBUTTON)
+local_button = Button('Play',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,HEIGHT//60*25),5,SCBUTTON)
+instructions = Button('Instructions',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,HEIGHT//60*30),5,SCBUTTON)
 
 
 #############
@@ -262,7 +259,7 @@ instructions = Button('Instructions',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,
 
 mute_button = Button('Mute', 100, 40,((WIDTH/20)*18,HEIGHT//20*18), 5, SCBUTTON)
 
-hall_of_fame_button = Button('Hall of fame',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,HEIGHT//60*40),5,SCBUTTON)
+hall_of_fame_button = Button('Hall of fame',(WIDTH/60)*16,40,((WIDTH//2)-WIDTH/60*16/2,HEIGHT//60*35),5,SCBUTTON)
 
 def menu_screen():
     running = True
@@ -302,8 +299,7 @@ def menu_screen():
                
                 elif mute_button.top_rect.collidepoint(mouse_pos):
                      toggle_mute()
-                elif online_button.top_rect.collidepoint(mouse_pos):
-                    pass
+         
                             
 
         win.fill(BACKGROUND)
@@ -319,8 +315,7 @@ def menu_screen():
 
         
         local_button.draw(PCBUTTON,SCBUTTON)
-        local_mp_button.draw(PCBUTTON,SCBUTTON)
-        online_button.draw(PCBUTTON,SCBUTTON)
+
         hall_of_fame_button.draw(PCBUTTON,SCBUTTON)
         mute_button.draw(PCBUTTON,SCBUTTON)
         instructions.draw(PCBUTTON,SCBUTTON)

@@ -9,7 +9,9 @@ import sys
 import os
 from emergeScreen import screenEmer
 from rect_redon import crear_rectangulo_redondeado
-from ImgRedon import cargar_imagen_redondeada
+from edit import edit,editsong
+#from ImgRedon import cargar_imagen_redondeada
+
 
 def editScreen(username):
     pygame.init()
@@ -32,7 +34,11 @@ def editScreen(username):
     #camera_image = None  # Inicializar la imagen de la cámara fuera del bucle princUIDal
     #initial_image_surface = pygame.transform.scale(image_pp, (camera_preview_rect.width, camera_preview_rect.height))
 
-
+    iconEsc=pygame.image.load("./images/game/escIcon.png")
+    iconEsc=pygame.transform.scale(iconEsc, (50,50))
+    iconEscRect=iconEsc.get_rect()
+    iconEscRect.topleft=(WIDTH//2+100,HEIGHT//5-10)
+    
     profile_surface = pygame.Surface((camera_preview_rect.width, camera_preview_rect.height))
     profile_surface.fill(SCBUTTON)
 
@@ -70,9 +76,9 @@ def editScreen(username):
         nameArtis=Musica.NameArtist(id)
         list_input_song=[]
         number=len(nameArtis[0])
-        print(nameArtis)
+       
         for i in range(3):
-            print(i)
+        
             if number==i:
                 list_input_song.append('')
                 return list_input_song
@@ -86,7 +92,7 @@ def editScreen(username):
             lista_input_song.append(TextInputBox(WIDTH/3, HEIGHT/14.4*9+20*i, WIDTH/7*2, 40, PCBUTTON,SCBUTTON,f'song:{nameArtis[0][i]}'))
         return lista_input_song,list_title_song"""
     song_input=countMusic(username)
-    print(f'llamada a la base de datos {song_input}')
+   
     id=Usuario.getID(username)
     email=Usuario.getEmail(id)
     name=Usuario.getName(id)
@@ -140,40 +146,13 @@ def editScreen(username):
     
     buton_email=Button('Editar',50,20,(WIDTH/3+150,HEIGHT/14.4*3+80),5,SCBUTTON,FONTEdit)
     buton_name=Button('Editar',50,20,(WIDTH/3+150,HEIGHT/14.4*3+120),5,SCBUTTON,FONTEdit)
-    buton_age=Button('Editar',50,20,(WIDTH/3+150,HEIGHT/14.4*3+160),5,SCBUTTON,FONTEdit)
-    buton_username=Button('Editar',50,20,(WIDTH/3+150,HEIGHT/14.4*3+200),5,SCBUTTON,FONTEdit)
+    buton_age=Button('Editar age',50,20,(WIDTH/3+150,HEIGHT/14.4*3+160),5,SCBUTTON,FONTEdit)
+    buton_username=Button('Editar username',50,20,(WIDTH/3+150,HEIGHT/14.4*3+200),5,SCBUTTON,FONTEdit)
     buton_password=Button('Editar',50,20,(WIDTH/3+150,HEIGHT/14.4*3+240),5,SCBUTTON,FONTEdit)
     buton_confirmpassword=Button('Editar',50,20,(WIDTH/3+150,HEIGHT/14.4*3+280),5,SCBUTTON,FONTEdit)
     buton_song1=Button('Editar',50,20,(WIDTH/3+150,HEIGHT/14.4*3+320),5,SCBUTTON,FONTEdit)
     buton_song2=Button('Editar',50,20,(WIDTH/3+150,HEIGHT/14.4*3+360),5,SCBUTTON,FONTEdit)
     buton_song3=Button('Editar',50,20,(WIDTH/3+150,HEIGHT/14.4*3+400),5,SCBUTTON,FONTEdit)
-
-    def updateEmail(id):
-        wind=screenEmer(400,400,win)
-        canvas=wind.show()
-        email_input.draw(canvas)
-        
-
-        #Usuario.updateEmail(id,email)
-    def updateName(id):
-        Usuario.updateName(id,name)
-    def updatePassword(id):
-        #Usuario.updatePassword(id,password)
-        pass
-    def updateUsername(id):
-        Usuario.updateUsername(id,username)
-    def updateAge(id):
-        Age=15
-        Usuario.updateAge(id,Age)
-    def updateSong1(id,Age):
-        pass
-        #Musica.updateEmail(id,email)
-    def updateSong2(id,song2):
-        pass
-        #Musica.updateSong2(id,song2)
-    def updateSong3(id,song3):
-        pass
-        #Musica.updateSong3(id,song3)
 
     font = pygame.font.Font(None, 30)
    
@@ -184,8 +163,12 @@ def editScreen(username):
     
     #selected_image_surface=cargar_imagen_redondeada(selected_image_surface,500,500)
     #profile_surface.blit(selected_image_surface, (0, 0))
+    #ventana_correo = screenEmer(400, 400, win)
+    #lienzo_correo = ventana_correo.surfaceEmer()
     while running:
         win.fill(BACKGROUND)
+        crear_rectangulo_redondeado(hex_to_rgb(SCBUTTON),WIDTH/7+10, HEIGHT/14.4*3-20, WIDTH/7*3+50, HEIGHT/14.4*8+100,15,alpha=200,win=win)
+        crear_rectangulo_redondeado(hex_to_rgb(TCBUTTOM),WIDTH/7+30, HEIGHT/14.4*3+50, WIDTH/7*3, HEIGHT/14.4*8,15,alpha=200,win=win)
         time_delta = pygame.time.Clock().tick(60)/1000.0
         for event in pygame.event.get():
             email_input.handle_event(event,PCBUTTON,SCBUTTON)
@@ -198,6 +181,7 @@ def editScreen(username):
             song3_input.handle_event(event,PCBUTTON,SCBUTTON)
            
            
+
             manager.process_events(event)
     
             
@@ -207,23 +191,33 @@ def editScreen(username):
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
                 if buton_email.top_rect.collidepoint(mouse_pos):
-                    updateEmail(id)
+                    print("email")
+                    edit(id,editScreen,username,WIDTH,HEIGHT,Usuario.updateEmail,"EDITAR EMAIL","This email is already taken. Please choose another one.")
                 elif buton_name.top_rect.collidepoint(mouse_pos):
-                    updateName(id)
-                elif buton_username.top_rect.collidepoint(mouse_pos):
-                    updateUsername(id)
-                elif buton_password.top_rect.collidepoint(mouse_pos):
-                    updatePassword(id)
+                    print("name") 
+                    edit(id,editScreen,username,WIDTH,HEIGHT,Usuario.updateName,"EDITAR Name")
                 elif buton_age.top_rect.collidepoint(mouse_pos):
-                    updateAge(id)
-                if buton_email.top_rect.collidepoint(mouse_pos):
-                    updateEmail()
+                    edit(id,editScreen,username,WIDTH,HEIGHT,Usuario.updateAge,"EDITAR Age")
+                elif buton_username.top_rect.collidepoint(mouse_pos):
+                    edit(id,editScreen,username,WIDTH,HEIGHT,Usuario.updateUsername,"EDITAR Username","This username is already taken. Please choose another one")
+                elif buton_song1.top_rect.collidepoint(mouse_pos):
+                    editsong(id,editScreen,username,WIDTH,HEIGHT,Musica.upadateSong,Musica.NameArtist(id)[0][0],Musica.NameArtist(id)[0][1],"EDITAR cancion")
+                elif buton_song2.top_rect.collidepoint(mouse_pos):
+                    editsong(id,editScreen,username,WIDTH,HEIGHT,Musica.upadateSong,Musica.NameArtist(id)[1][0],Musica.NameArtist(id)[1][1],"EDITAR cancion")
+                elif buton_song3.top_rect.collidepoint(mouse_pos):
+                    editsong(id,editScreen,username,WIDTH,HEIGHT,Musica.upadateSong,Musica.NameArtist(id)[2][0],Musica.NameArtist(id)[2][1],"EDITAR cancion")
                 
-        crear_rectangulo_redondeado(hex_to_rgb(SCBUTTON),WIDTH/7-10, HEIGHT/14.4*3-10, WIDTH/7*3+50, HEIGHT/14.4*8,15,alpha=200,win=win)
-        crear_rectangulo_redondeado(hex_to_rgb(TCBUTTOM),WIDTH/7+30, HEIGHT/14.4*3+50, WIDTH/7*3, HEIGHT/14.4*8,15,alpha=200,win=win)
+    
+                elif iconEscRect.collidepoint(mouse_pos):
+                    print('icon')
+                    running=False
+
+                    sys.exit()      
+                  
+       
         #(hex_to_rgb(BACKGROUND),(WIDTH//60*25), 7, ((WIDTH//60)*11), (80),15,alpha=95,win=win)
         
-        cargar_imagen_redondeada(selected_image_surface,win,100,100,selected_image_surface.get_width(),selected_image_surface.get_height())
+        #cargar_imagen_redondeada(selected_image_surface,win,100,100,selected_image_surface.get_width(),selected_image_surface.get_height())
    
         email_input.update()
         age_input.update()
@@ -248,6 +242,8 @@ def editScreen(username):
         win.blit(song1_surface, song1_rect)
         win.blit(song2_surface, song2_rect)
         win.blit(song3_surface, song3_rect)
+        win.blit(iconEsc,iconEscRect)
+        #win.blit(lienzo_correo, (100, 200))
         """
         email_input.draw(win)
         age_input.draw(win)
@@ -261,9 +257,9 @@ def editScreen(username):
         Edit_button.draw(PCBUTTON,TCBUTTOM,win)
         win.blit(selected_image_surface, (camera_preview_rect.x+200, camera_preview_rect.y)) 
        
-        # Actualizar pygame_gui
+        # Actualizar pygame_gui"""
         manager.update(time_delta)
-        manager.draw_ui(win)"""
+        manager.draw_ui(win)
         buton_email.draw(PCBUTTON,TCBUTTOM,win)
         buton_name.draw(PCBUTTON,TCBUTTOM,win)
         buton_username.draw(PCBUTTON,TCBUTTOM,win)

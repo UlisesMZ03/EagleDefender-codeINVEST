@@ -217,35 +217,52 @@ class Usuario:
     def updateEmail(id,newValue):
         conn=sqlite3.connect(Usuario.db_path)
         cursor=conn.cursor()
-        cursor.execute('update usuarios set email=? where usuarios.id=?',(newValue,id))
-        conn.commit()
-        conn.close()
+        newValue= Usuario._encrypt_data(newValue)
+        cursor.execute('''SELECT * FROM usuarios WHERE email = ?''', (str(newValue),))
+        existing_Email = cursor.fetchone()
+        if existing_Email:
+            return -1
+        else:
+            cursor.execute('update usuarios set email=? where usuarios.id=?',(str(newValue),id))
+            conn.commit()
+            conn.close()
+            return 1
         return True
     def updateName(id,newValue):
         conn=sqlite3.connect(Usuario.db_path)
         cursor=conn.cursor()
-        cursor.execute('update usuarios set email=? where usuarios.id=?',(newValue,id))
+        newValue= Usuario._encrypt_data(newValue)
+        cursor.execute('update usuarios set name=? where usuarios.id=?',(str(newValue),id))
         conn.commit()
         conn.close()
         return True
     def updateUsername(id,newValue):
         conn=sqlite3.connect(Usuario.db_path)
         cursor=conn.cursor()
-        cursor.execute('update usuarios set username=? where usuarios.id=?',(newValue,id))
-        conn.commit()
-        conn.close()
-        return True
+        
+        newValue= Usuario._encrypt_data(newValue)
+        cursor.execute('''SELECT * FROM usuarios WHERE username = ?''', (str(newValue),))
+        existing_username = cursor.fetchone()
+        if existing_username:
+            return -1
+        else:
+            cursor.execute('update usuarios set username=? where usuarios.id=?',(str(newValue),id))
+            conn.commit()
+            conn.close()
+            return 1
     def updatePassword(id,newValue):
         conn=sqlite3.connect(Usuario.db_path)
         cursor=conn.cursor()
-        cursor.execute('update usuarios set password=? where usuarios.id=?',(newValue,id))
+        newValue= Usuario._encrypt_data(newValue)
+        cursor.execute('update usuarios set password=? where usuarios.id=?',(str(newValue),id))
         conn.commit()
         conn.close()
         return True
     def updateAge(id,newValue):
         conn=sqlite3.connect(Usuario.db_path)
         cursor=conn.cursor()
-        cursor.execute('update usuarios set ege=? where usuarios.id=?',(newValue,id))
+        newValue= Usuario._encrypt_data(newValue)
+        cursor.execute('update usuarios set ege=? where usuarios.id=?',(str(newValue),id))
         conn.commit()
         conn.close()
         return True
@@ -294,7 +311,26 @@ class Musica():
         result = cursor.fetchall()
         conn.close()
         return result
+    def updatePassword(id,name,artista,url):
+        conn=sqlite3.connect(Musica.db_path)
+        cursor=conn.cursor()
+        #newValue= Usuario._encrypt_data(newValue)
+        cursor.execute('update musica set name=? aritista=? url=? where usuarios.id=?',(name,artista,url,id))
+        conn.commit()
+        conn.close()
+        return True
+    def upadateSong(id,newName,newArtist,newUrl,nameBefore,artistaBefore):
+        conn=sqlite3.connect(Usuario.db_path)
+        cursor=conn.cursor()
+        try:
+            cursor.execute('UPDATE musica SET name = ?, artista = ?, url = ? WHERE id_user = ? AND name = ? AND artista = ?', (newName, newArtist, newUrl, id, nameBefore, artistaBefore))
+            conn.commit()
+            conn.close()
+            return True
+        except:
+            return False
         
+    
 
 
 
@@ -338,12 +374,6 @@ class Score():
 
         conn.close()
         return top_scores
-    def upadateSong(id,newValue):
-        conn=sqlite3.connect(Usuario.db_path)
-        cursor=conn.cursor()
-        cursor.execute('update usuarios set password=? where musica.id=?',(newValue,id))
-        conn.commit()
-        conn.close()
-        return True
+   
 
 
