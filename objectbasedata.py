@@ -285,7 +285,11 @@ class Musica():
         cursor.execute('select url from usuarios inner join musica on usuarios.id=musica.id_user where usuarios.id=?',(id,))
         result = cursor.fetchall()
         conn.close()
-        return result
+        if not result:
+            # Si la lista de resultados está vacía, el usuario no tiene música
+            return False
+        else:
+            return result
     @staticmethod
     def NameArtist(id):
         conn=sqlite3.connect(Usuario.db_path)
