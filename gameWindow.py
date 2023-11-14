@@ -16,7 +16,8 @@ import webbrowser
 import os
 import time
 import numpy as np
-
+import threading
+import serial
 def game(lista):
     pygame.init()
     pygame.mixer.init()
@@ -26,8 +27,8 @@ def game(lista):
     SCBUTTON = '#00A383'
     TCBUTTOM = '#006350'
     screen_info = pygame.display.Info()
-    
-
+    global signal
+    signal=0
     font = pygame.font.Font("font/KarmaFuture.ttf", 36)
     # Configuración de la pantalla
     screen_width, screen_height = screen_info.current_w, screen_info.current_h
@@ -178,7 +179,7 @@ def game(lista):
         musica_user = Musica.getMusic(username1)
         if musica_user:
             
-            print(musica_user)
+
 
             size = len(musica_user)
             n = random.randint(0, size - 1)
@@ -207,7 +208,48 @@ def game(lista):
             pyautogui.hotkey("win", "down")  # Esto funciona en Windows para minimizar la ventana
 
 
+    def receive_data_from_uart():
+        def uart_thread_function():
+            # Puertos serie para Linux y Windows
+            SERIAL_PORTS = []
 
+            # Puertos serie en Linux
+            linux_serial_ports = ['/dev/ttyACM0', '/dev/ttyACM1', '/dev/ttyACM2', '/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyS0', '/dev/ttyS1']
+
+            # Puertos serie en Windows (los nombres pueden variar)
+            windows_serial_ports = ['COM1', 'COM2', 'COM3', 'COM4']
+
+            # Agregar puertos serie de Linux a la lista
+            SERIAL_PORTS.extend(linux_serial_ports)
+
+            # Agregar puertos serie de Windows a la lista
+            SERIAL_PORTS.extend(windows_serial_ports)
+
+            BAUD_RATE = 9600
+            global signal
+            
+            while True:  # Bucle infinito para seguir escuchando
+                for port in SERIAL_PORTS:
+                    try:
+                        with serial.Serial(port, BAUD_RATE) as ser:
+                            print(f"Conectado a {port}")
+                            while True:  # Bucle infinito para leer datos
+                                data_received = ser.readline().decode().strip()
+                                print(data_received)
+                                if data_received != 'None':
+                                    # Realizar alguna acción con los datos recibidos si es necesario
+                                 signal = data_received
+                                
+                    except serial.SerialException:
+                        pass  # Puedes agregar manejo de errores aquí si es necesario
+
+        # Creamos un hilo para ejecutar uart_thread_function()
+        uart_thread = threading.Thread(target=uart_thread_function)
+        
+        # Iniciamos el hilo
+        uart_thread.start()
+ 
+    
         
     def load_selected_image(image_path):
         if os.path.exists(image_path):
@@ -253,7 +295,7 @@ def game(lista):
             self.is_active = True
 
         def deactivate(self):
-            print("desactivado")
+   
             # Logic to deactivate/unplace the object
             self.is_active = False
         def addFilter(self,image):
@@ -329,7 +371,6 @@ def game(lista):
             return pygame.transform.scale(sprite_original, (int(nuevo_ancho_aguila), int(nuevo_alto_aguila)))
 
         def recibir_dano(self, dano):
-            print(self.vida)
             self.vida -= dano
 
 
@@ -345,7 +386,7 @@ def game(lista):
             super().__init__()
             self.sprite_width = 32
             self.sprite_height = 32
-            self.sprite_speed = 3
+            self.sprite_speed = 12
             self.sprite_index = 1
             self.spritesheet = pygame.image.load("images/game/spritesheet.png")
             self.spritesheet.set_colorkey((255, 0, 255))
@@ -390,45 +431,86 @@ def game(lista):
             return pygame.transform.scale(sprite_original, (nuevo_ancho, nuevo_alto))
 
         def update(self):
-            
+            global signal
+            global proyectil
             keys = pygame.key.get_pressed()
-
-            if keys[pygame.K_w] and keys[pygame.K_d] and not eagle_defeat:
+            
+            if keys[pygame.K_w] and keys[pygame.K_d] or signal=="Pressed buttons: ['up', 'right']" and not eagle_defeat:
                 self.rect.y -= self.sprite_speed
                 self.rect.x += self.sprite_speed
                 self.current_direction = UPRIGHT
                 self.sprite_index+=1
-            elif keys[pygame.K_w] and keys[pygame.K_a] and not eagle_defeat:
+                signal=0
+            elif keys[pygame.K_w] and keys[pygame.K_a] or signal=="Pressed buttons: ['up', 'left']" and not eagle_defeat:
                 self.rect.y -= self.sprite_speed
                 self.rect.x -= self.sprite_speed
                 self.current_direction = UPLEFT
                 self.sprite_index+=1
-            elif keys[pygame.K_s] and keys[pygame.K_d] and not eagle_defeat:
+                signal=0
+            elif keys[pygame.K_s] and keys[pygame.K_d] or signal=="Pressed buttons: ['down', 'right']" and not eagle_defeat:
                 self.rect.y += self.sprite_speed
                 self.rect.x += self.sprite_speed
                 self.current_direction = DOWNRIGHT
                 self.sprite_index+=1
-            elif keys[pygame.K_s] and keys[pygame.K_a] and not eagle_defeat:
+                signal=0
+            elif keys[pygame.K_s] and keys[pygame.K_a] or signal=="Pressed buttons: ['down', 'left']" and not eagle_defeat:
                 self.rect.y += self.sprite_speed
                 self.rect.x -= self.sprite_speed
                 self.current_direction = DOWNLEFT
                 self.sprite_index+=1
-            elif keys[pygame.K_w] and not eagle_defeat:
+                signal=0
+            elif keys[pygame.K_w] or signal=="Pressed buttons: ['up']" and not eagle_defeat:
+                signal="hola"
                 self.rect.y -= self.sprite_speed
                 self.current_direction = UP
                 self.sprite_index+=1
-            elif keys[pygame.K_s] and not eagle_defeat:
+                signal=0
+            elif keys[pygame.K_s] or signal=="Pressed buttons: ['down']" and not eagle_defeat:
+                signal="hola"
                 self.rect.y += self.sprite_speed
                 self.current_direction = DOWN
                 self.sprite_index+=1
-            elif keys[pygame.K_a] and not eagle_defeat:
+                signal=0
+            elif keys[pygame.K_a] or signal=="Pressed buttons: ['left']" and not eagle_defeat:
+                signal="hola"
                 self.rect.x -= self.sprite_speed
                 self.current_direction = LEFT
                 self.sprite_index+=1
-            elif keys[pygame.K_d] and not eagle_defeat:
+                signal=0
+            elif keys[pygame.K_d] or signal=="Pressed buttons: ['right']" and not eagle_defeat:
+                signal="hola"
                 self.rect.x += self.sprite_speed
                 self.current_direction = RIGHT
                 self.sprite_index+=1
+                signal=0
+            
+            elif (keys[pygame.K_o] or signal=="Pressed buttons: ['Button 14']") and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
+                signal = 0
+                if atacante.bolas_fuego>0:
+                    tip_x, tip_y = mirilla.get_tip_position()
+                    angle_rad = mirilla.angle
+                    proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "fuego")
+                    proyectil.sound.play()
+                    proyectiles.add(proyectil)
+                    atacante.lanzar_bola_fuego()
+            elif (keys[pygame.K_o] or signal=="Pressed buttons: ['Button 10']") and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
+                signal = 0
+                if atacante.bolas_agua>0:
+                    tip_x, tip_y = mirilla.get_tip_position()
+                    angle_rad = mirilla.angle
+                    proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "agua")
+                    proyectil.sound.play()
+                    proyectiles.add(proyectil)
+                    atacante.lanzar_bola_agua()
+            elif (keys[pygame.K_o] or signal=="Pressed buttons: ['Button 11']") and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
+                signal = 0
+                if atacante.bolas_polvora>0:
+                    tip_x, tip_y = mirilla.get_tip_position()
+                    angle_rad = mirilla.angle
+                    proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "polvora")
+                    proyectil.sound.play()
+                    proyectiles.add(proyectil)
+                    atacante.lanzar_bola_polvora()
 
 
 
@@ -597,7 +679,10 @@ def game(lista):
     puntajes_user2= []
     end=False
     user = 0
+    
     while running:
+        global proyectil
+        receive_data_from_uart()
         music(lista[user])
         
         velocidad_madera=0
@@ -659,21 +744,21 @@ def game(lista):
         score_saved=False
         tiempo_inicio = time.time()
         while ronda<=3:
+            
             tiempo_actual = time.time()
             tiempo_transcurrido = tiempo_actual - tiempo_inicio
             tiempo_segundos = round(tiempo_transcurrido)
-            print("obstaculos"+str(len(obstaculos)))
+         
             round_surface = TITLE_FONT.render("Login", True, PCBUTTON)  # Color blanco (#FFFFFF)
             round_rect = round_surface.get_rect(center=(WIDTH // 2, 50))  # Ajusta las coordenadas según la posición que desees
 
-            print(ronda)
             screen.blit(fondo, (0, 0))
         
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     ronda=5
                     running = False
-
+                
                 if event.type == pygame.MOUSEBUTTONDOWN and not eagle_defeat and defensor_done:
                     if event.button == 1:
                         for obstaculo in obstaculos:
@@ -712,9 +797,6 @@ def game(lista):
                                     obstaculodrag.rect.x=obstaculodrag.originalPosition[0]
                                     obstaculodrag.rect.y=obstaculodrag.originalPosition[1]
                                     
-                                    
-                                
-                                    print('colision')
                                 obstaculodrag = None
                             else:
                                 #obstaculodrag.image.fill(ROJO_TRANSPARENTE)
@@ -750,7 +832,7 @@ def game(lista):
                             proyectil.sound.play()
                             proyectiles.add(proyectil)
                             atacante.lanzar_bola_agua()
-                    if event.key == pygame.K_l and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
+                    if event.key == pygame.K_l  and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
                         if atacante.bolas_polvora>0:
                             tip_x, tip_y = mirilla.get_tip_position()
                             angle_rad = mirilla.angle
@@ -758,7 +840,7 @@ def game(lista):
                             proyectil.sound.play()
                             proyectiles.add(proyectil)
                             atacante.lanzar_bola_polvora()
-            
+                
             obstaculos_activos.empty()
             for obstaculo in obstaculos:
                 if obstaculo.is_active:
@@ -781,9 +863,7 @@ def game(lista):
                     elif obstaculo.tipo=="piedra":
                         obstaculos_piedra.add(obstaculo)
                     obstaculos_inactivos.add(obstaculo)
-            print("obstaculos madera: "+str(len(obstaculos_madera)))
-            print("obstaculos concreto: "+str(len(obstaculos_concreto)))
-            print("obstaculos piedra: "+str(len(obstaculos_piedra)))
+
             if len(obstaculos_activos)>=5:
                     obs_done=True
 
@@ -808,7 +888,7 @@ def game(lista):
             if colisiones:
                 pygame.mixer.Sound('sounds/explosion.mp3').play()
                 obstaculos_destruidos += len(colisiones)
-                print(obstaculos_destruidos)
+
                 # Verificar la vida del defensor
 
         # agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
@@ -856,9 +936,9 @@ def game(lista):
                     break
                 if ronda<3:
                     if ronda==1:
-                        user=1
+                        user=0
                     elif ronda==2:
-                        user=2
+                        user=1
                     ronda = ronda+1
                     break
             elif tiempo_segundos>tiempo_defensa_defensor:
@@ -899,9 +979,9 @@ def game(lista):
                 screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
                 if ronda<3:
                     if ronda==1:
-                        user=1
+                        user=0
                     elif ronda==2:
-                        user=2
+                        user=1
                     ronda = ronda+1
                     break
             if defensor_done and not end:
@@ -1003,7 +1083,6 @@ def game(lista):
                 current_frame = (current_frame + 1) % 100
             # Calcular el tiempo en segundos transcurrido desde el inicio del juego
             
-
             # Mostrar el tiempo en la ventana del juego
             font = pygame.font.Font(None, 36)  # Fuente y tamaño del texto
             texto_tiempo = font.render("Tiempo: {} seg".format(tiempo_segundos), True, (255, 255, 255))  # Crear el texto
@@ -1056,5 +1135,5 @@ def game(lista):
     pygame.quit()
 
 if __name__ == "__main__":
-    game(["ulises","ulisesmzz"])
+    game(["mrr79","ulises"])
 
