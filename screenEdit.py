@@ -177,7 +177,7 @@ def editScreen(username,WIDTH,HEIGHT,game,lista):
     buton_song1=Button('Editar',80,30,(WIDTH/3+200,HEIGHT/14.4*3+320),5,SCBUTTON,FONTEdit)
     buton_song2=Button('Editar',80,30,(WIDTH/3+200,HEIGHT/14.4*3+360),5,SCBUTTON,FONTEdit)
     buton_song3=Button('Editar',80,30,(WIDTH/3+200,HEIGHT/14.4*3+400),5,SCBUTTON,FONTEdit)
-    buton_photo=Button('Editar',80,30,(WIDTH/3+650,HEIGHT/14.4*3+350),5,SCBUTTON,FONTEdit)
+    buton_photo=Button('Editar',80,30,(WIDTH/3+800,HEIGHT/14.4*3+500),5,SCBUTTON,FONTEdit)
 
     font = pygame.font.Font(None, 30)
    

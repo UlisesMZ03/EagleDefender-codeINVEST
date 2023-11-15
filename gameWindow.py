@@ -15,16 +15,12 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import webbrowser
 import os
 import time
-<<<<<<< HEAD
 from screenEdit import editScreen
 from Button import Button
 
-
-=======
 import numpy as np
 import threading
 import serial
->>>>>>> 92c7c35e39f80f4156b4241f529979dacd85dcaf
 def game(lista):
     pygame.init()
     pygame.mixer.init()
@@ -768,8 +764,6 @@ def game(lista):
                 if event.type == pygame.QUIT:
                     ronda=5
                     running = False
-                
-<<<<<<< HEAD
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button==1:
                     mouse_pos = pygame.mouse.get_pos()
                     if img1_button.top_rect.collidepoint(mouse_pos):
@@ -778,9 +772,7 @@ def game(lista):
                     elif img2_button.top_rect.collidepoint(mouse_pos):
                         print("foto2")
                         editScreen(lista[1],WIDTH,HEIGHT,game,lista)
-
-=======
->>>>>>> 92c7c35e39f80f4156b4241f529979dacd85dcaf
+                        
                 if event.type == pygame.MOUSEBUTTONDOWN and not eagle_defeat and defensor_done:
                     if event.button == 1:
                         for obstaculo in obstaculos:
@@ -1160,7 +1152,7 @@ def game(lista):
     pygame.quit()
 
 if __name__ == "__main__":
-    game(["mrr79","ulises"])
+    game(["daniel","johnn"])
 
 
 
