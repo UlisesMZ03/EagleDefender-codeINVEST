@@ -14,7 +14,7 @@ from validate import validate_age,validate_password,validate_email,validate_user
 #from ImgRedon import cargar_imagen_redondeada
 
 
-def editScreen(username,WIDTH,HEIGHT,game,lista):
+def editScreen(username):
     pygame.init()
     screen_info = pygame.display.Info()
 
@@ -28,7 +28,7 @@ def editScreen(username,WIDTH,HEIGHT,game,lista):
     FONTEdit = pygame.font.Font("font/DejaVuSans.ttf", 20)
 
 # Configuración de la pantalla
-   
+    WIDTH, HEIGHT = screen_info.current_w, screen_info.current_h
     # Configurar el rectángulo para la vista previa de la cámara
     camera_preview_rect = pygame.Rect(WIDTH/7*4, HEIGHT/14.4*3, WIDTH/7*2-55, HEIGHT/14.4*4)
 
@@ -198,7 +198,7 @@ def editScreen(username,WIDTH,HEIGHT,game,lista):
         win.fill(BACKGROUND)
         crear_rectangulo_redondeado(hex_to_rgb(SCBUTTON),WIDTH/7+10, HEIGHT/14.4*3-20, WIDTH/7*3+50, HEIGHT/14.4*8+100,15,alpha=200,win=win)
         crear_rectangulo_redondeado(hex_to_rgb(TCBUTTOM),WIDTH/7+30, HEIGHT/14.4*3+50, WIDTH/7*3, HEIGHT/14.4*8,15,alpha=200,win=win)
-        crear_rectangulo_redondeado(hex_to_rgb(PCBUTTON),WIDTH/7+1000, HEIGHT/14.4*3+20, WIDTH/7*2+100, HEIGHT/14.4*8,15,alpha=200,win=win)
+        crear_rectangulo_redondeado(hex_to_rgb(PCBUTTON),WIDTH/7+700, HEIGHT/14.4*3+20, WIDTH/7*2+100, HEIGHT/14.4*8,15,alpha=200,win=win)
         time_delta = pygame.time.Clock().tick(60)/1000.0
         for event in pygame.event.get():
             email_input.handle_event(event,PCBUTTON,SCBUTTON)
@@ -217,32 +217,33 @@ def editScreen(username,WIDTH,HEIGHT,game,lista):
             
             if event.type == pygame.QUIT:
                 running = False
-                game(lista)
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
                 if buton_email.top_rect.collidepoint(mouse_pos):
                     print("email")
-                    edit(id,editScreen,username,WIDTH,HEIGHT,Usuario.updateEmail,"EDITAR EMAIL","This email is already taken. Please choose another one.",validate_email,'Email','Please enter a valid email address',game,lista)
+                    edit(id,editScreen,username,WIDTH,HEIGHT,Usuario.updateEmail,"EDITAR EMAIL","This email is already taken. Please choose another one.",validate_email,'Email','Please enter a valid email address')
                 elif buton_name.top_rect.collidepoint(mouse_pos):
                     print("name") 
-                    edit(id,editScreen,username,WIDTH,HEIGHT,Usuario.updateName,"EDITAR Name","",None,'Name',"",game,lista)
+                    edit(id,editScreen,username,WIDTH,HEIGHT,Usuario.updateName,"EDITAR Name","",None,'Name',"")
                 elif buton_age.top_rect.collidepoint(mouse_pos):
-                    edit(id,editScreen,username,WIDTH,HEIGHT,Usuario.updateAge,"EDITAR Age","",validate_age,'Age',"Password must be at least 8 characters long with at least one uppercase letter and one special symbol",game,lista)
+                    edit(id,editScreen,username,WIDTH,HEIGHT,Usuario.updateAge,"EDITAR Age","",validate_age,'Age',"Password must be at least 8 characters long with at least one uppercase letter and one special symbol")
                 elif buton_username.top_rect.collidepoint(mouse_pos):
-                    edit(id,editScreen,username,WIDTH,HEIGHT,Usuario.updateUsername,"EDITAR Username","This username is already taken. Please choose another one",validate_username,'Username','Username contains prohibited words',game,lista)
+                    edit(id,editScreen,username,WIDTH,HEIGHT,Usuario.updateUsername,"EDITAR Username","This username is already taken. Please choose another one",validate_username,'Username','Username contains prohibited words')
                 elif buton_song1.top_rect.collidepoint(mouse_pos):
-                    editsong(id,editScreen,username,WIDTH,HEIGHT,Musica.upadateSong,music[0][0],music[0][1],"EDITAR cancion",game,lista)
+                    editsong(id,editScreen,username,WIDTH,HEIGHT,Musica.upadateSong,music[0][0],music[0][1],"EDITAR cancion")
                 elif buton_song2.top_rect.collidepoint(mouse_pos):
-                    editsong(id,editScreen,username,WIDTH,HEIGHT,Musica.upadateSong,music[1][0],music[1][1],"EDITAR cancion",game,lista)
+                    editsong(id,editScreen,username,WIDTH,HEIGHT,Musica.upadateSong,music[1][0],music[1][1],"EDITAR cancion")
                 elif buton_song3.top_rect.collidepoint(mouse_pos):
-                    editsong(id,editScreen,username,WIDTH,HEIGHT,Musica.upadateSong,music[2][0],music[2][1],"EDITAR cancion",game,lista)
+                    editsong(id,editScreen,username,WIDTH,HEIGHT,Musica.upadateSong,music[2][0],music[2][1],"EDITAR cancion")
                 elif buton_photo.top_rect.collidepoint(mouse_pos):
-                   editImg(id,editScreen,username,WIDTH,HEIGHT,game,lista)
+                   editImg(id,editScreen,username,WIDTH,HEIGHT)
     
                 elif iconEscRect.collidepoint(mouse_pos):
                     print('icon')
                     running=False
-                    game(lista)   
+
+                    sys.exit()      
                   
        
         #selected_image_surface=(hex_to_rgb(BACKGROUND),(WIDTH//60*25), 7, ((WIDTH//60)*11), (80),15,alpha=95,win=win)
@@ -259,7 +260,7 @@ def editScreen(username,WIDTH,HEIGHT,game,lista):
         song2_input.update()
         song3_input.update()
 
-        register_surface = TITLE_FONT.render("EDIt YOUR INFORMATION", True, PCBUTTON)
+        register_surface = TITLE_FONT.render("EDID YOUR INFORMATION", True, PCBUTTON)
         
         win.blit(register_surface, register_rect)
         win.blit(email_surface, email_rect)
@@ -305,8 +306,8 @@ def editScreen(username,WIDTH,HEIGHT,game,lista):
         win.blit(framed_image, (camera_preview_rect.x+220, camera_preview_rect.y+110)) 
         pygame.display.flip()
     pygame.quit()
-
+    sys.exit()
 
         
          
-#editScreen('daniel')
+editScreen('daniel')

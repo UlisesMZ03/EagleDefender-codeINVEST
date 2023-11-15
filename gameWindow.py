@@ -14,6 +14,8 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import webbrowser
 import os
 import time
+from screenEdit import editScreen
+from Button import Button
 
 
 def game(lista):
@@ -24,6 +26,8 @@ def game(lista):
     PCBUTTON = '#01F0BF'
     SCBUTTON = '#00A383'
     TCBUTTOM = '#006350'
+    FONTEdit = pygame.font.Font("font/DejaVuSans.ttf", 20)
+
     screen_info = pygame.display.Info()
     
 
@@ -44,7 +48,8 @@ def game(lista):
     powers_image = pygame.image.load("images/game/powers/power_inventory.png")
     powers_image = pygame.transform.scale(powers_image, (screen_width/8.5, screen_height/3.5))
     camera_preview_rect = pygame.Rect(WIDTH/7*4, HEIGHT/14.4*3, WIDTH/7*2-55, HEIGHT/14.4*4)
-
+    img1_button=Button('Editar',80,30,(WIDTH//11+200,HEIGHT/14.4),5,SCBUTTON,FONTEdit)
+    img2_button=Button('Editar',80,30,(WIDTH//11+1420,HEIGHT/14.4),5,SCBUTTON,FONTEdit)
     #camera_image = None  # Inicializar la imagen de la cámara fuera del bucle princUIDal
     #initial_image_surface = pygame.transform.scale(image_pp, (camera_preview_rect.width, camera_preview_rect.height))
 
@@ -598,6 +603,15 @@ def game(lista):
                 if event.type == pygame.QUIT:
                     ronda=5
                     running = False
+                
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button==1:
+                    mouse_pos = pygame.mouse.get_pos()
+                    if img1_button.top_rect.collidepoint(mouse_pos):
+                        print("foto1")
+                        editScreen(lista[0],WIDTH,HEIGHT,game,lista)
+                    elif img2_button.top_rect.collidepoint(mouse_pos):
+                        print("foto2")
+                        editScreen(lista[1],WIDTH,HEIGHT,game,lista)
 
                 if event.type == pygame.MOUSEBUTTONDOWN and not eagle_defeat and defensor_done:
                     if event.button == 1:
@@ -863,6 +877,9 @@ def game(lista):
             screen.blit(powers_image, (screen_width - screen_width/8.5, screen_height // 2 - (screen_height/3.5)/3))
             screen.blit(selected_image_surface1, (WIDTH//2-750, HEIGHT//2-520))
             screen.blit(selected_image_surface2, (WIDTH//2+750, HEIGHT//2-520))
+            img1_button.draw(PCBUTTON,TCBUTTOM,screen)
+            img2_button.draw(SCBUTTON,TCBUTTOM,screen)
+            
                 # Dibujar los círculos en el lado derecho de la pantalla
             radio = 7  # Radio de los círculos
             espacio_entre_circulos = 7  # Espacio entre los círculos
@@ -897,3 +914,7 @@ def game(lista):
     pygame.quit()
 
 
+
+
+
+#game(['daniel','johnn'])
