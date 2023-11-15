@@ -4,6 +4,7 @@ from objectbasedata import Musica
 from objectbasedata  import Usuario
 from objectbasedata  import Score
 import webbrowser as web
+import pygetwindow as gw
 import pyautogui
 from time import sleep
 import random
@@ -14,10 +15,16 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import webbrowser
 import os
 import time
+<<<<<<< HEAD
 from screenEdit import editScreen
 from Button import Button
 
 
+=======
+import numpy as np
+import threading
+import serial
+>>>>>>> 92c7c35e39f80f4156b4241f529979dacd85dcaf
 def game(lista):
     pygame.init()
     pygame.mixer.init()
@@ -29,8 +36,8 @@ def game(lista):
     FONTEdit = pygame.font.Font("font/DejaVuSans.ttf", 20)
 
     screen_info = pygame.display.Info()
-    
-
+    global signal
+    signal=0
     font = pygame.font.Font("font/KarmaFuture.ttf", 36)
     # Configuración de la pantalla
     screen_width, screen_height = screen_info.current_w, screen_info.current_h
@@ -140,33 +147,119 @@ def game(lista):
 
     obstaculo_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
     proyectile_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
-    # Inicializa el cliente de Spotipy
-    SPOTIPY_CLIENT_SECRET="0db3c2314d794ef28b594b4d24b07fe9"
-    SPOTIPY_CLIENT_ID="8051e3ec08d240639f7cad6370e88a67"
-    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET))
 
-    """
-    def get_spotify_track_url(track_id):
+    
+
+
+    import pyautogui
+    import psutil
+
+    def close_spotify():
+        for process in psutil.process_iter(['pid', 'name']):
+            if 'Spotify' in process.info['name']:
+                print(f"Cerrando Spotify (PID: {process.info['pid']})")
+                psutil.Process(process.info['pid']).terminate()
+    from spotipy.oauth2 import SpotifyOAuth
+    from spotipy.oauth2 import SpotifyClientCredentials
+
+    def get_track_features(track_id):
+        sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id='8051e3ec08d240639f7cad6370e88a67',
+                                                                                client_secret='0db3c2314d794ef28b594b4d24b07fe9'))
+
         track_info = sp.track(track_id)
-        track_url = track_info['external_urls']['spotify']
-        return track_url
+        features = sp.audio_features([track_id])
+
+        tempo = features[0]['tempo']
+        key = features[0]['key']
+        valence = features[0]['valence']
+        energy = features[0]['energy']
+        danceability = features[0]['danceability']
+        instrumentalness = features[0]['instrumentalness']
+        acousticness = features[0]['acousticness']
+        duration_ms = features[0]['duration_ms']
+
+        return tempo, key, valence, energy, danceability, instrumentalness, acousticness, duration_ms
 
     def music(username):
-        userName_encript = Usuario.encripta(username)
-        username1 = Usuario.getID(userName_encript)
+        # Cierra Spotify si ya está abierto
+        close_spotify()
+
+        username1 = Usuario.getID(username)
         
         musica_user = Musica.getMusic(username1)
-        print(musica_user)
-        size = len(musica_user)
-        n = random.randint(0, size - 1)
-        track_id = musica_user[n][0]  # Asegúrate de obtener el ID de la pista de la lista de música
-        track_url = get_spotify_track_url(track_id)
-        webbrowser.open(track_url)"""
-    def music(username):
-        id=Usuario.getID(username)
-        musica_user = Musica.getMusic(id)
-        size = len(musica_user)
-        n = random.randint(0, size - 1)
+        if musica_user:
+            
+
+
+            size = len(musica_user)
+            n = random.randint(0, size - 1)
+            global track_id
+            track_id = musica_user[n][0]
+
+            # Obtén las características de la pista
+            tempo, key, valence, energy, danceability, instrumentalness, acousticness, duration_ms = get_track_features(track_id)
+
+            # Imprime las características
+            print(f"Tempo: {tempo}")
+            print(f"Tono: {key}")
+            print(f"Valencia: {valence}")
+            print(f"Energía: {energy}")
+            print(f"Bailabilidad: {danceability}")
+            print(f"Instrumentalidad: {instrumentalness}")
+            print(f"Acústica: {acousticness}")
+            print(f"Duración (ms): {duration_ms}")
+            # Abre Spotify con la URL de la pista
+            webbrowser.open(track_id)
+
+            # Espera un momento para asegurarse de que la ventana de Spotify esté abierta
+            time.sleep(0.5)
+
+            # Envía comandos de teclado para minimizar la ventana de Spotify
+            pyautogui.hotkey("win", "down")  # Esto funciona en Windows para minimizar la ventana
+
+
+    def receive_data_from_uart():
+        def uart_thread_function():
+            # Puertos serie para Linux y Windows
+            SERIAL_PORTS = []
+
+            # Puertos serie en Linux
+            linux_serial_ports = ['/dev/ttyACM0', '/dev/ttyACM1', '/dev/ttyACM2', '/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyS0', '/dev/ttyS1']
+
+            # Puertos serie en Windows (los nombres pueden variar)
+            windows_serial_ports = ['COM1', 'COM2', 'COM3', 'COM4']
+
+            # Agregar puertos serie de Linux a la lista
+            SERIAL_PORTS.extend(linux_serial_ports)
+
+            # Agregar puertos serie de Windows a la lista
+            SERIAL_PORTS.extend(windows_serial_ports)
+
+            BAUD_RATE = 9600
+            global signal
+            
+            while True:  # Bucle infinito para seguir escuchando
+                for port in SERIAL_PORTS:
+                    try:
+                        with serial.Serial(port, BAUD_RATE) as ser:
+                            print(f"Conectado a {port}")
+                            while True:  # Bucle infinito para leer datos
+                                data_received = ser.readline().decode().strip()
+                                print(data_received)
+                                if data_received != 'None':
+                                    # Realizar alguna acción con los datos recibidos si es necesario
+                                 signal = data_received
+                                
+                    except serial.SerialException:
+                        pass  # Puedes agregar manejo de errores aquí si es necesario
+
+        # Creamos un hilo para ejecutar uart_thread_function()
+        uart_thread = threading.Thread(target=uart_thread_function)
+        
+        # Iniciamos el hilo
+        uart_thread.start()
+ 
+    
         
     def load_selected_image(image_path):
         if os.path.exists(image_path):
@@ -212,7 +305,7 @@ def game(lista):
             self.is_active = True
 
         def deactivate(self):
-            print("desactivado")
+   
             # Logic to deactivate/unplace the object
             self.is_active = False
         def addFilter(self,image):
@@ -288,7 +381,6 @@ def game(lista):
             return pygame.transform.scale(sprite_original, (int(nuevo_ancho_aguila), int(nuevo_alto_aguila)))
 
         def recibir_dano(self, dano):
-            print(self.vida)
             self.vida -= dano
 
 
@@ -304,7 +396,7 @@ def game(lista):
             super().__init__()
             self.sprite_width = 32
             self.sprite_height = 32
-            self.sprite_speed = 3
+            self.sprite_speed = 12
             self.sprite_index = 1
             self.spritesheet = pygame.image.load("images/game/spritesheet.png")
             self.spritesheet.set_colorkey((255, 0, 255))
@@ -349,45 +441,86 @@ def game(lista):
             return pygame.transform.scale(sprite_original, (nuevo_ancho, nuevo_alto))
 
         def update(self):
-            
+            global signal
+            global proyectil
             keys = pygame.key.get_pressed()
-
-            if keys[pygame.K_w] and keys[pygame.K_d] and not eagle_defeat:
+            
+            if keys[pygame.K_w] and keys[pygame.K_d] or signal=="Pressed buttons: ['up', 'right']" and not eagle_defeat:
                 self.rect.y -= self.sprite_speed
                 self.rect.x += self.sprite_speed
                 self.current_direction = UPRIGHT
                 self.sprite_index+=1
-            elif keys[pygame.K_w] and keys[pygame.K_a] and not eagle_defeat:
+                signal=0
+            elif keys[pygame.K_w] and keys[pygame.K_a] or signal=="Pressed buttons: ['up', 'left']" and not eagle_defeat:
                 self.rect.y -= self.sprite_speed
                 self.rect.x -= self.sprite_speed
                 self.current_direction = UPLEFT
                 self.sprite_index+=1
-            elif keys[pygame.K_s] and keys[pygame.K_d] and not eagle_defeat:
+                signal=0
+            elif keys[pygame.K_s] and keys[pygame.K_d] or signal=="Pressed buttons: ['down', 'right']" and not eagle_defeat:
                 self.rect.y += self.sprite_speed
                 self.rect.x += self.sprite_speed
                 self.current_direction = DOWNRIGHT
                 self.sprite_index+=1
-            elif keys[pygame.K_s] and keys[pygame.K_a] and not eagle_defeat:
+                signal=0
+            elif keys[pygame.K_s] and keys[pygame.K_a] or signal=="Pressed buttons: ['down', 'left']" and not eagle_defeat:
                 self.rect.y += self.sprite_speed
                 self.rect.x -= self.sprite_speed
                 self.current_direction = DOWNLEFT
                 self.sprite_index+=1
-            elif keys[pygame.K_w] and not eagle_defeat:
+                signal=0
+            elif keys[pygame.K_w] or signal=="Pressed buttons: ['up']" and not eagle_defeat:
+                signal="hola"
                 self.rect.y -= self.sprite_speed
                 self.current_direction = UP
                 self.sprite_index+=1
-            elif keys[pygame.K_s] and not eagle_defeat:
+                signal=0
+            elif keys[pygame.K_s] or signal=="Pressed buttons: ['down']" and not eagle_defeat:
+                signal="hola"
                 self.rect.y += self.sprite_speed
                 self.current_direction = DOWN
                 self.sprite_index+=1
-            elif keys[pygame.K_a] and not eagle_defeat:
+                signal=0
+            elif keys[pygame.K_a] or signal=="Pressed buttons: ['left']" and not eagle_defeat:
+                signal="hola"
                 self.rect.x -= self.sprite_speed
                 self.current_direction = LEFT
                 self.sprite_index+=1
-            elif keys[pygame.K_d] and not eagle_defeat:
+                signal=0
+            elif keys[pygame.K_d] or signal=="Pressed buttons: ['right']" and not eagle_defeat:
+                signal="hola"
                 self.rect.x += self.sprite_speed
                 self.current_direction = RIGHT
                 self.sprite_index+=1
+                signal=0
+            
+            elif (keys[pygame.K_o] or signal=="Pressed buttons: ['Button 14']") and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
+                signal = 0
+                if atacante.bolas_fuego>0:
+                    tip_x, tip_y = mirilla.get_tip_position()
+                    angle_rad = mirilla.angle
+                    proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "fuego")
+                    proyectil.sound.play()
+                    proyectiles.add(proyectil)
+                    atacante.lanzar_bola_fuego()
+            elif (keys[pygame.K_o] or signal=="Pressed buttons: ['Button 10']") and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
+                signal = 0
+                if atacante.bolas_agua>0:
+                    tip_x, tip_y = mirilla.get_tip_position()
+                    angle_rad = mirilla.angle
+                    proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "agua")
+                    proyectil.sound.play()
+                    proyectiles.add(proyectil)
+                    atacante.lanzar_bola_agua()
+            elif (keys[pygame.K_o] or signal=="Pressed buttons: ['Button 11']") and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
+                signal = 0
+                if atacante.bolas_polvora>0:
+                    tip_x, tip_y = mirilla.get_tip_position()
+                    angle_rad = mirilla.angle
+                    proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "polvora")
+                    proyectil.sound.play()
+                    proyectiles.add(proyectil)
+                    atacante.lanzar_bola_polvora()
 
 
 
@@ -532,6 +665,20 @@ def game(lista):
             if block != other_block and block.rect.colliderect(other_block.rect):
                 return True
         return False
+    def cocinero(tempo, tonos, valencia, energia, bailabilidad, instrumentalidad, acustica, duracion):
+        if valencia > 0.7:
+            nValencia = 2
+        else:
+            nValencia = 1
+        
+        if bailabilidad > 0.7:
+            nBailabilidad = np.random.poisson(bailabilidad)
+        else:
+            nBailabilidad = np.random.exponential(bailabilidad)
+        
+        valor = (tempo + tonos + valencia * nValencia + energia + bailabilidad * nBailabilidad + (1 - instrumentalidad) + acustica) * (duracion / 1000)
+        
+        return valor
     esperando_tecla = True
     TITLE_FONT = pygame.font.Font("font/KarmaFuture.ttf", 50)
     FONT = pygame.font.Font("font/DejaVuSans.ttf", 20)
@@ -541,9 +688,23 @@ def game(lista):
     puntajes_user1= []
     puntajes_user2= []
     end=False
+    user = 0
+    
     while running:
+        global proyectil
+        receive_data_from_uart()
+        music(lista[user])
         
+        velocidad_madera=0
+        velocidad_concreto=0
+        velocidad_piedra=0
+        velocidad_fuego =0
 
+        velocidad_agua =0
+        velocidad_polvora =0
+        features = get_track_features(track_id)
+
+        velocidad = cocinero(features[0], features[1], features[2], features[3], features[4], features[5], features[6], features[7]/100)
         obstaculos = pygame.sprite.Group()
         # Definir el color del círculo (en RGB)
         circle_color = (255, 0, 0)
@@ -558,7 +719,11 @@ def game(lista):
         proyectiles = pygame.sprite.Group()
         todos_los_sprites = pygame.sprite.Group()  
         obstaculos_activos = pygame.sprite.Group()
+
         obstaculos_inactivos = pygame.sprite.Group()
+        obstaculos_madera=pygame.sprite.Group()
+        obstaculos_concreto=pygame.sprite.Group()
+        obstaculos_piedra=pygame.sprite.Group()
         mirilla = Mirilla(atacante, offset=(0, 0))
         todos_los_sprites.add(mirilla)  
         proyectil_velocidad = 5
@@ -576,7 +741,7 @@ def game(lista):
         defensor_done=False
         obs_done=False
         tiempo_ataque_atacante = 40
-        tiempo_defensa_defensor = 40
+        tiempo_defensa_defensor = features[7]/1000
 
         
         obstaculos_destruidos = 0
@@ -589,14 +754,14 @@ def game(lista):
         score_saved=False
         tiempo_inicio = time.time()
         while ronda<=3:
+            
             tiempo_actual = time.time()
             tiempo_transcurrido = tiempo_actual - tiempo_inicio
             tiempo_segundos = round(tiempo_transcurrido)
-            print("obstaculos"+str(len(obstaculos)))
+         
             round_surface = TITLE_FONT.render("Login", True, PCBUTTON)  # Color blanco (#FFFFFF)
             round_rect = round_surface.get_rect(center=(WIDTH // 2, 50))  # Ajusta las coordenadas según la posición que desees
 
-            print(ronda)
             screen.blit(fondo, (0, 0))
         
             for event in pygame.event.get():
@@ -604,6 +769,7 @@ def game(lista):
                     ronda=5
                     running = False
                 
+<<<<<<< HEAD
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button==1:
                     mouse_pos = pygame.mouse.get_pos()
                     if img1_button.top_rect.collidepoint(mouse_pos):
@@ -613,6 +779,8 @@ def game(lista):
                         print("foto2")
                         editScreen(lista[1],WIDTH,HEIGHT,game,lista)
 
+=======
+>>>>>>> 92c7c35e39f80f4156b4241f529979dacd85dcaf
                 if event.type == pygame.MOUSEBUTTONDOWN and not eagle_defeat and defensor_done:
                     if event.button == 1:
                         for obstaculo in obstaculos:
@@ -643,17 +811,14 @@ def game(lista):
                             mouse_x, mouse_y = event.pos
                             #Verificar que no se coloque el bloque en el area enemiga
                             if mouse_x<screen_width//2 and mouse_x>screen_width//8 and mouse_y>=screen_height//8*2+ screen_height//10 and mouse_y<screen_height//8*7+screen_height//10:
-                                #obstaculodrag.image=obstaculodrag.obs_img
+                                obstaculodrag.image=obstaculodrag.obs_img
                                 if check_collision(obstaculodrag, obstaculos):
                                     obstaculodrag.imgBack()
                                     obstaculodrag.deactivate()
-                                    obstaculodrag.changeImg(event.pos)
+                                    #obstaculodrag.changeImg(event.pos)
                                     obstaculodrag.rect.x=obstaculodrag.originalPosition[0]
+                                    obstaculodrag.rect.y=obstaculodrag.originalPosition[1]
                                     
-                                    
-                                    
-                                
-                                    print('colision')
                                 obstaculodrag = None
                             else:
                                 #obstaculodrag.image.fill(ROJO_TRANSPARENTE)
@@ -689,7 +854,7 @@ def game(lista):
                             proyectil.sound.play()
                             proyectiles.add(proyectil)
                             atacante.lanzar_bola_agua()
-                    if event.key == pygame.K_l and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
+                    if event.key == pygame.K_l  and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
                         if atacante.bolas_polvora>0:
                             tip_x, tip_y = mirilla.get_tip_position()
                             angle_rad = mirilla.angle
@@ -697,21 +862,37 @@ def game(lista):
                             proyectil.sound.play()
                             proyectiles.add(proyectil)
                             atacante.lanzar_bola_polvora()
-            
+                
             obstaculos_activos.empty()
             for obstaculo in obstaculos:
                 if obstaculo.is_active:
                     obstaculos_activos.add(obstaculo)
+
+
+
+
+
             obstaculos_inactivos.empty()
+            obstaculos_madera.empty()
+            obstaculos_concreto.empty()
+            obstaculos_piedra.empty()
             for obstaculo in obstaculos:
                 if not obstaculo.is_active:
+                    if obstaculo.tipo=="madera":
+                        obstaculos_madera.add(obstaculo)
+                    elif obstaculo.tipo=="concreto":
+                        obstaculos_concreto.add(obstaculo)
+                    elif obstaculo.tipo=="piedra":
+                        obstaculos_piedra.add(obstaculo)
                     obstaculos_inactivos.add(obstaculo)
-            
+
             if len(obstaculos_activos)>=5:
                     obs_done=True
-            
-            agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
+
+
+
             colisiones = pygame.sprite.groupcollide(obstaculos_activos, proyectiles, True, True)
+            
             if defensor_done:
                 colisiones_defensor = pygame.sprite.spritecollide(defensor, proyectiles, True)
                 if colisiones_defensor:
@@ -729,7 +910,7 @@ def game(lista):
             if colisiones:
                 pygame.mixer.Sound('sounds/explosion.mp3').play()
                 obstaculos_destruidos += len(colisiones)
-                print(obstaculos_destruidos)
+
                 # Verificar la vida del defensor
 
         # agregarBloquesEstante(0,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
@@ -776,7 +957,10 @@ def game(lista):
                     end = True
                     break
                 if ronda<3:
-                   
+                    if ronda==1:
+                        user=0
+                    elif ronda==2:
+                        user=1
                     ronda = ronda+1
                     break
             elif tiempo_segundos>tiempo_defensa_defensor:
@@ -816,6 +1000,10 @@ def game(lista):
                 
                 screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
                 if ronda<3:
+                    if ronda==1:
+                        user=0
+                    elif ronda==2:
+                        user=1
                     ronda = ronda+1
                     break
             if defensor_done and not end:
@@ -838,6 +1026,65 @@ def game(lista):
                 mirilla.update()
                 todos_los_sprites.update()
                 todos_los_sprites.draw(screen)
+                if len(obstaculos_madera)!=0:
+                    velocidad_madera += (1 / (len(obstaculos_madera)* velocidad))
+                else:
+                    velocidad_madera += (1 / (0.9 * velocidad))
+                
+                if len(obstaculos_concreto)!=0:
+                    velocidad_concreto += (1 / (len(obstaculos_concreto) * velocidad))
+                else:
+                    velocidad_concreto += (1 / (0.9 * velocidad))
+                
+                if len(obstaculos_piedra)!=0:
+                    velocidad_piedra += (1 / (len(obstaculos_piedra) * velocidad))
+                else:
+                    velocidad_piedra += (1 / (0.9 * velocidad))
+
+
+
+    # Verificar y evitar división por cero
+                if atacante.bolas_fuego != 0:
+                    velocidad_fuego += (1 / (atacante.bolas_fuego * velocidad))
+                else:
+                    # Manejar el caso cuando bolas_fuego es igual a cero
+                    velocidad_fuego += (1 / (0.9 * velocidad))
+
+                if atacante.bolas_agua != 0:
+                    velocidad_agua += (1 / (atacante.bolas_agua * velocidad))
+                else:
+                    # Manejar el caso cuando bolas_agua es igual a cero
+                    velocidad_agua += (1 / (0.9 * velocidad))
+
+
+                if atacante.bolas_polvora != 0:
+                    velocidad_polvora += (1 / (atacante.bolas_polvora * velocidad))
+                else:
+                    # Manejar el caso cuando bolas_polvora es igual a cero
+                    velocidad_polvora  += (1 / (0.9 * velocidad))
+
+                if int(velocidad_madera)+len(obstaculos_madera)!=len(obstaculos_madera):
+                    velocidad_madera=0
+                    agregarBloquesEstante(1,150,screen_height//2-100,textura_maderaElem1,textura_madera,obstaculoMadera,"madera")
+                if int(velocidad_concreto)+len(obstaculos_concreto)!=len(obstaculos_concreto):
+                    velocidad_concreto=0
+                
+                    agregarBloquesEstante(1,150,screen_height//2-150,textura_concretoElem1,textura_concreto,obstaculoConcreto,"concreto")
+
+                if int(velocidad_piedra)+len(obstaculos_piedra)!=len(obstaculos_piedra):
+                    velocidad_piedra=0
+                    agregarBloquesEstante(1,150,screen_height//2-50,textura_piedraElem1,textura_piedra,obstaculoPiedra,"piedra")
+
+                if int(velocidad_fuego)+atacante.bolas_fuego!=atacante.bolas_fuego:
+                    velocidad_fuego=0
+                    atacante.bolas_fuego+=1
+                if int(velocidad_agua)+atacante.bolas_agua!=atacante.bolas_agua:
+                    velocidad_agua=0
+                    atacante.bolas_agua+=1
+
+                if int(velocidad_polvora)+atacante.bolas_polvora!=atacante.bolas_polvora:
+                    velocidad_polvora=0
+                    atacante.bolas_polvora+=1
             elif defensor_done:
                 
                
@@ -858,7 +1105,6 @@ def game(lista):
                 current_frame = (current_frame + 1) % 100
             # Calcular el tiempo en segundos transcurrido desde el inicio del juego
             
-
             # Mostrar el tiempo en la ventana del juego
             font = pygame.font.Font(None, 36)  # Fuente y tamaño del texto
             texto_tiempo = font.render("Tiempo: {} seg".format(tiempo_segundos), True, (255, 255, 255))  # Crear el texto
@@ -913,6 +1159,8 @@ def game(lista):
         
     pygame.quit()
 
+if __name__ == "__main__":
+    game(["mrr79","ulises"])
 
 
 
