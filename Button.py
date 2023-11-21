@@ -4,7 +4,7 @@ FONT = pygame.font.Font("font/DejaVuSans.ttf", 20)
 FONT_SEC = pygame.font.Font("font/DejaVuSans.ttf", 20)
 special_symbols = ['!', '@', '#', '$', '%', '&', '*', '+', '-', '=', '_', '?', '<', '>', '.', ',', ':', ';']
 class Button:
-    def __init__(self,text,width,height,pos,elevation,color):
+    def __init__(self,text,width,height,pos,elevation,color,font):
         self.pressed = False
         self.elevation = elevation
         self.dynamic_elecation = elevation
@@ -21,11 +21,14 @@ class Button:
         self.bottom_color = color
         
 		#text
-        self.text_surf = FONT.render(text,True,'#FFFFFF')
+        self.text_surf = font.render(text,True,'#FFFFFF')
         self.text_rect = self.text_surf.get_rect(center = self.top_rect.center)
 
     
     def draw(self,color,color2,win):
+
+		# elevation logic 
+        
         self.top_rect.y = self.original_y_pos - self.dynamic_elecation
         self.text_rect.center = self.top_rect.center 
 
@@ -62,3 +65,4 @@ class Button:
         # Actualizar el tamaño del botón
         self.top_rect.width, self.top_rect.height = new_size
         self.bottom_rect.width, self.bottom_rect.height = new_size
+    

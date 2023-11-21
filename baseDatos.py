@@ -12,7 +12,7 @@ class database():
                     id INTEGER PRIMARY KEY AUTOINCREMENT,id_user Integer, name TEXT, artista TEXT, url TEXT,
                     FOREIGN KEY (id_user) REFERENCES usuarios(id)
                     );
-                    CREATE TABLE IF NOT EXISTS puntajes(id INTEGER PRIMARY KEY AUTOINCREMENT, id_user TEXT, puntos integer, FOREIGN KEY(id_user) REFERENCES usuarios(id));
+                    CREATE TABLE IF NOT EXISTS puntajes(id INTEGER PRIMARY KEY AUTOINCREMENT, id_user integer, puntos integer, FOREIGN KEY(id_user) REFERENCES usuarios(id));
                 
                 '''
 
