@@ -5,7 +5,7 @@ import re
 import json
 from objectbasedata import Usuario
 from objectbasedata import Musica
-import instructions
+
 import halloffame
 import serial
 import os
@@ -21,6 +21,7 @@ import register
 import login
 import shutil
 import pygame.mixer
+import instructionss
 pygame.mixer.init()
 
 pygame.init()
@@ -294,6 +295,12 @@ def menu_screen():
                 elif hall_of_fame_button.top_rect.collidepoint(mouse_pos):
                      
                     halloffame.hall_of_fame_screen() 
+                    pygame.quit()
+                    
+                    sys.exit()
+                elif instructions.top_rect.collidepoint(mouse_pos):
+                     
+                    instructionss.instructions_screen()
                     pygame.quit()
                     
                     sys.exit()

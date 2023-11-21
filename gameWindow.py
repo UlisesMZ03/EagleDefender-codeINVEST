@@ -18,6 +18,8 @@ import time
 import numpy as np
 import threading
 import serial
+import halloffame
+import sys
 def game(lista):
     pygame.init()
     pygame.mixer.init()
@@ -149,6 +151,8 @@ def game(lista):
             if 'Spotify' in process.info['name']:
                 print(f"Cerrando Spotify (PID: {process.info['pid']})")
                 psutil.Process(process.info['pid']).terminate()
+
+                
     from spotipy.oauth2 import SpotifyOAuth
     from spotipy.oauth2 import SpotifyClientCredentials
 
@@ -202,7 +206,7 @@ def game(lista):
             webbrowser.open(track_id)
 
             # Espera un momento para asegurarse de que la ventana de Spotify esté abierta
-            time.sleep(0.5)
+            time.sleep(0.9)
 
             # Envía comandos de teclado para minimizar la ventana de Spotify
             pyautogui.hotkey("win", "down")  # Esto funciona en Windows para minimizar la ventana
@@ -681,6 +685,7 @@ def game(lista):
     user = 0
     
     while running:
+        pygame.mixer.music.pause()
         global proyectil
         receive_data_from_uart()
         music(lista[user])
@@ -925,7 +930,16 @@ def game(lista):
                         score.save_data()
                         score_saved=True
                     end = True
-                    break
+
+                    time.sleep(5)
+                    
+                    halloffame.hall_of_fame_screen() 
+                    pygame.quit()
+                    
+                    sys.exit()
+
+
+
                 elif len(puntajes_user2)>1:
                     puntuacion_media = calcular_puntaje(puntajes_user2[0],puntajes_user2[1])
                     score = Score(lista[1],puntuacion_media)
@@ -933,6 +947,13 @@ def game(lista):
                         score.save_data()
                         score_saved=True
                     end = True
+
+                    time.sleep(5)
+                    
+                    halloffame.hall_of_fame_screen() 
+                    pygame.quit()
+                    
+                    sys.exit()
                     break
                 if ronda<3:
                     if ronda==1:
@@ -964,7 +985,12 @@ def game(lista):
                         score.save_data()
                         score_saved = True
                     end = True
+                    time.sleep(5)
                     
+                    halloffame.hall_of_fame_screen() 
+                    pygame.quit()
+                    
+                    sys.exit()
                     break
                 elif len(puntajes_user2) > 1:
                     puntuacion_media = calcular_puntaje(puntajes_user2[0], puntajes_user2[1])
@@ -973,7 +999,12 @@ def game(lista):
                         score.save_data()
                         score_saved = True
                     end = True
+                    time.sleep(5)
                     
+                    halloffame.hall_of_fame_screen() 
+                    pygame.quit()
+                    
+                    sys.exit()
                     break
                 
                 screen.blit(texto, (screen_width // 2 - texto.get_width() // 2, screen_height // 2 - texto.get_height() // 2))
