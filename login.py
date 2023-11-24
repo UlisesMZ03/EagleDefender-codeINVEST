@@ -414,7 +414,22 @@ def verificar_formato(data):
         return False
 def receive_data_from_uart():
     def uart_thread_function():
-        SERIAL_PORTS = ['/dev/ttyACM0', '/dev/ttyACM1', '/dev/ttyACM2']
+
+        # Puertos serie para Linux y Windows
+        SERIAL_PORTS = []
+
+        # Puertos serie en Linux
+        linux_serial_ports = ['/dev/ttyACM0', '/dev/ttyACM1', '/dev/ttyACM2', '/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyS0', '/dev/ttyS1']
+
+        # Puertos serie en Windows (los nombres pueden variar)
+        windows_serial_ports = ['COM1', 'COM2', 'COM3', 'COM4']
+
+        # Agregar puertos serie de Linux a la lista
+        SERIAL_PORTS.extend(linux_serial_ports)
+
+        # Agregar puertos serie de Windows a la lista
+        SERIAL_PORTS.extend(windows_serial_ports)
+
         BAUD_RATE = 9600
         global hilo_en_ejecucion
         global UID_device
@@ -428,10 +443,14 @@ def receive_data_from_uart():
                     data_received = ser.readline().decode().strip()
                     print("Datos recibidos desde Raspberry Pi Pico:", data_received)
                     if data_received!='None' and verificar_formato(data_received):
-                        hilo_en_ejecucion = False  # Detener el hilo si se recibe algún dato
-                        global UID_device
+                        # Detener el hilo si se recibe algún dato
                         UID_device = data_received
-                        
+                        global user_id
+                        global user_dev
+                        user_dev=Usuario.get_user_by_uid(UID_device)
+                        user_id= Usuario.get_user_id_by_uid(UID_device)
+
+                        hilo_en_ejecucion = False  
                         
                     else:
                         # Si no se recibe ningún dato, continúa escuchando
@@ -454,13 +473,11 @@ def receive_data_from_uart():
     
     if UID_device is not None:
          mostrar_mensaje_error('Conexión establecida', "El ID asignado es:" + UID_device, PCBUTTON, SCBUTTON)
-         global user_dev
-         user_dev = Usuario.get_user_by_uid(UID_device)
-         global user_id
-         user_id = user_dev['id']
+
     else:
-        mostrar_mensaje_error('Error de conexion', "No se ha podido establecer conexion\n             Intentalo nuevamente", PCBUTTON, SCBUTTON)
+        mostrar_mensaje_error('Error de conexion', "No se ha podido establecer conexion\n Intentalo nuevamente", PCBUTTON, SCBUTTON)
     uart_thread.join()  # Esperar a que el hilo termine
+    
     
     
 
