@@ -53,7 +53,8 @@ FONT_SEC = pygame.font.Font(pygame.font.match_font('dejavusans'), 20)
 background_image = pygame.image.load("images/bg2.jpg").convert()
 background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
 
-
+instrucciones_img = pygame.image.load("images/game/instructions/fondo.png").convert_alpha()
+instrucciones_img = pygame.transform.scale(instrucciones_img, (WIDTH/2+2*(WIDTH//4), HEIGHT//1.5))
 selected_theme = None
 
 
@@ -340,14 +341,20 @@ def instructions_screen():
                     pygame.quit()
                     
                     sys.exit()
+
                 elif puntaje_rect.collidepoint(mouse_pos):
-                     instructions_text = ("Puntaje")
+                     global instrucciones_img
+                     instructions_text = ("")
+                     instrucciones_img = pygame.image.load("images/game/instructions/puntaje.jpg").convert()
+                     instrucciones_img = pygame.transform.scale(instrucciones_img, (WIDTH/2.2, HEIGHT//2.2))
                      puntaje_color = SCBUTTON
                      atacante_color = PCBUTTON
                      partida_color = PCBUTTON
                      defensor_color = PCBUTTON
                      habilidades_color = PCBUTTON
                 elif partida_rect.collidepoint(mouse_pos):
+                     instrucciones_img = pygame.image.load("images/game/instructions/fondo.png").convert_alpha()
+                     instrucciones_img = pygame.transform.scale(instrucciones_img, (WIDTH/2.2, HEIGHT//2.2))
                      instructions_text = ("El juego Eagle Defender implica dos jugadores y dos partidas.\n" +
                     "En la primera, el defensor y el atacante se designan según el orden de  \n" +
                     "logueo. El defensor tiene un tiempo establecido para colocar bloques  \n" +
@@ -365,14 +372,21 @@ def instructions_screen():
                      defensor_color = PCBUTTON
                      habilidades_color = PCBUTTON
                 elif defensor_rect.collidepoint(mouse_pos):
-                     instructions_text = ("Defensor")
+                     
+                     instructions_text = ("")
+                     instrucciones_img = pygame.image.load("images/game/instructions/defensor.jpg").convert()
+                     instrucciones_img = pygame.transform.scale(instrucciones_img, (WIDTH/2.2, HEIGHT//2.2))
+              
                      puntaje_color = PCBUTTON
                      atacante_color = PCBUTTON
                      partida_color = PCBUTTON
                      defensor_color = SCBUTTON
                      habilidades_color = PCBUTTON
                 elif atacante_rect.collidepoint(mouse_pos):
-                     instructions_text = ("Atacante")
+                     instructions_text = ("")
+                     instrucciones_img = pygame.image.load("images/game/instructions/atacante.jpg").convert()
+                     instrucciones_img = pygame.transform.scale(instrucciones_img, (WIDTH/2.2, HEIGHT//2.2))
+                   
                      puntaje_color = PCBUTTON
                      atacante_color = SCBUTTON
                      partida_color = PCBUTTON
@@ -412,6 +426,7 @@ def instructions_screen():
         # Dentro del bucle principal de la función instructions_screen()
         menu_surface = TITLE_FONT.render("Instrucciones", True, PCBUTTON)
         win.blit(menu_surface, menu_rect)
+        win.blit(instrucciones_img,(WIDTH//3.61,HEIGHT//3))
 
         puntaje_surface = FONT_SUB_TITLE.render("Puntaje", True, puntaje_color)
 
