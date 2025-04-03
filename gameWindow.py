@@ -135,12 +135,12 @@ def game(lista):
     textura_concreto=pygame.transform.smoothscale(textura_concreto,tamano_textrura)
     textura_concretoElem1=pygame.transform.smoothscale(textura_concreto,tam_primerElemento)
 
-    obstaculoMadera = pygame.image.load('images/game/madera4.png').convert_alpha()
-    obstaculoPiedra=pygame.image.load('images/game/bloquePiedra.png').convert_alpha()
+    obstaculoMadera = pygame.image.load('images/game/bloque_madera.png').convert_alpha()
+    obstaculoPiedra=pygame.image.load('images/game/block_piedra.png').convert_alpha()
     obstaculoPiedra=pygame.transform.smoothscale(obstaculoPiedra,nuevo_tamano).convert_alpha()
     obstaculoMadera = pygame.transform.smoothscale(obstaculoMadera, nuevo_tamano).convert_alpha()
 
-    obstaculoConcreto= pygame.image.load('images/game/bloqueConcreto.png').convert_alpha()
+    obstaculoConcreto= pygame.image.load('images/game/bloque_concreto.png').convert_alpha()
     obstaculoConcreto = pygame.transform.smoothscale(obstaculoConcreto, nuevo_tamano).convert_alpha()
 
     obstaculo_img = pygame.image.load('images/game/Rock1_1_no_shadow.png')
@@ -152,54 +152,43 @@ def game(lista):
     import pyautogui
     import psutil
 
-    def close_spotify():
-        for process in psutil.process_iter(['pid', 'name']):
-            if 'Spotify' in process.info['name']:
-                print(f"Cerrando Spotify (PID: {process.info['pid']})")
-                psutil.Process(process.info['pid']).terminate()
-
-                
-    from spotipy.oauth2 import SpotifyOAuth
-    from spotipy.oauth2 import SpotifyClientCredentials
-
-    def get_track_features(track_id):
-        sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id='8051e3ec08d240639f7cad6370e88a67',
-                                                                                client_secret='0db3c2314d794ef28b594b4d24b07fe9'))
-
-        track_info = sp.track(track_id)
-        features = sp.audio_features([track_id])
-
-        tempo = features[0]['tempo']
-        key = features[0]['key']
-        valence = features[0]['valence']
-        energy = features[0]['energy']
-        danceability = features[0]['danceability']
-        instrumentalness = features[0]['instrumentalness']
-        acousticness = features[0]['acousticness']
-        duration_ms = features[0]['duration_ms']
+    def get_track_features(track_id=None):
+        """
+        Retorna características simuladas de una pista de música local.
+        Los valores están dentro de rangos realistas usados por Spotify.
+        """
+        tempo = random.uniform(90, 150)               # bpm
+        key = random.randint(0, 11)                   # C=0 ... B=11
+        valence = random.uniform(0.2, 0.9)            # 0 = triste, 1 = feliz
+        energy = random.uniform(0.3, 0.95)            # 0 = calmado, 1 = energético
+        danceability = random.uniform(0.4, 0.95)      # qué tan bailable es
+        instrumentalness = random.uniform(0.0, 0.5)   # 0 = vocal, 1 = instrumental
+        acousticness = random.uniform(0.1, 0.8)       # qué tan acústico suena
+        duration_ms = random.randint(100000, 240000)  # duración entre 1:40 y 4:00 min
 
         return tempo, key, valence, energy, danceability, instrumentalness, acousticness, duration_ms
 
+
     def music(username):
-        # Cierra Spotify si ya está abierto
-        close_spotify()
-
+        # Simular obtención de una pista local del usuario
         username1 = Usuario.getID(username)
-        
         musica_user = Musica.getMusic(username1)
+
         if musica_user:
-            
-
-
             size = len(musica_user)
             n = random.randint(0, size - 1)
             global track_id
-            track_id = musica_user[n][0]
+            track_id = musica_user[n][0]  # Ya no se usa como URL, pero lo dejamos para consistencia
 
-            # Obtén las características de la pista
+            # Reproducir música local (si quieres más de una pista, podrías mapear `track_id` a archivos)
+            pygame.mixer.music.load('sounds/game_music.mp3')  # O puedes usar uno distinto por `track_id`
+            pygame.mixer.music.set_volume(0.5)
+            pygame.mixer.music.play(-1)  # Repetir en bucle
+
+            # Obtener características simuladas
             tempo, key, valence, energy, danceability, instrumentalness, acousticness, duration_ms = get_track_features(track_id)
 
-            # Imprime las características
+            # Imprimir características simuladas
             print(f"Tempo: {tempo}")
             print(f"Tono: {key}")
             print(f"Valencia: {valence}")
@@ -208,15 +197,6 @@ def game(lista):
             print(f"Instrumentalidad: {instrumentalness}")
             print(f"Acústica: {acousticness}")
             print(f"Duración (ms): {duration_ms}")
-            # Abre Spotify con la URL de la pista
-            webbrowser.open(track_id)
-
-            # Espera un momento para asegurarse de que la ventana de Spotify esté abierta
-            time.sleep(0.9)
-
-            # Envía comandos de teclado para minimizar la ventana de Spotify
-            pyautogui.hotkey("win", "down")  # Esto funciona en Windows para minimizar la ventana
-
 
     def receive_data_from_uart():
         def uart_thread_function():
@@ -227,7 +207,7 @@ def game(lista):
             linux_serial_ports = ['/dev/ttyACM0', '/dev/ttyACM1', '/dev/ttyACM2', '/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyS0', '/dev/ttyS1']
 
             # Puertos serie en Windows (los nombres pueden variar)
-            windows_serial_ports = ['COM1', 'COM2', 'COM3', 'COM4']
+            windows_serial_ports = ['COM1', 'COM2', 'COM3', 'COM4', 'COM5']
 
             # Agregar puertos serie de Linux a la lista
             SERIAL_PORTS.extend(linux_serial_ports)
@@ -446,92 +426,89 @@ def game(lista):
             global signal
             global proyectil
             keys = pygame.key.get_pressed()
-            
-            if keys[pygame.K_w] and keys[pygame.K_d] or signal=="Pressed buttons: ['up', 'right']" and not eagle_defeat:
+            signal_str = str(signal)
+
+            if ((keys[pygame.K_w] and keys[pygame.K_d]) or ('up' in signal_str and 'right' in signal_str)) and not eagle_defeat:
                 self.rect.y -= self.sprite_speed
                 self.rect.x += self.sprite_speed
                 self.current_direction = UPRIGHT
-                self.sprite_index+=1
-                signal=""
-            elif keys[pygame.K_w] and keys[pygame.K_a] or signal=="Pressed buttons: ['up', 'left']" and not eagle_defeat:
+                self.sprite_index += 1
+                # Se remueven las palabras "up" y "right" de signal
+                signal = signal.replace("up", "").replace("right", "")
+            elif ((keys[pygame.K_w] and keys[pygame.K_a]) or ('up' in signal_str and 'left' in signal_str)) and not eagle_defeat:
                 self.rect.y -= self.sprite_speed
                 self.rect.x -= self.sprite_speed
                 self.current_direction = UPLEFT
-                self.sprite_index+=1
-                signal=""
-            elif keys[pygame.K_s] and keys[pygame.K_d] or signal=="Pressed buttons: ['down', 'right']" and not eagle_defeat:
+                self.sprite_index += 1
+                signal = signal.replace("up", "").replace("left", "")
+            elif ((keys[pygame.K_s] and keys[pygame.K_d]) or ('down' in signal_str and 'right' in signal_str)) and not eagle_defeat:
                 self.rect.y += self.sprite_speed
                 self.rect.x += self.sprite_speed
                 self.current_direction = DOWNRIGHT
-                self.sprite_index+=1
-                signal=""
-            elif keys[pygame.K_s] and keys[pygame.K_a] or signal=="Pressed buttons: ['down', 'left']" and not eagle_defeat:
-                signal=""
+                self.sprite_index += 1
+                signal = signal.replace("down", "").replace("right", "")
+            elif ((keys[pygame.K_s] and keys[pygame.K_a]) or ('down' in signal_str and 'left' in signal_str)) and not eagle_defeat:
                 self.rect.y += self.sprite_speed
                 self.rect.x -= self.sprite_speed
                 self.current_direction = DOWNLEFT
-                self.sprite_index+=1
-                
-            elif keys[pygame.K_w] or "up" in str(signal) and not eagle_defeat:
-                signal=""
+                self.sprite_index += 1
+                signal = signal.replace("down", "").replace("left", "")
+            elif (keys[pygame.K_w] or ('up' in signal_str)) and not eagle_defeat:
                 self.rect.y -= self.sprite_speed
                 self.current_direction = UP
-                self.sprite_index+=1
-             
-            elif keys[pygame.K_s] or "down" in str(signal) and not eagle_defeat:
-                signal=""
+                self.sprite_index += 1
+                signal = signal.replace("up", "")
+            elif (keys[pygame.K_s] or ('down' in signal_str)) and not eagle_defeat:
                 self.rect.y += self.sprite_speed
                 self.current_direction = DOWN
-                self.sprite_index+=1
-              
-            elif keys[pygame.K_a] or "left" in str(signal)  and not eagle_defeat:
-                signal=""
+                self.sprite_index += 1
+                signal = signal.replace("down", "")
+            elif (keys[pygame.K_a] or ('left' in signal_str)) and not eagle_defeat:
                 self.rect.x -= self.sprite_speed
                 self.current_direction = LEFT
-                self.sprite_index+=1
-                
-            elif keys[pygame.K_d] or "right" in str(signal) and not eagle_defeat:
-                signal=""
+                self.sprite_index += 1
+                signal = signal.replace("left", "")
+            elif (keys[pygame.K_d] or ('right' in signal_str)) and not eagle_defeat:
                 self.rect.x += self.sprite_speed
                 self.current_direction = RIGHT
-                self.sprite_index+=1
-                
-            
-            elif (keys[pygame.K_o] or "Button 14" in str(signal)) and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
-                signal = ""
-                if atacante.bolas_fuego>0:
+                self.sprite_index += 1
+                signal = signal.replace("right", "")
+
+            if (keys[pygame.K_o] or 'Button 14' in signal_str) and not eagle_defeat and defensor_done and obs_done:
+                if self.bolas_fuego > 0:
                     tip_x, tip_y = mirilla.get_tip_position()
                     angle_rad = mirilla.angle
                     proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "fuego")
                     proyectil.sound.play()
                     proyectiles.add(proyectil)
-                    atacante.lanzar_bola_fuego()
-            elif (keys[pygame.K_o] or "Button 10" in str(signal)) and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
-                signal = ""
-                if atacante.bolas_agua>0:
+                    self.lanzar_bola_fuego()
+                    signal = signal.replace("Button 14", "")
+
+            if (keys[pygame.K_o] or 'Button 10' in signal_str) and not eagle_defeat and defensor_done and obs_done:
+                if self.bolas_agua > 0:
                     tip_x, tip_y = mirilla.get_tip_position()
                     angle_rad = mirilla.angle
                     proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "agua")
                     proyectil.sound.play()
                     proyectiles.add(proyectil)
-                    atacante.lanzar_bola_agua()
-            elif (keys[pygame.K_o] or "Button 11" in str(signal)) and not eagle_defeat and defensor_done and obs_done:  # Se presiona la letra 'j'
-                signal = ""
-                if atacante.bolas_polvora>0:
+                    self.lanzar_bola_agua()
+                    signal = signal.replace("Button 10", "")
+
+            if (keys[pygame.K_o] or 'Button 11' in signal_str) and not eagle_defeat and defensor_done and obs_done:
+                if self.bolas_polvora > 0:
                     tip_x, tip_y = mirilla.get_tip_position()
                     angle_rad = mirilla.angle
                     proyectil = Proyectil(tip_x, tip_y, proyectil_velocidad, -angle_rad, "polvora")
                     proyectil.sound.play()
                     proyectiles.add(proyectil)
-                    atacante.lanzar_bola_polvora()
+                    self.lanzar_bola_polvora()
+                    signal = signal.replace("Button 11", "")
 
-
-
-            # Limitar la posición del sprite dentro de la pantalla si es necesario
+            # Limitar la posición del sprite dentro de la pantalla
             self.rect.x = max(screen_width // 2, min(screen_width // 8 * 7, self.rect.x))
             self.rect.y = max(screen_height // 8 * 2 + nuevo_alto // 4, min(screen_height // 8 * 7, self.rect.y))
 
-            # Actualizar el sprite actual
+            # Actualizar la imagen del sprite
             self.image = self.get_current_sprite()
 
         
@@ -618,16 +595,16 @@ def game(lista):
             # Mover el puntero con las teclas de flecha
             if keys[pygame.K_LEFT] or "Button 2" in str(signal):
                 signal=""
-                self.rect.x -= 5 if self.rect.left > self.allowed_area.left else 0
+                self.rect.x -= 10 if self.rect.left > self.allowed_area.left else 0
             if keys[pygame.K_RIGHT] or "Button 6" in str(signal):
                 signal=""
-                self.rect.x += 5 if self.rect.right < self.allowed_area.right else 0
+                self.rect.x += 10 if self.rect.right < self.allowed_area.right else 0
             if keys[pygame.K_UP] or "Button 3" in str(signal):
                 signal=""
-                self.rect.y -= 5 if self.rect.top > self.allowed_area.top else 0
+                self.rect.y -= 10 if self.rect.top > self.allowed_area.top else 0
             if keys[pygame.K_DOWN] or "Button 5" in str(signal):
                 signal=""
-                self.rect.y += 5 if self.rect.bottom < self.allowed_area.bottom else 0
+                self.rect.y += 10 if self.rect.bottom < self.allowed_area.bottom else 0
 
 
 
