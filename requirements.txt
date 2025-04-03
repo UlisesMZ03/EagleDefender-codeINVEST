@@ -1,0 +1,9 @@
+pygame-ce
+pygame_gui
+pyserial
+pygetwindow
+pyautogui
+spotipy
+python-dotenv
+numpy
+psutil
